@@ -1,0 +1,324 @@
+// import { useContext, useEffect, useState } from "react";
+// import { GlobalContext } from "../GlobalContext";
+// import swal from "sweetalert2";
+
+import { useEffect, useState } from "react";
+
+import axios from "axios";
+import SEO from "../SEO";
+import DashboardSummary from "../Components/DashboardSummary";
+import DoughnutChart from "../Components/DoughnutChart";
+import DashboardCompletionData from "../Components/DashboardCompletionData";
+
+const Home = () => {
+  const [statData, setStatData] = useState();
+
+  useEffect(() => {
+    const getStats = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/stats`,
+
+          {
+            headers: { Authorization: sessionStorage.getItem("auth") },
+          }
+        );
+        // console.log(res);
+        setStatData(res.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getStats();
+  }, []);
+  const data = [
+    {
+      svg: <i className="fa fa-user" aria-hidden="true"></i>,
+      title: "Users",
+      count: statData?.maleUser + statData?.femaleUser,
+    },
+    {
+      svg: <i className="fa fa-user" aria-hidden="true"></i>,
+      title: "Blood Requests",
+      count: statData?.bloodRequestCountCrit + statData?.bloodRequestCountNoCrit,
+    },
+    {
+      svg: <i className="fa fa-user" aria-hidden="true"></i>,
+      title: "Platelet Requests",
+      count: statData?.plateletRequestCountCrit + statData?.plateletRequestCountNoCrit,
+    },
+    {
+      svg: <i className="fa fa-user" aria-hidden="true"></i>,
+      title: "Tasks",
+      count: statData?.openTasks + statData?.closeTasks,
+    },
+  ];
+
+  return (
+    <div className="content-wrapper">
+      <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 p-0  ">
+        {data?.map(({ svg, title, count }, index) => (
+          <div className="my-3  " key={index}>
+            <DashboardCompletionData svg={svg} title={title} count={count} />
+          </div>
+        ))}
+      </div>
+
+      <SEO title="Dashboard" />
+      <>
+        {statData ? (
+          <>
+            <div className=" d-flex p-4 mobiresp">
+              <div className=" widmobires" style={{ width: "46%", padding: "10px", borderRadius: "20px" }}>
+                <div className="col-md-12 p-0 m-0 grid-margin transparent h-100">
+                  <div
+                    style={{
+                      borderRadius: 20,
+                      overflow: "hidden",
+                      border: "none",
+                    }}
+                    className="card shadow  col-md-12   p-0 my-0  "
+                  >
+                    <DashboardSummary
+                      summaryText="Total number of Users"
+                      noData={!Number(statData.maleUser + statData.femaleUser)}
+                      summaryData={[
+                        {
+                          dataName: "Male",
+                          percentageValue: Math.floor(
+                            (statData.maleUser / (statData.maleUser + statData.femaleUser)) * 100
+                          ),
+                          colorDiv: <div className="w-[10px] h-[10px] rounded-full bg-[#382BAC]"></div>,
+                          color: "#4b49ac",
+                          hoverColor: "#4b49ac",
+                          svg: (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              height="24px"
+                              viewBox="0 -960 960 960"
+                              width="24px"
+                              fill="#000"
+                            >
+                              <path d="M400-80v-280h-80v-240q0-33 23.5-56.5T400-680h160q33 0 56.5 23.5T640-600v240h-80v280H400Zm80-640q-33 0-56.5-23.5T400-800q0-33 23.5-56.5T480-880q33 0 56.5 23.5T560-800q0 33-23.5 56.5T480-720Z" />
+                            </svg>
+                          ),
+                        },
+                        {
+                          dataName: "Female",
+                          percentageValue: Math.floor(
+                            (statData.femaleUser / (statData.maleUser + statData.femaleUser)) * 100
+                          ),
+                          color: "#8a89c9",
+                          hoverColor: "#8a89c9",
+                          svg: (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              height="24px"
+                              viewBox="0 -960 960 960"
+                              width="24px"
+                              fill="#000"
+                            >
+                              <path d="M400-80v-240H280l122-308q10-24 31-38t47-14q26 0 47 14t31 38l122 308H560v240H400Zm80-640q-33 0-56.5-23.5T400-800q0-33 23.5-56.5T480-880q33 0 56.5 23.5T560-800q0 33-23.5 56.5T480-720Z" />
+                            </svg>
+                          ),
+                        },
+                      ]}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className=" widmobires" style={{ width: "46%", padding: "10px", borderRadius: "20px" }}>
+                <div className="col-md-12 p-0 m-0 grid-margin transparent h-100">
+                  <div
+                    style={{
+                      borderRadius: 20,
+                      overflow: "hidden",
+                      border: "none",
+                    }}
+                    className="card shadow  col-md-12   p-0 my-0   "
+                  >
+                    <DashboardSummary
+                      summaryText="Total number of Blood Requests"
+                      noData={!Number(statData.bloodRequestCountCrit + statData.bloodRequestCountNoCrit)}
+                      summaryData={[
+                        {
+                          dataName: "Critical",
+                          percentageValue: Math.floor(
+                            (statData.bloodRequestCountCrit /
+                              (statData.bloodRequestCountCrit + statData.bloodRequestCountNoCrit)) *
+                              100
+                          ),
+                          colorDiv: <div className="w-[10px] h-[10px] rounded-full bg-[#382BAC]"></div>,
+                          color: "#4b49ac",
+                          hoverColor: "#4b49ac",
+                          svg: (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              height="24px"
+                              viewBox="0 -960 960 960"
+                              width="24px"
+                              fill="#000"
+                            >
+                              <path d="M400-80v-280h-80v-240q0-33 23.5-56.5T400-680h160q33 0 56.5 23.5T640-600v240h-80v280H400Zm80-640q-33 0-56.5-23.5T400-800q0-33 23.5-56.5T480-880q33 0 56.5 23.5T560-800q0 33-23.5 56.5T480-720Z" />
+                            </svg>
+                          ),
+                        },
+                        {
+                          dataName: "Not Critical",
+                          percentageValue: Math.floor(
+                            (statData.bloodRequestCountNoCrit /
+                              (statData.bloodRequestCountCrit + statData.bloodRequestCountNoCrit)) *
+                              100
+                          ),
+                          color: "#8a89c9",
+                          hoverColor: "#8a89c9",
+                          svg: (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              height="24px"
+                              viewBox="0 -960 960 960"
+                              width="24px"
+                              fill="#000"
+                            >
+                              <path d="M400-80v-240H280l122-308q10-24 31-38t47-14q26 0 47 14t31 38l122 308H560v240H400Zm80-640q-33 0-56.5-23.5T400-800q0-33 23.5-56.5T480-880q33 0 56.5 23.5T560-800q0 33-23.5 56.5T480-720Z" />
+                            </svg>
+                          ),
+                        },
+                      ]}
+                    />
+                  </div>{" "}
+                </div>
+              </div>
+            </div>
+            <div className="h-50 d-flex px-4 mobiresp">
+              <div className=" widmobires" style={{ width: "46%", padding: "10px", borderRadius: "20px" }}>
+                <div className="col-md-12 p-0 m-0 grid-margin transparent h-100">
+                  <div
+                    style={{
+                      borderRadius: 20,
+                      overflow: "hidden",
+                      border: "none",
+                    }}
+                    className="card shadow  col-md-12   p-0 my-0   "
+                  >
+                    <DashboardSummary
+                      summaryText="Total number of Platelet Requests"
+                      noData={!Number(statData.plateletRequestCountCrit + statData.plateletRequestCountNoCrit)}
+                      summaryData={[
+                        {
+                          dataName: "Critical",
+                          percentageValue: Math.floor(
+                            (statData.plateletRequestCountCrit /
+                              (statData.plateletRequestCountCrit + statData.plateletRequestCountNoCrit)) *
+                              100
+                          ),
+                          colorDiv: <div className="w-[10px] h-[10px] rounded-full bg-[#382BAC]"></div>,
+                          color: "#4b49ac",
+                          hoverColor: "#4b49ac",
+                          svg: (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              height="24px"
+                              viewBox="0 -960 960 960"
+                              width="24px"
+                              fill="#000"
+                            >
+                              <path d="M400-80v-280h-80v-240q0-33 23.5-56.5T400-680h160q33 0 56.5 23.5T640-600v240h-80v280H400Zm80-640q-33 0-56.5-23.5T400-800q0-33 23.5-56.5T480-880q33 0 56.5 23.5T560-800q0 33-23.5 56.5T480-720Z" />
+                            </svg>
+                          ),
+                        },
+                        {
+                          dataName: "Not Critical",
+                          percentageValue: Math.floor(
+                            (statData.plateletRequestCountNoCrit /
+                              (statData.plateletRequestCountCrit + statData.plateletRequestCountNoCrit)) *
+                              100
+                          ),
+                          color: "#8a89c9",
+                          hoverColor: "#8a89c9",
+                          svg: (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              height="24px"
+                              viewBox="0 -960 960 960"
+                              width="24px"
+                              fill="#000"
+                            >
+                              <path d="M400-80v-240H280l122-308q10-24 31-38t47-14q26 0 47 14t31 38l122 308H560v240H400Zm80-640q-33 0-56.5-23.5T400-800q0-33 23.5-56.5T480-880q33 0 56.5 23.5T560-800q0 33-23.5 56.5T480-720Z" />
+                            </svg>
+                          ),
+                        },
+                      ]}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className=" widmobires" style={{ width: "46%", padding: "10px", borderRadius: "20px" }}>
+                <div className="col-md-12 p-0 m-0 grid-margin transparent h-100">
+                  <div
+                    style={{
+                      borderRadius: 20,
+                      overflow: "hidden",
+                      border: "none",
+                    }}
+                    className="card shadow  col-md-12   p-0 my-0   "
+                  >
+                    <DashboardSummary
+                      summaryText="Total number of Tasks"
+                      noData={!Number(statData.openTasks + statData.closeTasks)}
+                      summaryData={[
+                        {
+                          dataName: "Open",
+                          percentageValue: Math.floor(
+                            (statData.openTasks / (statData.openTasks + statData.closeTasks)) * 100
+                          ),
+                          colorDiv: <div className="w-[10px] h-[10px] rounded-full bg-[#382BAC]"></div>,
+                          color: "#4b49ac",
+                          hoverColor: "#4b49ac",
+                          svg: (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              height="24px"
+                              viewBox="0 -960 960 960"
+                              width="24px"
+                              fill="#000"
+                            >
+                              <path d="M400-80v-280h-80v-240q0-33 23.5-56.5T400-680h160q33 0 56.5 23.5T640-600v240h-80v280H400Zm80-640q-33 0-56.5-23.5T400-800q0-33 23.5-56.5T480-880q33 0 56.5 23.5T560-800q0 33-23.5 56.5T480-720Z" />
+                            </svg>
+                          ),
+                        },
+                        {
+                          dataName: "Closed",
+                          percentageValue: Math.floor(
+                            (statData.closeTasks / (statData.openTasks + statData.closeTasks)) * 100
+                          ),
+                          color: "#8a89c9",
+                          hoverColor: "#8a89c9",
+                          svg: (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              height="24px"
+                              viewBox="0 -960 960 960"
+                              width="24px"
+                              fill="#000"
+                            >
+                              <path d="M400-80v-240H280l122-308q10-24 31-38t47-14q26 0 47 14t31 38l122 308H560v240H400Zm80-640q-33 0-56.5-23.5T400-800q0-33 23.5-56.5T480-880q33 0 56.5 23.5T560-800q0 33-23.5 56.5T480-720Z" />
+                            </svg>
+                          ),
+                        },
+                      ]}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div>Loading...</div>
+        )}
+      </>
+    </div>
+  );
+};
+
+export default Home;
