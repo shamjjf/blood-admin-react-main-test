@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import DoughnutChart from "./DoughnutChart";
 
-const DashboardSummary = ({  summaryData,summaryText,noData}) => {
+const DashboardSummary = ({  summaryData, summaryText, noData, isPercentage=true}) => {
 
   return (
     <div className=" rounded-lg flex flex-col gap-y-1 min-w-[340px] w-100 h-[30rem]">
@@ -23,7 +23,7 @@ const DashboardSummary = ({  summaryData,summaryText,noData}) => {
 
               {data?.dataName}
             </span>
-            <span>{Math.floor(data?.percentageValue) || 0 }%</span>
+            <span>{Math.floor(data?.percentageValue) || 0 }{ isPercentage ? "%" : "" }</span>
           </div>
         ))}
       </div>
