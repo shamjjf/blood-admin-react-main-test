@@ -1,0 +1,25 @@
+body {
+  background-color: fff;
+}
+.hover-opacity {
+  opacity: 0.5;
+  transition: opacity 0.5s ease;
+}
+.hover-opacity:hover {
+  opacity: 1;
+}
+.detail-item {
+  margin-bottom: 1rem;
+}
+
+.detail-item strong {
+  display: inline-block;
+  min-width: 100px;
+  font-weight: bold;
+}
+
+.list-unstyled .badge {
+  font-size: 0.9rem;
+  padding: 0.5rem;
+}
+

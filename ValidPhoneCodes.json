@@ -1,0 +1,1394 @@
+{
+  "phoneCode": [
+    {
+      "country": "Afghanistan",
+      "region": "asia",
+      "textCode": "af",
+      "code": "93"
+    },
+    {
+      "country": "Albania",
+      "region": "europe",
+      "textCode": "al",
+      "code": "355"
+    },
+    {
+      "country": "Algeria",
+      "region": "africa",
+      "textCode": "dz",
+      "code": "213"
+    },
+    {
+      "country": "Andorra",
+      "region": "europe",
+      "textCode": "ad",
+      "code": "376"
+    },
+    {
+      "country": "Angola",
+      "region": "africa",
+      "textCode": "ao",
+      "code": "244"
+    },
+    {
+      "country": "Antigua and Barbuda",
+      "region": "america",
+      "textCode": "ag",
+      "code": "1268"
+    },
+    {
+      "country": "Argentina",
+      "region": "america",
+      "textCode": "ar",
+      "code": "54"
+    },
+    {
+      "country": "Armenia",
+      "region": "asia",
+      "textCode": "am",
+      "code": "374"
+    },
+    {
+      "country": "Aruba",
+      "region": "america",
+      "textCode": "aw",
+      "code": "297"
+    },
+    {
+      "country": "Australia",
+      "region": "oceania",
+      "textCode": "au",
+      "code": "61"
+    },
+    {
+      "country": "Austria",
+      "region": "europe",
+      "textCode": "at",
+      "code": "43"
+    },
+    {
+      "country": "Azerbaijan",
+      "region": "asia",
+      "textCode": "az",
+      "code": "994"
+    },
+    {
+      "country": "Bahamas",
+      "region": "america",
+      "textCode": "bs",
+      "code": "1242"
+    },
+    {
+      "country": "Bahrain",
+      "region": "middle-east",
+      "textCode": "bh",
+      "code": "973"
+    },
+    {
+      "country": "Bangladesh",
+      "region": "asia",
+      "textCode": "bd",
+      "code": "880"
+    },
+    {
+      "country": "Barbados",
+      "region": "america",
+      "textCode": "bb",
+      "code": "1246"
+    },
+    {
+      "country": "Belarus",
+      "region": "europe",
+      "textCode": "by",
+      "code": "375"
+    },
+    {
+      "country": "Belgium",
+      "region": "europe",
+      "textCode": "be",
+      "code": "32"
+    },
+    {
+      "country": "Belize",
+      "region": "america",
+      "textCode": "bz",
+      "code": "501"
+    },
+    {
+      "country": "Benin",
+      "region": "africa",
+      "textCode": "bj",
+      "code": "229"
+    },
+    {
+      "country": "Bhutan",
+      "region": "asia",
+      "textCode": "bt",
+      "code": "975"
+    },
+    {
+      "country": "Bolivia",
+      "region": "america",
+      "textCode": "bo",
+      "code": "591"
+    },
+    {
+      "country": "Bosnia and Herzegovina",
+      "region": "europe",
+      "textCode": "ba",
+      "code": "387"
+    },
+    {
+      "country": "Botswana",
+      "region": "africa",
+      "textCode": "bw",
+      "code": "267"
+    },
+    {
+      "country": "Brazil",
+      "region": "america",
+      "textCode": "br",
+      "code": "55"
+    },
+    {
+      "country": "British Indian Ocean Territory",
+      "region": "asia",
+      "textCode": "io",
+      "code": "246"
+    },
+    {
+      "country": "Brunei",
+      "region": "asia",
+      "textCode": "bn",
+      "code": "673"
+    },
+    {
+      "country": "Bulgaria",
+      "region": "europe",
+      "textCode": "bg",
+      "code": "359"
+    },
+    {
+      "country": "Burkina Faso",
+      "region": "africa",
+      "textCode": "bf",
+      "code": "226"
+    },
+    {
+      "country": "Burundi",
+      "region": "africa",
+      "textCode": "bi",
+      "code": "257"
+    },
+    {
+      "country": "Cambodia",
+      "region": "asia",
+      "textCode": "kh",
+      "code": "855"
+    },
+    {
+      "country": "Cameroon",
+      "region": "africa",
+      "textCode": "cm",
+      "code": "237"
+    },
+    {
+      "country": "Canada",
+      "region": "america",
+      "textCode": "ca",
+      "code": "1"
+    },
+    {
+      "country": "Cape Verde",
+      "region": "africa",
+      "textCode": "cv",
+      "code": "238"
+    },
+    {
+      "country": "Caribbean Netherlands",
+      "region": "america",
+      "textCode": "bq",
+      "code": "599"
+    },
+    {
+      "country": "Central African Republic",
+      "region": "africa",
+      "textCode": "cf",
+      "code": "236"
+    },
+    {
+      "country": "Chad",
+      "region": "africa",
+      "textCode": "td",
+      "code": "235"
+    },
+    {
+      "country": "Chile",
+      "region": "america",
+      "textCode": "cl",
+      "code": "56"
+    },
+    {
+      "country": "China",
+      "region": "asia",
+      "textCode": "cn",
+      "code": "86"
+    },
+    {
+      "country": "Colombia",
+      "region": "america",
+      "textCode": "co",
+      "code": "57"
+    },
+    {
+      "country": "Comoros",
+      "region": "africa",
+      "textCode": "km",
+      "code": "269"
+    },
+    {
+      "country": "Congo",
+      "region": "africa",
+      "textCode": "cd",
+      "code": "243"
+    },
+    {
+      "country": "Congo",
+      "region": "africa",
+      "textCode": "cg",
+      "code": "242"
+    },
+    {
+      "country": "Costa Rica",
+      "region": "america",
+      "textCode": "cr",
+      "code": "506"
+    },
+    {
+      "country": "Côte d’Ivoire",
+      "region": "africa",
+      "textCode": "ci",
+      "code": "225"
+    },
+    {
+      "country": "Croatia",
+      "region": "europe",
+      "textCode": "hr",
+      "code": "385"
+    },
+    {
+      "country": "Cuba",
+      "region": "america",
+      "textCode": "cu",
+      "code": "53"
+    },
+    {
+      "country": "Curaçao",
+      "region": "america",
+      "textCode": "cw",
+      "code": "599"
+    },
+    {
+      "country": "Cyprus",
+      "region": "europe",
+      "textCode": "cy",
+      "code": "357"
+    },
+    {
+      "country": "Czech Republic",
+      "region": "europe",
+      "textCode": "cz",
+      "code": "420"
+    },
+    {
+      "country": "Denmark",
+      "region": "europe",
+      "textCode": "dk",
+      "code": "45"
+    },
+    {
+      "country": "Djibouti",
+      "region": "africa",
+      "textCode": "dj",
+      "code": "253"
+    },
+    {
+      "country": "Dominica",
+      "region": "america",
+      "textCode": "dm",
+      "code": "1767"
+    },
+    {
+      "country": "Dominican Republic",
+      "region": "america",
+      "textCode": "do",
+      "code": "1"
+    },
+    {
+      "country": "Ecuador",
+      "region": "america",
+      "textCode": "ec",
+      "code": "593"
+    },
+    {
+      "country": "Egypt",
+      "region": "africa",
+      "textCode": "eg",
+      "code": "20"
+    },
+    {
+      "country": "El Salvador",
+      "region": "america",
+      "textCode": "sv",
+      "code": "503"
+    },
+    {
+      "country": "Equatorial Guinea",
+      "region": "africa",
+      "textCode": "gq",
+      "code": "240"
+    },
+    {
+      "country": "Eritrea",
+      "region": "africa",
+      "textCode": "er",
+      "code": "291"
+    },
+    {
+      "country": "Estonia",
+      "region": "europe",
+      "textCode": "ee",
+      "code": "372"
+    },
+    {
+      "country": "Ethiopia",
+      "region": "africa",
+      "textCode": "et",
+      "code": "251"
+    },
+    {
+      "country": "Fiji",
+      "region": "oceania",
+      "textCode": "fj",
+      "code": "679"
+    },
+    {
+      "country": "Finland",
+      "region": "europe",
+      "textCode": "fi",
+      "code": "358"
+    },
+    {
+      "country": "France",
+      "region": "europe",
+      "textCode": "fr",
+      "code": "33"
+    },
+    {
+      "country": "French Guiana",
+      "region": "america",
+      "textCode": "gf",
+      "code": "594"
+    },
+    {
+      "country": "French Polynesia",
+      "region": "oceania",
+      "textCode": "pf",
+      "code": "689"
+    },
+    {
+      "country": "Gabon",
+      "region": "africa",
+      "textCode": "ga",
+      "code": "241"
+    },
+    {
+      "country": "Gambia",
+      "region": "africa",
+      "textCode": "gm",
+      "code": "220"
+    },
+    {
+      "country": "Georgia",
+      "region": "asia",
+      "textCode": "ge",
+      "code": "995"
+    },
+    {
+      "country": "Germany",
+      "region": "europe",
+      "textCode": "de",
+      "code": "49"
+    },
+    {
+      "country": "Ghana",
+      "region": "africa",
+      "textCode": "gh",
+      "code": "233"
+    },
+    {
+      "country": "Greece",
+      "region": "europe",
+      "textCode": "gr",
+      "code": "30"
+    },
+    {
+      "country": "Grenada",
+      "region": "america",
+      "textCode": "gd",
+      "code": "1473"
+    },
+    {
+      "country": "Guadeloupe",
+      "region": "america",
+      "textCode": "gp",
+      "code": "590"
+    },
+    {
+      "country": "Guam",
+      "region": "oceania",
+      "textCode": "gu",
+      "code": "1671"
+    },
+    {
+      "country": "Guatemala",
+      "region": "america",
+      "textCode": "gt",
+      "code": "502"
+    },
+    {
+      "country": "Guinea",
+      "region": "africa",
+      "textCode": "gn",
+      "code": "224"
+    },
+    {
+      "country": "Guinea-Bissau",
+      "region": "africa",
+      "textCode": "gw",
+      "code": "245"
+    },
+    {
+      "country": "Guyana",
+      "region": "america",
+      "textCode": "gy",
+      "code": "592"
+    },
+    {
+      "country": "Haiti",
+      "region": "america",
+      "textCode": "ht",
+      "code": "509"
+    },
+    {
+      "country": "Honduras",
+      "region": "america",
+      "textCode": "hn",
+      "code": "504"
+    },
+    {
+      "country": "Hong Kong",
+      "region": "asia",
+      "textCode": "hk",
+      "code": "852"
+    },
+    {
+      "country": "Hungary",
+      "region": "europe",
+      "textCode": "hu",
+      "code": "36"
+    },
+    {
+      "country": "Iceland",
+      "region": "europe",
+      "textCode": "is",
+      "code": "354"
+    },
+    {
+      "country": "India",
+      "region": "asia",
+      "textCode": "in",
+      "code": "91"
+    },
+    {
+      "country": "Indonesia",
+      "region": "asia",
+      "textCode": "id",
+      "code": "62"
+    },
+    {
+      "country": "Iran",
+      "region": "middle-east",
+      "textCode": "ir",
+      "code": "98"
+    },
+    {
+      "country": "Iraq",
+      "region": "middle-east",
+      "textCode": "iq",
+      "code": "964"
+    },
+    {
+      "country": "Ireland",
+      "region": "europe",
+      "textCode": "ie",
+      "code": "353"
+    },
+    {
+      "country": "Israel",
+      "region": "middle-east",
+      "textCode": "il",
+      "code": "972"
+    },
+    {
+      "country": "Italy",
+      "region": "europe",
+      "textCode": "it",
+      "code": "39"
+    },
+    {
+      "country": "Jamaica",
+      "region": "america",
+      "textCode": "jm",
+      "code": "1876"
+    },
+    {
+      "country": "Japan",
+      "region": "asia",
+      "textCode": "jp",
+      "code": "81"
+    },
+    {
+      "country": "Jordan",
+      "region": "middle-east",
+      "textCode": "jo",
+      "code": "962"
+    },
+    {
+      "country": "Kazakhstan",
+      "region": "asia",
+      "textCode": "kz",
+      "code": "7"
+    },
+    {
+      "country": "Kenya",
+      "region": "africa",
+      "textCode": "ke",
+      "code": "254"
+    },
+    {
+      "country": "Kiribati",
+      "region": "oceania",
+      "textCode": "ki",
+      "code": "686"
+    },
+    {
+      "country": "Kosovo",
+      "region": "europe",
+      "textCode": "xk",
+      "code": "383"
+    },
+    {
+      "country": "Kuwait",
+      "region": "middle-east",
+      "textCode": "kw",
+      "code": "965"
+    },
+    {
+      "country": "Kyrgyzstan",
+      "region": "asia",
+      "textCode": "kg",
+      "code": "996"
+    },
+    {
+      "country": "Laos",
+      "region": "asia",
+      "textCode": "la",
+      "code": "856"
+    },
+    {
+      "country": "Latvia",
+      "region": "europe",
+      "textCode": "lv",
+      "code": "371"
+    },
+    {
+      "country": "Lebanon",
+      "region": "middle-east",
+      "textCode": "lb",
+      "code": "961"
+    },
+    {
+      "country": "Lesotho",
+      "region": "africa",
+      "textCode": "ls",
+      "code": "266"
+    },
+    {
+      "country": "Liberia",
+      "region": "africa",
+      "textCode": "lr",
+      "code": "231"
+    },
+    {
+      "country": "Libya",
+      "region": "africa",
+      "textCode": "ly",
+      "code": "218"
+    },
+    {
+      "country": "Liechtenstein",
+      "region": "europe",
+      "textCode": "li",
+      "code": "423"
+    },
+    {
+      "country": "Lithuania",
+      "region": "europe",
+      "textCode": "lt",
+      "code": "370"
+    },
+    {
+      "country": "Luxembourg",
+      "region": "europe",
+      "textCode": "lu",
+      "code": "352"
+    },
+    {
+      "country": "Macau",
+      "region": "asia",
+      "textCode": "mo",
+      "code": "853"
+    },
+    {
+      "country": "Macedonia",
+      "region": "europe",
+      "textCode": "mk",
+      "code": "389"
+    },
+    {
+      "country": "Madagascar",
+      "region": "africa",
+      "textCode": "mg",
+      "code": "261"
+    },
+    {
+      "country": "Malawi",
+      "region": "africa",
+      "textCode": "mw",
+      "code": "265"
+    },
+    {
+      "country": "Malaysia",
+      "region": "asia",
+      "textCode": "my",
+      "code": "60"
+    },
+    {
+      "country": "Maldives",
+      "region": "asia",
+      "textCode": "mv",
+      "code": "960"
+    },
+    {
+      "country": "Mali",
+      "region": "africa",
+      "textCode": "ml",
+      "code": "223"
+    },
+    {
+      "country": "Malta",
+      "region": "europe",
+      "textCode": "mt",
+      "code": "356"
+    },
+    {
+      "country": "Marshall Islands",
+      "region": "oceania",
+      "textCode": "mh",
+      "code": "692"
+    },
+    {
+      "country": "Martinique",
+      "region": "america",
+      "textCode": "mq",
+      "code": "596"
+    },
+    {
+      "country": "Mauritania",
+      "region": "africa",
+      "textCode": "mr",
+      "code": "222"
+    },
+    {
+      "country": "Mauritius",
+      "region": "africa",
+      "textCode": "mu",
+      "code": "230"
+    },
+    {
+      "country": "Mexico",
+      "region": "america",
+      "textCode": "mx",
+      "code": "52"
+    },
+    {
+      "country": "Micronesia",
+      "region": "oceania",
+      "textCode": "fm",
+      "code": "691"
+    },
+    {
+      "country": "Moldova",
+      "region": "europe",
+      "textCode": "md",
+      "code": "373"
+    },
+    {
+      "country": "Monaco",
+      "region": "europe",
+      "textCode": "mc",
+      "code": "377"
+    },
+    {
+      "country": "Mongolia",
+      "region": "asia",
+      "textCode": "mn",
+      "code": "976"
+    },
+    {
+      "country": "Montenegro",
+      "region": "europe",
+      "textCode": "me",
+      "code": "382"
+    },
+    {
+      "country": "Morocco",
+      "region": "africa",
+      "textCode": "ma",
+      "code": "212"
+    },
+    {
+      "country": "Mozambique",
+      "region": "africa",
+      "textCode": "mz",
+      "code": "258"
+    },
+    {
+      "country": "Myanmar",
+      "region": "asia",
+      "textCode": "mm",
+      "code": "95"
+    },
+    {
+      "country": "Namibia",
+      "region": "africa",
+      "textCode": "na",
+      "code": "264"
+    },
+    {
+      "country": "Nauru",
+      "region": "africa",
+      "textCode": "nr",
+      "code": "674"
+    },
+    {
+      "country": "Nepal",
+      "region": "asia",
+      "textCode": "np",
+      "code": "977"
+    },
+    {
+      "country": "Netherlands",
+      "region": "europe",
+      "textCode": "nl",
+      "code": "31"
+    },
+    {
+      "country": "New Caledonia",
+      "region": "oceania",
+      "textCode": "nc",
+      "code": "687"
+    },
+    {
+      "country": "New Zealand",
+      "region": "oceania",
+      "textCode": "nz",
+      "code": "64"
+    },
+    {
+      "country": "Nicaragua",
+      "region": "america",
+      "textCode": "ni",
+      "code": "505"
+    },
+    {
+      "country": "Niger",
+      "region": "africa",
+      "textCode": "ne",
+      "code": "227"
+    },
+    {
+      "country": "Nigeria",
+      "region": "africa",
+      "textCode": "ng",
+      "code": "234"
+    },
+    {
+      "country": "North Korea",
+      "region": "asia",
+      "textCode": "kp",
+      "code": "850"
+    },
+    {
+      "country": "Norway",
+      "region": "europe",
+      "textCode": "no",
+      "code": "47"
+    },
+    {
+      "country": "Oman",
+      "region": "middle-east",
+      "textCode": "om",
+      "code": "968"
+    },
+    {
+      "country": "Pakistan",
+      "region": "asia",
+      "textCode": "pk",
+      "code": "92"
+    },
+    {
+      "country": "Palau",
+      "region": "oceania",
+      "textCode": "pw",
+      "code": "680"
+    },
+    {
+      "country": "Palestine",
+      "region": "middle-east",
+      "textCode": "ps",
+      "code": "970"
+    },
+    {
+      "country": "Panama",
+      "region": "america",
+      "textCode": "pa",
+      "code": "507"
+    },
+    {
+      "country": "Papua New Guinea",
+      "region": "oceania",
+      "textCode": "pg",
+      "code": "675"
+    },
+    {
+      "country": "Paraguay",
+      "region": "america",
+      "textCode": "py",
+      "code": "595"
+    },
+    {
+      "country": "Peru",
+      "region": "america",
+      "textCode": "pe",
+      "code": "51"
+    },
+    {
+      "country": "Philippines",
+      "region": "asia",
+      "textCode": "ph",
+      "code": "63"
+    },
+    {
+      "country": "Poland",
+      "region": "europe",
+      "textCode": "pl",
+      "code": "48"
+    },
+    {
+      "country": "Portugal",
+      "region": "europe",
+      "textCode": "pt",
+      "code": "351"
+    },
+    {
+      "country": "Puerto Rico",
+      "region": "america",
+      "textCode": "pr",
+      "code": "1"
+    },
+    {
+      "country": "Qatar",
+      "region": "middle-east",
+      "textCode": "qa",
+      "code": "974"
+    },
+    {
+      "country": "Réunion",
+      "region": "africa",
+      "textCode": "re",
+      "code": "262"
+    },
+    {
+      "country": "Romania",
+      "region": "europe",
+      "textCode": "ro",
+      "code": "40"
+    },
+    {
+      "country": "Russia",
+      "region": "europe",
+      "textCode": "ru",
+      "code": "7"
+    },
+    {
+      "country": "Rwanda",
+      "region": "africa",
+      "textCode": "rw",
+      "code": "250"
+    },
+
+    {
+      "country": "Saint Lucia",
+      "region": "america",
+      "textCode": "lc",
+      "code": "1758"
+    },
+
+    {
+      "country": "Samoa",
+      "region": "oceania",
+      "textCode": "ws",
+      "code": "685"
+    },
+    {
+      "country": "San Marino",
+      "region": "europe",
+      "textCode": "sm",
+      "code": "378"
+    },
+    {
+      "country": "São Tomé and Príncipe",
+      "region": "africa",
+      "textCode": "st",
+      "code": "239"
+    },
+    {
+      "country": "Saudi Arabia",
+      "region": "middle-east",
+      "textCode": "sa",
+      "code": "966"
+    },
+    {
+      "country": "Senegal",
+      "region": "africa",
+      "textCode": "sn",
+      "code": "221"
+    },
+    {
+      "country": "Serbia",
+      "region": "europe",
+      "textCode": "rs",
+      "code": "381"
+    },
+    {
+      "country": "Seychelles",
+      "region": "africa",
+      "textCode": "sc",
+      "code": "248"
+    },
+    {
+      "country": "Sierra Leone",
+      "region": "africa",
+      "textCode": "sl",
+      "code": "232"
+    },
+    {
+      "country": "Singapore",
+      "region": "asia",
+      "textCode": "sg",
+      "code": "65"
+    },
+    {
+      "country": "Slovakia",
+      "region": "europe",
+      "textCode": "sk",
+      "code": "421"
+    },
+    {
+      "country": "Slovenia",
+      "region": "europe",
+      "textCode": "si",
+      "code": "386"
+    },
+    {
+      "country": "Solomon Islands",
+      "region": "oceania",
+      "textCode": "sb",
+      "code": "677"
+    },
+    {
+      "country": "Somalia",
+      "region": "africa",
+      "textCode": "so",
+      "code": "252"
+    },
+    {
+      "country": "South Africa",
+      "region": "africa",
+      "textCode": "za",
+      "code": "27"
+    },
+    {
+      "country": "South Korea",
+      "region": "asia",
+      "textCode": "kr",
+      "code": "82"
+    },
+    {
+      "country": "South Sudan",
+      "region": "africa",
+      "textCode": "ss",
+      "code": "211"
+    },
+    {
+      "country": "Spain",
+      "region": "europe",
+      "textCode": "es",
+      "code": "34"
+    },
+    {
+      "country": "Sri Lanka",
+      "region": "asia",
+      "textCode": "lk",
+      "code": "94"
+    },
+    {
+      "country": "Sudan",
+      "region": "africa",
+      "textCode": "sd",
+      "code": "249"
+    },
+    {
+      "country": "Suriname",
+      "region": "america",
+      "textCode": "sr",
+      "code": "597"
+    },
+    {
+      "country": "Swaziland",
+      "region": "africa",
+      "textCode": "sz",
+      "code": "268"
+    },
+    {
+      "country": "Sweden",
+      "region": "europe",
+      "textCode": "se",
+      "code": "46"
+    },
+    {
+      "country": "Switzerland",
+      "region": "europe",
+      "textCode": "ch",
+      "code": "41"
+    },
+    {
+      "country": "Syria",
+      "region": "middle-east",
+      "textCode": "sy",
+      "code": "963"
+    },
+    {
+      "country": "Taiwan",
+      "region": "asia",
+      "textCode": "tw",
+      "code": "886"
+    },
+    {
+      "country": "Tajikistan",
+      "region": "asia",
+      "textCode": "tj",
+      "code": "992"
+    },
+    {
+      "country": "Tanzania",
+      "region": "africa",
+      "textCode": "tz",
+      "code": "255"
+    },
+    {
+      "country": "Thailand",
+      "region": "asia",
+      "textCode": "th",
+      "code": "66"
+    },
+    {
+      "country": "Timor-Leste",
+      "region": "asia",
+      "textCode": "tl",
+      "code": "670"
+    },
+    {
+      "country": "Togo",
+      "region": "africa",
+      "textCode": "tg",
+      "code": "228"
+    },
+    {
+      "country": "Tonga",
+      "region": "oceania",
+      "textCode": "to",
+      "code": "676"
+    },
+    {
+      "country": "Trinidad and Tobago",
+      "region": "america",
+      "textCode": "tt",
+      "code": "1868"
+    },
+    {
+      "country": "Tunisia",
+      "region": "africa",
+      "textCode": "tn",
+      "code": "216"
+    },
+    {
+      "country": "Turkey",
+      "region": "europe",
+      "textCode": "tr",
+      "code": "90"
+    },
+    {
+      "country": "Turkmenistan",
+      "region": "asia",
+      "textCode": "tm",
+      "code": "993"
+    },
+    {
+      "country": "Tuvalu",
+      "region": "asia",
+      "textCode": "tv",
+      "code": "688"
+    },
+    {
+      "country": "Uganda",
+      "region": "africa",
+      "textCode": "ug",
+      "code": "256"
+    },
+    {
+      "country": "Ukraine",
+      "region": "europe",
+      "textCode": "ua",
+      "code": "380"
+    },
+    {
+      "country": "United Arab Emirates",
+      "region": "middle-east",
+      "textCode": "ae",
+      "code": "971"
+    },
+    {
+      "country": "United Kingdom",
+      "region": "europe",
+      "textCode": "gb",
+      "code": "44"
+    },
+    {
+      "country": "United States",
+      "region": "america",
+      "textCode": "us",
+      "code": "1"
+    },
+    {
+      "country": "Uruguay",
+      "region": "america",
+      "textCode": "uy",
+      "code": "598"
+    },
+    {
+      "country": "Uzbekistan",
+      "region": "asia",
+      "textCode": "uz",
+      "code": "998"
+    },
+    {
+      "country": "Vanuatu",
+      "region": "oceania",
+      "textCode": "vu",
+      "code": "678"
+    },
+    {
+      "country": "Vatican City",
+      "region": "europe",
+      "textCode": "va",
+      "code": "39"
+    },
+    {
+      "country": "Venezuela",
+      "region": "america",
+      "textCode": "ve",
+      "code": "58"
+    },
+    {
+      "country": "Vietnam",
+      "region": "asia",
+      "textCode": "vn",
+      "code": "84"
+    },
+    {
+      "country": "Yemen",
+      "region": "middle-east",
+      "textCode": "ye",
+      "code": "967"
+    },
+    {
+      "country": "Zambia",
+      "region": "africa",
+      "textCode": "zm",
+      "code": "260"
+    },
+    {
+      "country": "Zimbabwe",
+      "region": "africa",
+      "textCode": "zw",
+      "code": "263"
+    },
+    {
+      "country": "American Samoa",
+      "region": "oceania",
+      "textCode": "as",
+      "code": "1684"
+    },
+    {
+      "country": "Anguilla",
+      "region": "america",
+      "textCode": "ai",
+      "code": "1264"
+    },
+    {
+      "country": "Bermuda",
+      "region": "america",
+      "textCode": "bm",
+      "code": "1441"
+    },
+    {
+      "country": "British Virgin Islands",
+      "region": "america",
+      "textCode": "vg",
+      "code": "1284"
+    },
+    {
+      "country": "Cayman Islands",
+      "region": "america",
+      "textCode": "ky",
+      "code": "1345"
+    },
+    {
+      "country": "Cook Islands",
+      "region": "oceania",
+      "textCode": "ck",
+      "code": "682"
+    },
+    {
+      "country": "Falkland Islands",
+      "region": "america",
+      "textCode": "fk",
+      "code": "500"
+    },
+    {
+      "country": "Faroe Islands",
+      "region": "europe",
+      "textCode": "fo",
+      "code": "298"
+    },
+    {
+      "country": "Gibraltar",
+      "region": "europe",
+      "textCode": "gi",
+      "code": "350"
+    },
+    {
+      "country": "Greenland",
+      "region": "america",
+      "textCode": "gl",
+      "code": "299"
+    },
+    {
+      "country": "Jersey",
+      "region": "europe",
+      "textCode": "je",
+      "code": "44"
+    },
+    {
+      "country": "Montserrat",
+      "region": "america",
+      "textCode": "ms",
+      "code": "1664"
+    },
+    {
+      "country": "Niue",
+      "region": "asia",
+      "textCode": "nu",
+      "code": "683"
+    },
+    {
+      "country": "Norfolk Island",
+      "region": "oceania",
+      "textCode": "nf",
+      "code": "672"
+    },
+
+    {
+      "country": "Saint Barthélemy",
+      "region": "america",
+      "textCode": "bl",
+      "code": "590"
+    },
+    {
+      "country": "Saint Helena",
+      "region": "africa",
+      "textCode": "sh",
+      "code": "290"
+    },
+    {
+      "country": "Saint Martin",
+      "region": "america",
+      "textCode": "mf",
+      "code": "590"
+    },
+
+    {
+      "country": "Sint Maarten",
+      "region": "america",
+      "textCode": "sx",
+      "code": "1721"
+    },
+    {
+      "country": "Tokelau",
+      "region": "oceania",
+      "textCode": "tk",
+      "code": "690"
+    },
+    {
+      "country": "Turks and Caicos Islands",
+      "region": "america",
+      "textCode": "tc",
+      "code": "1649"
+    },
+    {
+      "country": "U.S. Virgin Islands",
+      "region": "america",
+      "textCode": "vi",
+      "code": "1340"
+    },
+    {
+      "country": "Wallis and Futuna",
+      "region": "oceania",
+      "textCode": "wf",
+      "code": "681"
+    }
+  ]
+}
