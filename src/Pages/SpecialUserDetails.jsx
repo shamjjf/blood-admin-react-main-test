@@ -12,7 +12,7 @@ const SpecialUserDetails = () => {
   const [user, setUser] = useState({
     name: "",
     address: { text: "" }, 
-    userType: "NGO",
+    type: "NGO",
     phone: "",
     phoneCode: "",
     email: "",
@@ -391,9 +391,9 @@ const SpecialUserDetails = () => {
                         onChange={handleInputChange}
                         type="radio"
                         className="form-check-input"
-                        name="userType"
-                        value="User"
-                        checked={user.userType === "User"}
+                        name="type"
+                        value="influencer"
+                        checked={user.type === "influencer"}
                         disabled={!isEditing}
                       />
                       influencer
@@ -409,9 +409,9 @@ const SpecialUserDetails = () => {
                         onChange={handleInputChange}
                         type="radio"
                         className="form-check-input"
-                        name="userType"
-                        value="User"
-                        checked={user.userType === "User"}
+                        name="type"
+                        value="company"
+                        checked={user.type === "company"}
                         disabled={!isEditing}
                       />
                       company
@@ -427,9 +427,9 @@ const SpecialUserDetails = () => {
                         onChange={handleInputChange}
                         type="radio"
                         className="form-check-input"
-                        name="userType"
-                        value="User"
-                        checked={user.userType === "User"}
+                        name="type"
+                        value="university"
+                        checked={user.type === "university"}
                         disabled={!isEditing}
                       />
                       university
@@ -445,9 +445,9 @@ const SpecialUserDetails = () => {
                         onChange={handleInputChange}
                         type="radio"
                         className="form-check-input"
-                        name="userType"
-                        value="Volunteer"
-                        checked={user.userType === "Volunteer"}
+                        name="type"
+                        value="NGO"
+                        checked={user.type === "NGO"}
                         disabled={!isEditing}
                       />
                       NGO
@@ -462,9 +462,9 @@ const SpecialUserDetails = () => {
                         onChange={handleInputChange}
                         type="radio"
                         className="form-check-input"
-                        name="userType"
-                        value="Both"
-                        checked={user.userType === "Both"}
+                        name="type"
+                        value="school"
+                        checked={user.type === "school"}
                         disabled={!isEditing}
                       />
                       school  
