@@ -7,7 +7,7 @@ const SpecialUserFilter = ({
   setPointsSelects,
   setSearchText,
 }) => {
-  const [userType, setUserType] = useState(["influencer", "company", "university", "NGO", "school"]);
+  const [userType, setUserType] = useState(["All", "influencer", "company", "university", "NGO", "school"]);
 
   const [showMenu, setShowMenu] = useState(false);
 

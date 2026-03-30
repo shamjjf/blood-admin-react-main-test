@@ -68,6 +68,7 @@ const SpecialUser = () => {
             <div className="table-card-border">
               <SpecialUserFilter
                 userTypeSelects={userTypeSelects}
+                setuserTypeSelects={setuserTypeSelects}
                 pointsSelects={pointsSelects}
                 setPointsSelects={setPointsSelects}
                 setSearchText={setSearchText}
