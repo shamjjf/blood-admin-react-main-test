@@ -205,57 +205,6 @@ const SpecialUserDetails = () => {
     }
   };
 
-  // dropdown shutters
-  useEffect(() => {
-    // Handler to close dropdown when clicking outside
-    const handleClickOutside = (event) => {
-      if (dropdownRef1.current && !dropdownRef1.current.contains(event.target)) {
-        setOpen1(false);
-      }
-    };
-
-    // Attach event listener to document
-    document.addEventListener("mousedown", handleClickOutside);
-
-    // Clean up the event listener
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-  useEffect(() => {
-    // Handler to close dropdown when clicking outside
-    const handleClickOutside = (event) => {
-      if (dropdownRef2.current && !dropdownRef2.current.contains(event.target)) {
-        setOpen2(false);
-      }
-    };
-
-    // Attach event listener to document
-    document.addEventListener("mousedown", handleClickOutside);
-
-    // Clean up the event listener
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-  useEffect(() => {
-    // Handler to close dropdown when clicking outside
-    const handleClickOutside = (event) => {
-      if (dropdownRef3.current && !dropdownRef3.current.contains(event.target)) {
-        setOpen3(false);
-      }
-    };
-
-    // Attach event listener to document
-    document.addEventListener("mousedown", handleClickOutside);
-
-    // Clean up the event listener
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  // location change
   // handling location change and implementing google placces api
   const handleLocationChange = async (e) => {
     const textQuery = e.target.value;
@@ -538,7 +487,7 @@ const SpecialUserDetails = () => {
                 <label className="col-form-label" style={{ width: "90px", paddingLeft: "10px" }}>
                   Address<span className="text-danger">*</span>
                 </label>
-                <div className="col-sm-9">
+                <div className="col-sm-9" style={{ position: "relative" }}>
                   <input
                     onChange={handleLocationChange}
                     type="text"
@@ -547,32 +496,34 @@ const SpecialUserDetails = () => {
                     value={user.address?.text || ""}
                     disabled={!isEditing}
                   />
-                </div>
 
-                {address.length > 0 && (
-                  <div
-                    className="position-absolute container bg-white rounded-3 d-flex justify-content-center zindex-tooltip overflow-auto noscrollbar customz-index1"
-                    style={{
-                      width: "75%",
-                      height: "250px",
-                      left: "100px",
-                      top: "200px",
-                      zIndex: "999999",
-                    }}
-                  >
+                  {address.length > 0 && (
+                    <div
+                      className="position-absolute bg-white rounded-3 overflow-auto noscrollbar"
+                      style={{
+                        width: "100%",
+                        maxHeight: "250px",
+                        top: "100%",
+                        left: 0,
+                        marginTop: "5px",
+                        zIndex: "999999",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                      }}
+                    >
                     <ul className="new list-unstyled">
                       {address.slice(0, 4).map((add) => (
                         <li key={add.place_id} className="border-bottom mx-0 background">
                           <button
-                            className="dropdown-item text-wrap fw-normal fs-3"
+                            className="dropdown-item text-wrap fw-normal"
                             type="button"
                             name="address"
-                            onClick={() => handleLocationSubmission(add.formatted_address, add.geometry.location)}
+                            onClick={() =>
+                              handleLocationSubmission(add.formatted_address, add.geometry.location)
+                            }
                           >
                             <span
                               style={{
                                 wordSpacing: "0.2em",
-                                letterSpacing: "1px",
                                 fontSize: "14px",
                               }}
                             >
@@ -582,10 +533,11 @@ const SpecialUserDetails = () => {
                         </li>
                       ))}
                     </ul>
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="form-group row d-flex align-items-center ${errors.email ? 'has-error' : ''}`}">
+              <div className="form-group row d-flex align-items-center">
                 <label className=" col-form-label" style={{ width: "90px", paddingLeft: "15px" }}>
                   Email ID<span className="text-danger">*</span>
                 </label>
