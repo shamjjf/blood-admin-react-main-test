@@ -36476,7 +36476,10 @@ div.tagsinput span.tag a {
 }
 
 .sidebar .nav {
-  overflow: hidden;
+  overflow: scroll;
+  min-height: 100vh;
+  max-height: 100vh;
+  height: 100vh;
   flex-wrap: nowrap;
   flex-direction: column;
   margin-bottom: 60px;
