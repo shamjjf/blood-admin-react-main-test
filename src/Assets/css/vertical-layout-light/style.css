@@ -36476,10 +36476,10 @@ div.tagsinput span.tag a {
 }
 
 .sidebar .nav {
-  overflow: scroll;
-  min-height: 100vh;
-  max-height: 100vh;
-  height: 100vh;
+  overflow-y: scroll;
+  min-height: 85vh;
+  max-height: 85vh;
+  height: 85vh;
   flex-wrap: nowrap;
   flex-direction: column;
   margin-bottom: 60px;
