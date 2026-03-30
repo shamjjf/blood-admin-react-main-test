@@ -43,6 +43,8 @@ import BulkUsers from "./Pages/BulkUsers";
 import FirebaseSetting from "./Pages/Firebase";
 import Vendor from "./Pages/Vender";
 import Profile from "./Pages/Profile";
+import SpecialUser from "./Pages/SpecialUser";
+import SpecialUserDetails from "./Pages/SpecialUserDetails";
 
 // import { DndProvider } from "react-dnd";
 // import { HTML5Backend } from "react-dnd-html5-backend";
@@ -74,6 +76,10 @@ const Layout = () => {
               <Route path="/users" element={<Users />} />
               <Route path="/user/:id" element={<UserDetails />} />
               <Route path="/profile" element={<Profile />} />
+
+              <Route path="/specialuser" element={<SpecialUser />} />
+              <Route path="/specialuser/:id" element={<SpecialUserDetails />} />
+
 
               <Route path="/admins" element={<Admins />} />
 
