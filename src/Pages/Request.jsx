@@ -254,7 +254,7 @@ const Request = () => {
                             <td className="align-left">{request.bloodGroup}</td>
                             <td className="align-left">{request.needUnits}</td>
                             <td className="align-left">{request.gotUnits}</td>
-                            <td className="align-left">{request.critical ? "Yes" : "No"}</td>
+                            <td className="align-left">{request.isCritical ? "Yes" : "No"}</td>
 
                             <td className="align-left">
                               {moment(request.date, "DD-MM-YYYY").format("DD-MM-YYYY h:mm A")}
