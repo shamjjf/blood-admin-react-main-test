@@ -52,7 +52,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
     requests: "Requests",
     tasks: "Tasks",
     users: "Users",
-    admins: "Admins",
+    admins: "Sub-Admins",
     settings: "Settings",
     leaderboard: "Leaderboard",
     camp: "Camp",
