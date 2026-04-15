@@ -79,10 +79,7 @@ const Layout = () => {
 
               <Route path="/specialuser" element={<SpecialUser />} />
               <Route path="/specialuser/:id" element={<SpecialUserDetails />} />
-
-
               <Route path="/admins" element={<Admins />} />
-
               <Route path="/settings" element={<Setting />} />
 
               <Route path="/leaderboard" element={<Leaderboard />} />
