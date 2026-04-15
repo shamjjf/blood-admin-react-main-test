@@ -1,12 +1,13 @@
 import { useContext, useEffect, useState } from "react";
 import dragula from "dragula";
 import "dragula/dist/dragula.min.css";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
+import moment from "moment";
 import { GlobalContext } from "../GlobalContext";
 import axios from "axios";
 import PhoneInput from "react-phone-input-2";
 import swal from "sweetalert";
-import profileplaceholder from "../Assets/images/profileplaceholder.png";
+// import profileplaceholder from "../Assets/images/profileplaceholder.png";
 import { formatDate } from "../Components/FormatedDate";
 import SEO from "../SEO";
 
@@ -838,119 +839,193 @@ const RequestDetails = () => {
       ) : (
         ""
       )}
+      {/* Donations Done Section */}
       <div className="col-12 grid-margin mx-0 px-0 mt-4">
         <div className="card">
+          <div className="card-header bg-primary text-white">
+            <h5>Donations Done</h5>
+          </div>
           <div className="card-body">
-            <h4 className="card-title">Donations</h4>
-            <p className="card-description">Drag and drop between Current Donors And All Users</p>
-            <div className="row">
-              <div className="col-md-6 h-100">
-                <div className="bg-primary p-4 rounded ">
-                  <h6 className="card-title text-white"> Current Donors </h6>
-                  <div id="profile-list-left" className="py-2">
-                    {request.donations && request.donations.length > 0 ? (
-                      request.donations.map((donation, index) => (
-                        <div key={index} className="card rounded mb-2">
-                          <div className="card-body p-3">
-                            <div className="media d-flex align-items-center">
-                              <img
-                                src={
-                                  donation && donation.donor && donation.donor.avatar && donation.donor.avatar
-                                    ? donation.donor.avatar.url
-                                    : profileplaceholder
-                                }
-                                alt="image"
-                                className="img-sm me-3 rounded-circle"
-                              />
-                              <div className="media-body ml-3">
-                                <h6 className="mb-1">{donation && donation.donor && donation.donor.name}</h6>
-                                <p className="mb-0 text-muted">
-                                  {donation && donation.donor && donation.donor.bloodGroup}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p style={{ color: "white" }}>No donors available</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-6 h-100 respi">
-                <div className="bg-primary p-4 rounded">
-                  <div className="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between flex-wrap">
-                    <div className="mb-2 mb-md-0">
-                      <h6 className="card-title text-white" style={{ margin: "auto" }}>
-                        All Users
-                      </h6>
-                    </div>
-                    <div className="d-flex flex-column flex-md-row align-items-start gap-2 gap-md-4 py-3 w-100">
-                      <div className="input-group mb-2 mb-md-0">
-                        <div className="input-group-prepend hover-cursor" id="navbar-search-icon">
-                          <span className="input-group-text" id="search">
-                            <i className="icon-search"></i>
-                          </span>
-                        </div>
-                        <input
-                          type="text"
-                          className="form-control"
-                          id="navbar-search-input"
-                          placeholder="Search "
-                          onChange={debouncedSearch}
-                          aria-label="search"
-                          aria-describedby="search"
-                        />
-                      </div>
-                      {/* <div className="w-100">
-                        <select
-                          name="bloodGroup"
-                          onChange={(e) => setSearchBloodGroup(e.target.value)}
-                          value={searchBloodGroup}
-                          className="form-select form-select-lg "
-                          id="exampleFormControlSelect1"
-                        >
-                          <option value={"All"}>{"All"}</option>
-                          {searchBloodGroupArray &&
-                            searchBloodGroupArray.map((bg, i) => (
-                              <option value={bg} key={i}>
-                                {bg}
-                              </option>
-                            ))}
-                        </select>
-                      </div> */}
-                    </div>
-                  </div>
-                  <div id="profile-list-right" className="py-2">
-                    {searchResultF &&
-                      searchResultF.length > 0 &&
-                      searchResultF.map((user, index) => (
-                        <div
-                          key={index}
-                          className="card rounded mb-2"
-                          data-user-id={user._id} // Add data attribute for user ID
-                          data-user-blood={user.bloodGroup}
-                          draggable // Enable dragging
-                        >
-                          <div className="card-body p-3">
-                            <div className="media d-flex align-items-center">
-                              <img
-                                src={user.avatar && user.avatar ? user.avatar.url : profileplaceholder}
-                                alt="image"
-                                className="img-sm me-3 rounded-circle"
-                              />
-                              <div className="media-body ml-3">
-                                <h6 className="mb-1">{user.name}</h6>
-                                <p className="mb-0 text-muted">{user.bloodGroup}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              </div>
+            <div className="table-responsive">
+              <table className="table table-hover-removed my-table">
+                <thead id="request-heading">
+                  <tr>
+                    <th className="align-left">SR.NO</th>
+                    <th className="align-left">Donor Name</th>
+                    <th className="align-left">Distance</th>
+                    <th className="align-left">Date of Donation</th>
+                    <th className="align-left">Mobile No</th>
+                    <th className="align-center">View</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Dummy data row */}
+                  {/* <tr>
+                    <td className="align-left">1</td>
+                    <td className="align-left">Rahul Sharma</td>
+                    <td className="align-left">3.5 km</td>
+                    <td className="align-left">10-04-2026 10:30 AM</td>
+                    <td className="align-left">9876543210</td>
+                    <td className="align-center">
+                      <Link to="#">
+                        <i className="icons fa-regular fa-eye view-icon"></i>
+                      </Link>
+                    </td>
+                  </tr> */}
+                  {request.donations?.filter((d) => d.status === "Approved").length > 0 ? (
+                    request.donations.filter((d) => d.status === "Approved").map((donation, index) => (
+                      <tr key={donation._id}>
+                        <td className="align-left">{index + 1}</td>
+                        <td className="align-left">{donation.donor?.name}</td>
+                        <td className="align-left">{donation.distance ? `${donation.distance} km` : "N/A"}</td>
+                        <td className="align-left">
+                          {donation.updatedAt ? moment(donation.updatedAt).format("DD-MM-YYYY h:mm A") : "N/A"}
+                        </td>
+                        <td className="align-left">{donation.donor?.phone || "N/A"}</td>
+                        <td className="align-center">
+                          <Link to={`/user/${donation.donor?._id}`}>
+                            <i className="icons fa-regular fa-eye view-icon"></i>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="text-center">
+                        No donations done yet
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Donations Accepted Section */}
+      <div className="col-12 grid-margin mx-0 px-0 mt-4">
+        <div className="card">
+          <div className="card-header bg-primary text-white">
+            <h5>Donations Accepted</h5>
+          </div>
+          <div className="card-body">
+            <div className="table-responsive">
+              <table className="table table-hover-removed my-table">
+                <thead id="request-heading">
+                  <tr>
+                    <th className="align-left">SR.NO</th>
+                    <th className="align-left">Donor Name</th>
+                    <th className="align-left">Distance</th>
+                    <th className="align-left">Date of Acceptance</th>
+                    <th className="align-left">Mobile No</th>
+                    <th className="align-center">View</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Dummy data row */}
+                  {/* <tr>
+                    <td className="align-left">1</td>
+                    <td className="align-left">Priya Patel</td>
+                    <td className="align-left">5.2 km</td>
+                    <td className="align-left">12-04-2026 2:15 PM</td>
+                    <td className="align-left">9123456789</td>
+                    <td className="align-center">
+                      <Link to="#">
+                        <i className="icons fa-regular fa-eye view-icon"></i>
+                      </Link>
+                    </td>
+                  </tr> */}
+                  {request.donations?.filter((d) => d.status === "Accepted").length > 0 ? (
+                    request.donations.filter((d) => d.status === "Accepted").map((donation, index) => (
+                      <tr key={donation._id}>
+                        <td className="align-left">{index + 1}</td>
+                        <td className="align-left">{donation.donor?.name}</td>
+                        <td className="align-left">{donation.distance ? `${donation.distance} km` : "N/A"}</td>
+                        <td className="align-left">
+                          {donation.updatedAt ? moment(donation.updatedAt).format("DD-MM-YYYY h:mm A") : "N/A"}
+                        </td>
+                        <td className="align-left">{donation.donor?.phone || "N/A"}</td>
+                        <td className="align-center">
+                          <Link to={`/user/${donation.donor?._id}`}>
+                            <i className="icons fa-regular fa-eye view-icon"></i>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="text-center">
+                        No donations accepted yet
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Donations Rejected Section */}
+      <div className="col-12 grid-margin mx-0 px-0 mt-4">
+        <div className="card">
+          <div className="card-header bg-primary text-white">
+            <h5>Donations Rejected</h5>
+          </div>
+          <div className="card-body">
+            <div className="table-responsive">
+              <table className="table table-hover-removed my-table">
+                <thead id="request-heading">
+                  <tr>
+                    <th className="align-left">SR.NO</th>
+                    <th className="align-left">Donor Name</th>
+                    <th className="align-left">Distance</th>
+                    <th className="align-left">Date of Rejection</th>
+                    <th className="align-left">Mobile No</th>
+                    <th className="align-center">View</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Dummy data row */}
+                  {/* <tr>
+                    <td className="align-left">1</td>
+                    <td className="align-left">Amit Kumar</td>
+                    <td className="align-left">8.1 km</td>
+                    <td className="align-left">13-04-2026 4:45 PM</td>
+                    <td className="align-left">9988776655</td>
+                    <td className="align-center">
+                      <Link to="#">
+                        <i className="icons fa-regular fa-eye view-icon"></i>
+                      </Link>
+                    </td>
+                  </tr> */}
+                  {request.donations?.filter((d) => d.status === "Rejected").length > 0 ? (
+                    request.donations.filter((d) => d.status === "Rejected").map((donation, index) => (
+                      <tr key={donation._id}>
+                        <td className="align-left">{index + 1}</td>
+                        <td className="align-left">{donation.donor?.name}</td>
+                        <td className="align-left">{donation.distance ? `${donation.distance} km` : "N/A"}</td>
+                        <td className="align-left">
+                          {donation.updatedAt ? moment(donation.updatedAt).format("DD-MM-YYYY h:mm A") : "N/A"}
+                        </td>
+                        <td className="align-left">{donation.donor?.phone || "N/A"}</td>
+                        <td className="align-center">
+                          <Link to={`/user/${donation.donor?._id}`}>
+                            <i className="icons fa-regular fa-eye view-icon"></i>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="text-center">
+                        No donations rejected yet
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

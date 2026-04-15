@@ -337,9 +337,9 @@ const Request = () => {
                                 <option className="bg-white" value="Open">
                                   Open
                                 </option>
-                                <option className="bg-white" value="Pending">
+                                {request.status === "Pending" ? <option className="bg-white" value="Pending">
                                   Pending
-                                </option>
+                                </option> : ""}
                                 <option className="bg-white" value="Close">
                                   Close
                                 </option>
