@@ -15,6 +15,9 @@ import moment from "moment";
 const Request = () => {
   const [requests, setRequests] = useState(null);
   const [searchText, setSearchText] = useState("");
+  const [showReasonBox, setShowReasonBox] = useState(false);
+  const [reason, setReason] = useState("");
+  const [selectedRequestId, setSelectedRequestId] = useState(null);
 
   const [refresh, setRefresh] = useState(false);
   const { setLoading, auth, alert } = useContext(GlobalContext);
@@ -103,6 +106,13 @@ const Request = () => {
 
   const handleStatusChange = async (id, event) => {
     const status = event.target.value;
+
+    if(status === "Canceled") {
+      setShowReasonBox(true);
+      setSelectedRequestId(id);
+      return;
+    }
+
     try {
       setLoading(true);
       const res = await axios.post(
@@ -127,11 +137,54 @@ const Request = () => {
     }
   };
 
+  const handleReasonBoxClose = (event) => {
+    setShowReasonBox(false);
+    setSelectedRequestId(null);
+    setReason("");
+  };
+
+  const handleStatusChangeWithReason = async () => {
+    setShowReasonBox(false);
+
+    setLoading(true);
+    try{
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/request/${selectedRequestId}`,
+        { status: "Canceled", reason },
+        {
+          headers: {
+            Authorization: sessionStorage.getItem("auth"),
+          },
+        }
+      );
+      setRefresh(!refresh);
+    }catch(error){
+      console.error(error);
+    }finally{
+      setLoading(false);
+    }
+
+  }; 
+
   return (
     <>
-      <div className="content-wrapper">
+      <div style={{position: "relative"}} className="content-wrapper">
         <SEO title="Requests" />
-
+        { 
+          showReasonBox && (
+          <div style={{display: "flex", justifyContent: "center",alignItems: "center", background: "rgba(0, 0, 0, 0.6)", height: "100%", position: "absolute", zIndex: 99999999 }} className="w-100">
+            <div style={{ background: "#FFF", width: "400px", height: "200px", padding: "20px" }}>
+              <div style={{position: "relative", width: "100%", height: "100%"}} className="d-flex mb-3 justify-content-between align-items-center flex-wrap">
+                <button onClick={handleReasonBoxClose} style={{width: "48px", height: "48px", outline: "None", border: "none", background: "white", position: "absolute", top: "-20px", right: "-20px"}}>
+                  <i style={{color: "red", fontSize: "24px" }} className="fa-solid fa-xmark"></i>
+                </button>
+                <h3>State reason</h3>
+                <input onChange={(e) => setReason(e.target.value)} className="form-control" type="text" />
+                <button onClick={() => handleStatusChangeWithReason()} className="btn btn-primary">Submit</button>
+              </div>
+            </div>
+          </div> )
+        }
         <div className="d-flex mb-3 justify-content-between align-items-center flex-wrap">
           <p className="card-title p-0 m-0">Requests</p>
         </div>
@@ -254,7 +307,7 @@ const Request = () => {
                             <td className="align-left">{request.bloodGroup}</td>
                             <td className="align-left">{request.needUnits}</td>
                             <td className="align-left">{request.gotUnits}</td>
-                            <td className="align-left">{request.critical ? "Yes" : "No"}</td>
+                            <td className="align-left">{request.isCritical ? "Yes" : "No"}</td>
 
                             <td className="align-left">
                               {moment(request.date, "DD-MM-YYYY").format("DD-MM-YYYY h:mm A")}
@@ -284,9 +337,9 @@ const Request = () => {
                                 <option className="bg-white" value="Open">
                                   Open
                                 </option>
-                                <option className="bg-white" value="Pending">
+                                {request.status === "Pending" ? <option className="bg-white" value="Pending">
                                   Pending
-                                </option>
+                                </option> : ""}
                                 <option className="bg-white" value="Close">
                                   Close
                                 </option>

@@ -18,7 +18,7 @@ import "react-loading-skeleton/dist/skeleton.css";
 function App() {
   const [alerts, alert] = useAlert();
   const [loading, setLoading] = useState(false);
-  const [auth, dispatch] = useReducer(authReducer, authState);
+  const [auth, dispatch] = useReducer(authReducer, authState); 
   return (
     <GlobalContext.Provider value={{ auth, dispatch, setLoading, alert, alerts }}>
       {loading && <LoadingScreen />}

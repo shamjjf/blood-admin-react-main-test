@@ -15,13 +15,13 @@ const Sidebar = ({ sidebar, setSidebar }) => {
           "requests",
           "tasks",
           "users",
+          "specialuser",
           "admins",
           "settings",
           "leaderboard",
           "camp",
           "contribution",
           "volunteer",
-          // "vendor",
           "bloodbank",
           "awssetting",
           "smtpsetting",
@@ -46,13 +46,13 @@ const Sidebar = ({ sidebar, setSidebar }) => {
     awssetting: "fa-solid fa-cloud",
     smtpsetting: "fa-solid fa-server",
     bulkuser: "fa fa-list-alt",
-    // vendor: "fa fa-user-tie",
+    specialuser: "fa fa-user-tie",
   };
   const nameMapping = {
     requests: "Requests",
     tasks: "Tasks",
     users: "Users",
-    admins: "Admins",
+    admins: "Sub-Admins",
     settings: "Settings",
     leaderboard: "Leaderboard",
     camp: "Camp",
@@ -63,7 +63,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
     awssetting: "AWS Setting",
     smtpsetting: "SMTP Setting",
     bulkuser: "Bulk User",
-    // vendor: "Vendor",
+    specialuser: "Special User",
   };
   
 
