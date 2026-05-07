@@ -75,14 +75,19 @@ const Home = () => {
       title: "Blood Banks",
       count: statData?.bloodBankCount,
     },
+    {
+      svg: <i className="fa-solid fa-hand-holding-heart" aria-hidden="true"></i>,
+      title: "Total Donors",
+      count: statData?.availableDonorsCount,
+    },
   ];
 
   return (
     <div className="content-wrapper">
       <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 p-0  ">
-        {data?.map(({ svg, title, count }, index) => (
+        {data?.map(({ svg, title, count, color }, index) => (
           <div className="my-3  " key={index}>
-            <DashboardCompletionData svg={svg} title={title} count={count} />
+            <DashboardCompletionData svg={svg} title={title} count={count} color={color} />
           </div>
         ))}
       </div>

@@ -45,6 +45,7 @@ import Vendor from "./Pages/Vender";
 import Profile from "./Pages/Profile";
 import SpecialUser from "./Pages/SpecialUser";
 import SpecialUserDetails from "./Pages/SpecialUserDetails";
+import Notifications from "./Pages/Notifications";
 
 // import { DndProvider } from "react-dnd";
 // import { HTML5Backend } from "react-dnd-html5-backend";
@@ -93,6 +94,7 @@ const Layout = () => {
               <Route path="/smtpsetting" element={<SMTPSetting />} />
               <Route path="/firebasesetting" element={<FirebaseSetting />} />
               <Route path="/volunteerdetails/:id" element={<VolunteerDetails />} />
+              <Route path="/notifications" element={<Notifications />} />
             </Route>
           </Routes>
           {/* </DndProvider> */}

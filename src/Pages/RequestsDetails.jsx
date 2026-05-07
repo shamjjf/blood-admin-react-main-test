@@ -489,6 +489,14 @@ const RequestDetails = () => {
                   required: true,
                 },
                 {
+                  label: "Hospital Name",
+                  value: request.hospitalName,
+                  name: "hospitalName",
+                  type: "text",
+                  placeholder: "Hospital Name",
+                  error: errors.hospitalName,
+                },
+                {
                   label: "Type",
                   value: request.type,
                   name: "type",
