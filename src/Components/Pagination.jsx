@@ -1,87 +1,52 @@
 const Pagination = ({ totalPages = 1, currentPage = 1, setCurrentPage }) => {
-  const handlePageClick = (page) => {
-    setCurrentPage(page);
-  };
+  const go = (p) => { if (p >= 1 && p <= totalPages) setCurrentPage(p); };
 
-  const renderPageNumbers = () => {
-    const pageNumbers = [];
-    const maxPageNumbers = 8;
+  const pages = [];
+  const max = 7;
+  let start = Math.max(1, currentPage - Math.floor(max / 2));
+  let end = Math.min(totalPages, start + max - 1);
+  if (end - start < max - 1) start = Math.max(1, end - max + 1);
+  for (let i = start; i <= end; i++) pages.push(i);
 
-    let startPage = Math.max(1, currentPage - Math.floor(maxPageNumbers / 2));
-    let endPage = Math.min(totalPages , startPage + maxPageNumbers - 1);
-
-    if (totalPages <= maxPageNumbers) {
-      startPage = 1;
-      endPage = totalPages;
-    } else if (currentPage <= Math.floor(maxPageNumbers / 2)) {
-      endPage = maxPageNumbers;
-    } else if (currentPage + Math.floor(maxPageNumbers / 2) >= totalPages) {
-      startPage = totalPages - maxPageNumbers + 1;
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pageNumbers.push(
-        <li
-          key={i}
-          style={{
-            borderTop: "1px solid white",
-            borderBottom: "1px solid white",
-          }}
-          className={`page-item border p-0 m-0 ${currentPage === i ? "active" : ""}`}
-        >
-          <button className="page-link w-100" onClick={() => handlePageClick(i)}>
-            {i}
-          </button>
-        </li>
-      );
-    }
-
-    return pageNumbers;
-  };
-
-  const handlePreviousClick = () => {
-    if (currentPage > 1) {
-      handlePageClick(currentPage - 1);
-    }
-  };
-
-  const handleNextClick = () => {
-    if (currentPage < totalPages) {
-      handlePageClick(currentPage + 1);
-    }
+  const btnBase = {
+    height: 32, minWidth: 32, padding: "0 10px", border: "1px solid rgba(0,0,0,0.1)",
+    borderRadius: 8, background: "white", fontSize: 13, cursor: "pointer",
+    fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "center",
+    justifyContent: "center", transition: "all 0.13s", color: "#374151",
   };
 
   return (
-    <div className="demo my-auto">
-      <nav className="my-auto " aria-label="Page navigation">
-        <ul className="pagination my-auto ">
-          <li className="page-item p-0 m-0">
-            <button
-              className="page-link w-100 border"
-              aria-label="Previous"
-              onClick={handlePreviousClick}
-            >
-              <span aria-hidden="true">
-                <b>«</b>
-              </span>
-            </button>
-          </li>
-          {renderPageNumbers()}
-          <li className="page-item p-0 m-0 ">
-            <button
-              className="page-link w-100 border"
-              aria-label="Next"
-              onClick={handleNextClick}
-            >
-              <span aria-hidden="true">
-                <b>»</b>
-              </span>
-            </button>
-          </li>
-        </ul>
-      </nav>
+    <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
+      <button onClick={() => go(currentPage - 1)} disabled={currentPage <= 1}
+        style={{ ...btnBase, opacity: currentPage <= 1 ? 0.4 : 1 }}>
+        <i className="ti ti-chevron-left" style={{ fontSize: 14 }}/>
+      </button>
+
+      {start > 1 && <>
+        <button onClick={() => go(1)} style={btnBase}>1</button>
+        {start > 2 && <span style={{ color: "#9ca3af", padding: "0 4px" }}>…</span>}
+      </>}
+
+      {pages.map(p => (
+        <button key={p} onClick={() => go(p)} style={{
+          ...btnBase,
+          background: p === currentPage ? "#C0392B" : "white",
+          color: p === currentPage ? "white" : "#374151",
+          borderColor: p === currentPage ? "#C0392B" : "rgba(0,0,0,0.1)",
+          fontWeight: p === currentPage ? 700 : 400,
+        }}>{p}</button>
+      ))}
+
+      {end < totalPages && <>
+        {end < totalPages - 1 && <span style={{ color: "#9ca3af", padding: "0 4px" }}>…</span>}
+        <button onClick={() => go(totalPages)} style={btnBase}>{totalPages}</button>
+      </>}
+
+      <button onClick={() => go(currentPage + 1)} disabled={currentPage >= totalPages}
+        style={{ ...btnBase, opacity: currentPage >= totalPages ? 0.4 : 1 }}>
+        <i className="ti ti-chevron-right" style={{ fontSize: 14 }}/>
+      </button>
     </div>
   );
 };
-
 export default Pagination;

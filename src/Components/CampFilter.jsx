@@ -1,128 +1,39 @@
-import React, { useState } from "react";
+const S = {
+  bar: { display:"flex", alignItems:"center", flexWrap:"wrap", gap:12, padding:"14px 16px", background:"#FAFAFA", borderBottom:"1px solid #EBEBEB" },
+  group: { display:"flex", flexDirection:"column", gap:4 },
+  lbl: { fontSize:11, fontWeight:700, color:"#9CA3AF", letterSpacing:"0.6px", textTransform:"uppercase", fontFamily:"'Syne',sans-serif" },
+  sel: { height:36, padding:"0 10px", borderRadius:8, border:"1px solid #E5E7EB", background:"#FFF", fontSize:13, color:"#374151", fontFamily:"'DM Sans',sans-serif", cursor:"pointer", outline:"none", minWidth:130 },
+  inp: { height:36, padding:"0 10px", borderRadius:8, border:"1px solid #E5E7EB", background:"#FFF", fontSize:13, color:"#374151", fontFamily:"'DM Sans',sans-serif", outline:"none" },
+  srchWrap: { position:"relative", minWidth:200 },
+  srchIcon: { position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", fontSize:15, color:"#9CA3AF" },
+  srchInput: { height:36, paddingLeft:34, paddingRight:12, borderRadius:8, border:"1px solid #E5E7EB", background:"#FFF", fontSize:13, color:"#374151", fontFamily:"'DM Sans',sans-serif", outline:"none", width:"100%", boxSizing:"border-box" },
+};
 
-const CampFilter = ({
-  setSearchText,
-  setDonorsExpected,
-  setStartDate,
-  setEndDate,
-  searchText,
-  startDate,
-  endDate,
-  donorsExpected,
-}) => {
-  const [showMenu, setShowMenu] = useState(false);
-
-  const handleMenuBar = () => {
-    setShowMenu(!showMenu);
-  };
-
-  const handleStartDate = (event) => {
-    const selectedStartDate = event.target.value;
-
-    setStartDate(selectedStartDate);
-  };
-  const handleEndDate = (event) => {
-    const selectedEndDate = event.target.value;
-
-    setEndDate(selectedEndDate);
-  };
-
-  const handleExpectedDonors = (event) => {
-    const selectedExpectedDonors = event.target.value;
-    setDonorsExpected(selectedExpectedDonors);
-  };
-
-  const debouncedSearch = async (e) => {
-    setTimeout(() => {
-      if (e.target.value === "") {
-        setSearchText("");
-      }
-      setSearchText(e.target.value);
-    }, 300);
-  };
-
+const CampFilter = ({ setSearchText, setDonorsExpected, setStartDate, setEndDate, searchText, startDate, endDate, donorsExpected }) => {
+  const debounce = (e) => setTimeout(() => setSearchText(e.target.value), 300);
   return (
-    <div className="filter-layout">
-      <div className="hide-menu">
-        <i className="fa-solid fa-sliders" id="bar-icon" onClick={handleMenuBar} />
+    <div style={S.bar}>
+      <div style={S.srchWrap}>
+        <i className="ti ti-search" style={S.srchIcon}/>
+        <input type="text" placeholder="Search camps..." onChange={debounce} style={S.srchInput}/>
       </div>
-      <div
-        className={` row respadding ${showMenu ? "active handle-menubar" : ""}`}
-        style={{ paddingRight: "20px", paddingLeft: "20px" }}
-      >
-        <div className="input-group mb-2 mb-md-0 input-bar col-md-3 col-sm-12  d-flex flex-column align-items-center justify-content-center mtforres lulEEE">
-          <div className="customSearch" style={{ paddingTop: "5px" }}>
-            <label htmlFor="b-group" className="filter-label">
-              Search:
-            </label>
-          </div>
-          <div className="input-group point8rem d-flex align-items-center justify-content-center">
-            <div className="input-group-prepend hover-cursor" id="navbar-search-icon" style={{ height: "34px" }}>
-              <span className="input-group-text" id="search">
-                <i className="icon-search"></i>
-              </span>
-            </div>
-            <input
-              type="text"
-              className="form-control"
-              id="navbar-search-input"
-              placeholder="Search "
-              onChange={debouncedSearch}
-              aria-label="search"
-              aria-describedby="search"
-              style={{ height: "34px" }}
-            />
-          </div>
-        </div>
-        <div className="col-md-3 col-sm-12 d-flex flex-column mb-3 px-2 pt-2 alignit" id="blood-dropdown">
-          <label htmlFor="b-group" className="filter-label">
-            Start Date:{" "}
-          </label>
-          <input
-            type="date"
-            name="date"
-            className="dropdown-btn newForsen "
-            value={startDate}
-            id="b-group"
-            onChange={(event) => handleStartDate(event)}
-            style={{ height: "34px" }}
-          />
-        </div>
-        <div className="col-md-3 col-sm-12 d-flex flex-column mb-3 px-2 pt-2 alignit" id="blood-dropdown">
-          <label htmlFor="b-group" className="filter-label">
-            End Date:{" "}
-          </label>
-          <input
-            type="date"
-            name="date"
-            className="dropdown-btn newForsen "
-            value={endDate}
-            id="b-group"
-            onChange={(event) => handleEndDate(event)}
-            style={{ height: "34px" }}
-          />
-        </div>
-        <div className="col-md-3 col-sm-12 d-flex flex-column mb-3 px-2 pt-2 alignit" id="status-dropdown">
-          <label htmlFor="expecteddonors" className="filter-label">
-            Donors Expected:{" "}
-          </label>
-          <select
-            name="expecteddonors"
-            value={donorsExpected}
-            className="dropdown-btn newForsen"
-            id="status"
-            onChange={(event) => {
-              handleExpectedDonors(event);
-            }}
-          >
-            <option value="">All</option>
-            <option value={1}>Low To High</option>
-            <option value={-1}>High To Low</option>
-          </select>
-        </div>
+      <div style={S.group}>
+        <label style={S.lbl}>Start Date</label>
+        <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={S.inp}/>
+      </div>
+      <div style={S.group}>
+        <label style={S.lbl}>End Date</label>
+        <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={S.inp}/>
+      </div>
+      <div style={S.group}>
+        <label style={S.lbl}>Donors Expected</label>
+        <select value={donorsExpected} onChange={e => setDonorsExpected(e.target.value)} style={S.sel}>
+          <option value="">All</option>
+          <option value={1}>Low → High</option>
+          <option value={-1}>High → Low</option>
+        </select>
       </div>
     </div>
   );
 };
-
 export default CampFilter;

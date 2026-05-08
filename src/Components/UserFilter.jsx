@@ -1,161 +1,46 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
-const UserFilter = ({
-  bloodGroupSelects,
-  setBloodGroupSelects,
-  genderSelects,
-  setGenderSelects,
-  pointsSelects,
-  setPointsSelects,
-  setSearchText,
-}) => {
-  const [gender, setGender] = useState(["All", "Male", "Female"]);
-  const [bloodGroup, setBloodGroup] = useState([
-    "All",
-    "A+",
-    "A-",
-    "B+",
-    "B-",
-    "AB+",
-    "AB-",
-    "O+",
-    "O-",
-    "A1+",
-    "A1-",
-    "A2+",
-    "A2-",
-    "A1B+",
-    "A1B-",
-    "A2B+",
-    "A2B-",
-    "Bombay Blood Group",
-    "INRA",
-    "Don't Know",
-  ]);
+const S = {
+  bar: { display:"flex", alignItems:"center", flexWrap:"wrap", gap:12, padding:"14px 16px", background:"#FAFAFA", borderBottom:"1px solid #EBEBEB" },
+  group: { display:"flex", flexDirection:"column", gap:4, minWidth:140 },
+  lbl: { fontSize:11, fontWeight:700, color:"#9CA3AF", letterSpacing:"0.6px", textTransform:"uppercase", fontFamily:"'Syne',sans-serif" },
+  sel: { height:36, padding:"0 10px", borderRadius:8, border:"1px solid #E5E7EB", background:"#FFF", fontSize:13, color:"#374151", fontFamily:"'DM Sans',sans-serif", cursor:"pointer", outline:"none", minWidth:130 },
+  srchWrap: { position:"relative", minWidth:200 },
+  srchIcon: { position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", fontSize:15, color:"#9CA3AF" },
+  srchInput: { height:36, paddingLeft:34, paddingRight:12, borderRadius:8, border:"1px solid #E5E7EB", background:"#FFF", fontSize:13, color:"#374151", fontFamily:"'DM Sans',sans-serif", outline:"none", width:"100%", boxSizing:"border-box" },
+};
 
-  const [showMenu, setShowMenu] = useState(false);
+const BLOOD = ["All","A+","A-","B+","B-","AB+","AB-","O+","O-","A1+","A1-","A2+","A2-","A1B+","A1B-","A2B+","A2B-","Bombay Blood Group","INRA","Don't Know"];
 
-  const handleMenuBar = () => {
-    setShowMenu(!showMenu);
-  };
-
-  const handleBloodChange = (event) => {
-    const selectedBloodGroup = event.target.value;
-    // console.log(selectedBloodGroup);
-    setBloodGroupSelects(selectedBloodGroup);
-  };
-  const handleGenderChange = (event) => {
-    const selectedGender = event.target.value;
-    setGenderSelects(selectedGender);
-  };
-  const handlePointsChange = (event) => {
-    const selectedPoints = event.target.value;
-    setPointsSelects(selectedPoints);
-  };
-
-  const debouncedSearch = async (e) => {
-    setTimeout(() => {
-      if (e.target.value === "") {
-        setSearchText("");
-      }
-      setSearchText(e.target.value);
-    }, 300);
-  };
-
+const UserFilter = ({ bloodGroupSelects, setBloodGroupSelects, genderSelects, setGenderSelects, pointsSelects, setPointsSelects, setSearchText }) => {
+  const debounce = (e) => setTimeout(() => setSearchText(e.target.value), 300);
   return (
-    <div className="filter-layout">
-      <div className="hide-menu">
-        <i className="fa-solid fa-sliders" id="bar-icon" onClick={handleMenuBar} />
+    <div style={S.bar}>
+      <div style={S.srchWrap}>
+        <i className="ti ti-search" style={S.srchIcon}/>
+        <input type="text" placeholder="Search users..." onChange={debounce} style={S.srchInput}/>
       </div>
-      <div
-        className={` row respadding ${showMenu ? "active handle-menubar" : ""}`}
-        style={{ paddingRight: "20px", paddingLeft: "20px" }}
-      >
-        <div className="input-group mb-2 mb-md-0 input-bar col-md-3 col-sm-12  d-flex flex-column align-items-center justify-content-center mtforres lulEEE">
-          <div className="customSearch" style={{ paddingTop: "5px" }}>
-            <label htmlFor="b-group" className="filter-label">
-              Search:
-            </label>
-          </div>
-          <div className="input-group point8rem d-flex align-items-center justify-content-center">
-            <div className="input-group-prepend hover-cursor" id="navbar-search-icon" style={{ height: "34px" }}>
-              <span className="input-group-text" id="search">
-                <i className="icon-search"></i>
-              </span>
-            </div>
-            <input
-              type="text"
-              className="form-control"
-              id="navbar-search-input"
-              placeholder="Search "
-              onChange={debouncedSearch}
-              aria-label="search"
-              aria-describedby="search"
-              style={{ height: "34px" }}
-            />
-          </div>
-        </div>
-        <div className="col-md-3 col-sm-12 d-flex flex-column mb-3 px-2 pt-2 alignit" id="blood-dropdown">
-          <label htmlFor="b-group" className="filter-label">
-            Blood Groups:{" "}
-          </label>
-          <select
-            name="blod-group"
-            className="dropdown-btn newForsen"
-            value={bloodGroupSelects}
-            id="b-group"
-            onChange={(event) => handleBloodChange(event)}
-          >
-            {bloodGroup &&
-              bloodGroup.map((element, index) => (
-                <option key={index} value={element}>
-                  {element}
-                </option>
-              ))}
-          </select>
-        </div>
-        <div className="col-md-3 col-sm-12 d-flex flex-column mb-3 px-2 pt-2 alignit" id="needunits-dropdown">
-          <label htmlFor="gender" className="filter-label">
-            Gender:{" "}
-          </label>
-          <select
-            name="gender"
-            value={genderSelects}
-            className="dropdown-btn newForsen"
-            id="need-units"
-            onChange={(event) => {
-              handleGenderChange(event);
-            }}
-          >
-            {gender &&
-              gender.map((element, index) => (
-                <option key={index} value={element}>
-                  {element}
-                </option>
-              ))}
-          </select>
-        </div>
-        <div className="col-md-3 col-sm-12 d-flex flex-column mb-3 px-2 pt-2 alignit" id="status-dropdown">
-          <label htmlFor="points" className="filter-label">
-            Points:{" "}
-          </label>
-          <select
-            name="points"
-            value={pointsSelects}
-            className="dropdown-btn newForsen"
-            id="status"
-            onChange={(event) => {
-              handlePointsChange(event);
-            }}
-          >
-            <option value={0}>All</option>
-            <option value={1}>Low To High</option>
-            <option value={-1}>High To Low</option>
-          </select>
-        </div>
+      <div style={S.group}>
+        <label style={S.lbl}>Blood Group</label>
+        <select value={bloodGroupSelects} onChange={e => setBloodGroupSelects(e.target.value)} style={S.sel}>
+          {BLOOD.map(b => <option key={b} value={b}>{b}</option>)}
+        </select>
+      </div>
+      <div style={S.group}>
+        <label style={S.lbl}>Gender</label>
+        <select value={genderSelects} onChange={e => setGenderSelects(e.target.value)} style={S.sel}>
+          {["All","Male","Female"].map(g => <option key={g} value={g}>{g}</option>)}
+        </select>
+      </div>
+      <div style={S.group}>
+        <label style={S.lbl}>Points</label>
+        <select value={pointsSelects} onChange={e => setPointsSelects(e.target.value)} style={S.sel}>
+          <option value={0}>All</option>
+          <option value={1}>Low → High</option>
+          <option value={-1}>High → Low</option>
+        </select>
       </div>
     </div>
   );
 };
-
 export default UserFilter;

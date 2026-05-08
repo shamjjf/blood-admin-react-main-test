@@ -11,6 +11,7 @@ import "./Assets/vendors/datatables.net-bs4/dataTables.bootstrap4.css";
 // import "./Assets/js/select.dataTables.min.css";
 // End plugin css for this page
 import "./Assets/css/vertical-layout-light/style.css";
+import "./Assets/css/admin-theme.css";
 import Navbar from "./Components/Navbar";
 import Sidebar from "./Components/Sidebar";
 import Home from "./Pages/Home";

@@ -1,86 +1,30 @@
-import React, { useState } from "react";
+const S = {
+  bar: { display:"flex", alignItems:"center", flexWrap:"wrap", gap:12, padding:"14px 16px", background:"#FAFAFA", borderBottom:"1px solid #EBEBEB" },
+  group: { display:"flex", flexDirection:"column", gap:4 },
+  lbl: { fontSize:11, fontWeight:700, color:"#9CA3AF", letterSpacing:"0.6px", textTransform:"uppercase", fontFamily:"'Syne',sans-serif" },
+  sel: { height:36, padding:"0 10px", borderRadius:8, border:"1px solid #E5E7EB", background:"#FFF", fontSize:13, color:"#374151", fontFamily:"'DM Sans',sans-serif", cursor:"pointer", outline:"none", minWidth:150 },
+  srchWrap: { position:"relative", minWidth:220 },
+  srchIcon: { position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", fontSize:15, color:"#9CA3AF" },
+  srchInput: { height:36, paddingLeft:34, paddingRight:12, borderRadius:8, border:"1px solid #E5E7EB", background:"#FFF", fontSize:13, color:"#374151", fontFamily:"'DM Sans',sans-serif", outline:"none", width:"100%", boxSizing:"border-box" },
+};
 
 const VolunteerFilter = ({ setSearchText, statusA, setStatusA }) => {
-  const [status, setStatus] = useState([
-    { value: "All", name: "All" },
-    { value: "verified", name: "Authorized" },
-    { value: "not verified", name: "Unauthorized" },
-  ]);
-
-  const [showMenu, setShowMenu] = useState(false);
-
-  const handleMenuBar = () => {
-    setShowMenu(!showMenu);
-  };
-
-  const handleStatusChange = (event) => {
-    const selectedStatus = event.target.value;
-
-    setStatusA(selectedStatus);
-  };
-
-  const debouncedSearch = async (e) => {
-    setTimeout(() => {
-      if (e.target.value === "") {
-        setSearchText("");
-      }
-      setSearchText(e.target.value);
-    }, 300);
-  };
-
+  const debounce = (e) => setTimeout(() => setSearchText(e.target.value), 300);
   return (
-    <div className="filter-layout">
-      <div className="hide-menu">
-        <i className="fa-solid fa-sliders" id="bar-icon" onClick={handleMenuBar} />
+    <div style={S.bar}>
+      <div style={S.srchWrap}>
+        <i className="ti ti-search" style={S.srchIcon}/>
+        <input type="text" placeholder="Search volunteers..." onChange={debounce} style={S.srchInput}/>
       </div>
-      <div className={` row respadding ${showMenu ? "active handle-menubar" : ""}`} style={{ paddingRight: "20px" }}>
-        <div className="input-group mb-2 mb-md-0 input-bar col-md-6 col-sm-12  d-flex flex-column align-items-center justify-content-center mtforres lulEEE">
-        <div className="customSearch" style={{ paddingTop: "5px" }}>
-
-          <label htmlFor="b-group" className="filter-label" style={{ paddingTop: "5px" }}>
-            Search:
-          </label>
-</div>
-          <div className="input-group point8rem d-flex align-items-center justify-content-center">
-            <div className="input-group-prepend hover-cursor" id="navbar-search-icon" style={{ height: "34px" }}>
-              <span className="input-group-text" id="search">
-                <i className="icon-search"></i>
-              </span>
-            </div>
-            <input
-              type="text"
-              className="form-control"
-              id="navbar-search-input"
-              placeholder="Search "
-              onChange={debouncedSearch}
-              aria-label="search"
-              aria-describedby="search"
-              style={{ height: "34px" }}
-            />
-          </div>
-        </div>
-        <div className="col-md-6 col-sm-12 d-flex flex-column mb-3 px-2 pt-2 alignit" id="blood-dropdown">
-          <label htmlFor="b-group" className="filter-label">
-            Status:{" "}
-          </label>
-          <select
-            name="blod-group"
-            className="dropdown-btn newForsen"
-            value={statusA}
-            id="b-group"
-            onChange={(event) => handleStatusChange(event)}
-          >
-            {status &&
-              status.map((element, index) => (
-                <option key={index} value={element?.value}>
-                  {element?.name}
-                </option>
-              ))}
-          </select>
-        </div>
+      <div style={S.group}>
+        <label style={S.lbl}>Status</label>
+        <select value={statusA} onChange={e => setStatusA(e.target.value)} style={S.sel}>
+          <option value="All">All</option>
+          <option value="verified">Authorized</option>
+          <option value="not verified">Unauthorized</option>
+        </select>
       </div>
     </div>
   );
 };
-
 export default VolunteerFilter;

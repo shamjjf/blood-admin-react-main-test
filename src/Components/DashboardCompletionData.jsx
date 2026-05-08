@@ -1,36 +1,31 @@
-import React from "react";
+const iconMap = {
+  "Users":             { icon: "ti ti-users",             cls: "blue" },
+  "Special User":      { icon: "ti ti-star",              cls: "amber" },
+  "Volunteers":        { icon: "ti ti-heart-handshake",   cls: "green" },
+  "Blood Requests":    { icon: "ti ti-droplet-filled",    cls: "red" },
+  "Platelet Requests": { icon: "ti ti-activity",          cls: "blue" },
+  "Tasks":             { icon: "ti ti-checkup-list",      cls: "amber" },
+  "Camps":             { icon: "ti ti-calendar-event",    cls: "purple" },
+  "Blood Banks":       { icon: "ti ti-building-hospital", cls: "green" },
+  "Total Donors":      { icon: "ti ti-droplet-half-2",    cls: "red" },
+};
 
-const DashboardCompletionData = ({ svg, title, count, color }) => {
-  // If a custom `color` is provided, use inline styles; otherwise fall back to bg-primary.
-  const useCustom = !!color;
+const DashboardCompletionData = ({ title, count }) => {
+  const meta = iconMap[title] || { icon: "ti ti-chart-bar", cls: "blue" };
+  const isHero = title === "Total Donors" || title === "Blood Requests";
+  const n = count ?? 0;
 
   return (
-    <div
-      className="border rounded bg-white shadow-sm p-1 d-flex justify-content-start gap-3 align-items-center p-2"
-      style={useCustom ? { borderColor: color } : undefined}
-    >
-      <div
-        style={{
-          width: "50px",
-          height: "50px",
-          minWidth: 50,
-          ...(useCustom ? { backgroundColor: color } : {}),
-        }}
-        className={`d-flex justify-content-center align-items-center text-white rounded-5 my-3 ${
-          useCustom ? "" : "bg-primary"
-        }`}
-      >
-        {svg}
+    <div className={`lsa-stat-card lsa-fade${isHero ? " hero" : ""}`}>
+      <div className={`lsa-stat-icon ${isHero ? "white" : meta.cls}`}>
+        <i className={meta.icon} />
       </div>
-      <div>
-        <h6 className="text-gray fw-bold mb-1">{title}</h6>
-        <span
-          className={`fw-semibold fs-5 ${useCustom ? "" : "text-primary"}`}
-          style={useCustom ? { color } : undefined}
-        >
-          {count || 0}
-        </span>
+      <div className="lsa-stat-val">{n}</div>
+      <div className="lsa-stat-label">{title}</div>
+      <div className="lsa-stat-trend">
+        <i className="ti ti-trending-up" /> Live data
       </div>
+      <div className="lsa-stat-bg-num">{n}</div>
     </div>
   );
 };

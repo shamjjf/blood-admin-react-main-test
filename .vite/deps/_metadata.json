@@ -1,0 +1,40 @@
+{
+  "hash": "eaed7c9b",
+  "configHash": "217a7535",
+  "lockfileHash": "e3b0c442",
+  "browserHash": "4becb4a7",
+  "optimized": {
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "d325524a",
+      "needsInterop": true
+    },
+    "axios": {
+      "src": "../../node_modules/axios/index.js",
+      "file": "axios.js",
+      "fileHash": "bcf90a00",
+      "needsInterop": false
+    },
+    "sweetalert": {
+      "src": "../../node_modules/sweetalert/dist/sweetalert.min.js",
+      "file": "sweetalert.js",
+      "fileHash": "b94bf60c",
+      "needsInterop": true
+    },
+    "react-router-dom": {
+      "src": "../../node_modules/react-router-dom/dist/index.js",
+      "file": "react-router-dom.js",
+      "fileHash": "c04dda30",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-FQO5W7GE": {
+      "file": "chunk-FQO5W7GE.js"
+    },
+    "chunk-ZS7NZCD4": {
+      "file": "chunk-ZS7NZCD4.js"
+    }
+  }
+}

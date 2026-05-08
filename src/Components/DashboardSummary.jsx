@@ -1,32 +1,61 @@
-import React, { useState } from "react";
+import React from "react";
 import DoughnutChart from "./DoughnutChart";
 
-const DashboardSummary = ({  summaryData, summaryText, noData, isPercentage=true}) => {
+const tagColor = (text) => {
+  if (text.toLowerCase().includes("blood")) return "red";
+  if (text.toLowerCase().includes("platelet")) return "blue";
+  if (text.toLowerCase().includes("task")) return "amber";
+  if (text.toLowerCase().includes("user") && !text.toLowerCase().includes("special")) return "blue";
+  if (text.toLowerCase().includes("special")) return "purple";
+  if (text.toLowerCase().includes("camp")) return "green";
+  return "gray";
+};
+
+const DashboardSummary = ({ summaryData, summaryText, noData, isPercentage = true }) => {
+  const total = isPercentage
+    ? null
+    : summaryData?.reduce((a, b) => a + (b.percentageValue || 0), 0);
 
   return (
-    <div className=" rounded-lg flex flex-col gap-y-1 min-w-[340px] w-100 h-[30rem]">
-      <h4  className=" w-100 my-3  text-center font-bold">{summaryText}</h4>
-      <span className=" w-100 flex justify-center items-center text-primary fs-4">
-        {noData? <div style={{
-          width: "100%",
-          height: "150px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center"
-        }} className="w-100 text-center ">No Data Found.</div> : <DoughnutChart data={summaryData} />}
-      </span>
-      <div>
-        {summaryData?.map((data) => (
-          <div key={data?.dataName} className="d-flex w-100 justify-content-between align-items-center pb-4 px-5 mx-auto">
-            <span className="d-flex gap-2 align-items-center">
-           <div style={{ width: "10px", height: "10px", backgroundColor: data?.color }} className=" rounded"></div>
-
-              {data?.dataName}
-            </span>
-            <span>{Math.floor(data?.percentageValue) || 0 }{ isPercentage ? "%" : "" }</span>
+    <div className="lsa-chart-card lsa-fade">
+      {/* Head */}
+      <div className="lsa-chart-head">
+        <div>
+          <div className="lsa-chart-title">{summaryText}</div>
+          <div className="lsa-chart-sub">
+            {noData ? "No data yet" : `${isPercentage ? "Percentage" : "Count"} breakdown`}
           </div>
-        ))}
+        </div>
+        <span className={`lsa-chart-tag ${tagColor(summaryText)}`}>
+          {noData ? "Empty" : isPercentage ? "%" : total ?? "—"}
+        </span>
       </div>
+
+      {/* Chart or empty */}
+      <div style={{ padding: "16px 18px 8px", display: "flex", justifyContent: "center" }}>
+        {noData ? (
+          <div className="lsa-no-data">
+            <i className="ti ti-chart-donut" />
+            <span>No Data Found</span>
+          </div>
+        ) : (
+          <DoughnutChart data={summaryData} />
+        )}
+      </div>
+
+      {/* Legend */}
+      {summaryData?.map((d) => (
+        <div className="lsa-legend-item" key={d.dataName}>
+          <div className="lsa-legend-left">
+            <div className="lsa-legend-dot" style={{ background: d.color }} />
+            {d.dataName}
+          </div>
+          <div className="lsa-legend-val">
+            {Math.floor(d.percentageValue) || 0}
+            {isPercentage ? "%" : ""}
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
