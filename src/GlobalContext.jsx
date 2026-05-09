@@ -5,11 +5,21 @@ const defaultState = {
   _id: "",
   roles: "",
 };
-const storage = sessionStorage.getItem("auth");
 
-export const authState = storage
-  ? JSON.parse(window.atob(storage.slice(7).split(".")[1]))
-  : defaultState;
+const getAuthState = () => {
+  try {
+    const storage = sessionStorage.getItem("auth");
+    if (!storage) return defaultState;
+    const token = storage.startsWith("Bearer ") ? storage.slice(7) : storage;
+    const parts = token.split(".");
+    if (parts.length !== 3) return defaultState;
+    return JSON.parse(window.atob(parts[1]));
+  } catch (e) {
+    return defaultState;
+  }
+};
+
+export const authState = getAuthState();
 
 export const authReducer = (state, action) => {
   const { type, payload } = action;
@@ -17,7 +27,13 @@ export const authReducer = (state, action) => {
   switch (type) {
     case "SIGNIN": {
       sessionStorage.setItem("auth", `Bearer ${payload}`);
-      return JSON.parse(window.atob(payload.split(".")[1]));
+      try {
+        const parts = payload.split(".");
+        if (parts.length !== 3) return defaultState;
+        return JSON.parse(window.atob(parts[1]));
+      } catch (e) {
+        return defaultState;
+      }
     }
 
     case "SIGNOUT": {
