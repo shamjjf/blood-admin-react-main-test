@@ -86,6 +86,37 @@ const Setting = () => {
       }
     }
 
+    // Notification config bounds
+    const intVal = parseInt(value);
+    if (
+      name === "notifyRadiusFirst" ||
+      name === "notifyRadiusSecond" ||
+      name === "notifyRadiusThird"
+    ) {
+      if (intVal < 1 || intVal > 500) {
+        swal("Error!", "Radius must be between 1 and 500 km.", "error");
+        return;
+      }
+    }
+    if (name === "notifyBatchSize") {
+      if (intVal < 1 || intVal > 100) {
+        swal("Error!", "Batch size must be between 1 and 100.", "error");
+        return;
+      }
+    }
+    if (name === "autoCancelHours") {
+      if (intVal < 1 || intVal > 168) {
+        swal("Error!", "Auto-cancel hours must be between 1 and 168 (7 days).", "error");
+        return;
+      }
+    }
+    if (name === "reminderEveryDays") {
+      if (intVal < 1 || intVal > 365) {
+        swal("Error!", "Reminder frequency must be between 1 and 365 days.", "error");
+        return;
+      }
+    }
+
     setSetting({
       ...setting,
       [name]: parseInt(value),
@@ -335,6 +366,43 @@ const Setting = () => {
                       label: "Contribution Points",
                       value: setting.contributionPoints,
                       name: "contributionPoints",
+                    },
+                  ],
+                },
+                {
+                  title: "Notification Configuration",
+                  description:
+                    "Configure how blood requests fan out to nearby donors and how often inactive users are reminded.",
+                  inputs: [
+                    {
+                      label: "First Reminder Radius (km)",
+                      value: setting.notifyRadiusFirst,
+                      name: "notifyRadiusFirst",
+                    },
+                    {
+                      label: "Second Reminder Radius (km)",
+                      value: setting.notifyRadiusSecond,
+                      name: "notifyRadiusSecond",
+                    },
+                    {
+                      label: "Third / Expansion Radius (km)",
+                      value: setting.notifyRadiusThird,
+                      name: "notifyRadiusThird",
+                    },
+                    {
+                      label: "Donors Notified Per Batch (1–100)",
+                      value: setting.notifyBatchSize,
+                      name: "notifyBatchSize",
+                    },
+                    {
+                      label: "Auto-cancel Unanswered Invite After (hours)",
+                      value: setting.autoCancelHours,
+                      name: "autoCancelHours",
+                    },
+                    {
+                      label: "Reminder Frequency For Inactive Users (days)",
+                      value: setting.reminderEveryDays,
+                      name: "reminderEveryDays",
                     },
                   ],
                 },
