@@ -56,6 +56,55 @@ const UserDetails = () => {
   const [address1, setAddress1] = useState([]);
   const [tid, setTid] = useState(0);
 
+  // KYC action state
+  const [kycBusy, setKycBusy] = useState(false);
+  const kycBadgeStyle = (status) => {
+    const base = { padding: "4px 12px", borderRadius: 12, fontSize: 12, fontWeight: 700, textTransform: "capitalize", display: "inline-block" };
+    if (status === "verified") return { ...base, background: "#DCFCE7", color: "#166534" };
+    if (status === "rejected") return { ...base, background: "#FEE2E2", color: "#991B1B" };
+    if (status === "pending") return { ...base, background: "#FEF3C7", color: "#92400E" };
+    return { ...base, background: "#F3F4F6", color: "#6B7280" };
+  };
+
+  const handleKycDecision = async (decision) => {
+    if (!user?.kyc?.type) return;
+    let reason = null;
+    if (decision === "rejected") {
+      const r = window.prompt("Enter a reason for rejecting this KYC (shown to the user):", "");
+      if (r === null) return; // cancelled
+      reason = String(r).trim();
+      if (!reason) {
+        swal("Error", "Rejection reason is required", "error");
+        return;
+      }
+    } else {
+      const confirm = await swal({
+        title: "Approve KYC?",
+        text: `Mark ${user.kyc.type === "pan" ? "PAN" : "Aadhar"} as verified for this user?`,
+        icon: "info",
+        buttons: ["Cancel", "Approve"],
+      });
+      if (!confirm) return;
+    }
+
+    try {
+      setKycBusy(true);
+      const res = await axios.patch(
+        `${import.meta.env.VITE_API_URL}/user/${id}/kyc`,
+        { status: decision, reason },
+        { headers: { Authorization: sessionStorage.getItem("auth"), "Content-Type": "application/json" } }
+      );
+      const updatedKyc = res?.data?.data?.kyc;
+      setUser((prev) => ({ ...prev, kyc: { ...(prev.kyc || {}), ...(updatedKyc || {}) } }));
+      swal("Success", `KYC ${decision === "verified" ? "approved" : "rejected"} successfully!`, "success");
+    } catch (error) {
+      console.log(error);
+      swal("Error", error?.response?.data?.error || "Failed to update KYC status", "error");
+    } finally {
+      setKycBusy(false);
+    }
+  };
+
   const dateFormatOptions = ["MM/DD/YYYY", "DD/MM/YYYY", "YYYY/MM/DD", "MM-DD-YYYY", "DD-MM-YYYY", "YYYY-MM-DD"];
 
   const timeFormatOptions = ["12hrs", "24hrs"];
@@ -962,6 +1011,122 @@ const UserDetails = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+          <div className="card mb-4 mx-0 p-0 bg-white grid-item">
+            <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+              <div>
+                <h5>KYC Verification</h5>
+                <p className="small mb-0">Aadhar / PAN identity verification submitted at signup.</p>
+              </div>
+              {user?.kyc?.type && (
+                <span style={kycBadgeStyle(user.kyc.status)}>{user.kyc.status || "pending"}</span>
+              )}
+            </div>
+            <div className="card-body">
+              {!user?.kyc?.type ? (
+                <p className="text-muted m-0">This user has not submitted any KYC.</p>
+              ) : (
+                <>
+                  <div className="form-group row d-flex align-items-center">
+                    <label className="col-form-label" style={{ width: "140px", paddingLeft: "10px" }}>KYC Type</label>
+                    <div className="col-sm-8">
+                      <input type="text" className="form-control" value={user.kyc.type === "pan" ? "PAN Card" : "Aadhar Card"} disabled />
+                    </div>
+                  </div>
+                  <div className="form-group row d-flex align-items-center">
+                    <label className="col-form-label" style={{ width: "140px", paddingLeft: "10px" }}>
+                      {user.kyc.type === "pan" ? "PAN Number" : "Aadhar Number"}
+                    </label>
+                    <div className="col-sm-8">
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={user.kyc.type === "pan" ? (user.kyc.panNumber || "") : (user.kyc.aadharNumber || "")}
+                        disabled
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group row d-flex align-items-center">
+                    <label className="col-form-label" style={{ width: "140px", paddingLeft: "10px" }}>Document</label>
+                    <div className="col-sm-8">
+                      {user.kyc.document?.url ? (
+                        <>
+                          <a
+                            href={user.kyc.document.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-outline-primary btn-sm me-2"
+                          >
+                            <i className="fa-regular fa-eye"></i> View Document
+                          </a>
+                          <span className="text-muted small ms-2">
+                            {user.kyc.document.name} ({user.kyc.document.mime})
+                          </span>
+                          {/^image\//.test(user.kyc.document.mime || "") && (
+                            <div className="mt-3">
+                              <img
+                                src={user.kyc.document.url}
+                                alt="KYC document"
+                                style={{ maxWidth: "100%", maxHeight: 280, borderRadius: 6, border: "1px solid #E5E7EB" }}
+                              />
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-muted">No document uploaded</span>
+                      )}
+                    </div>
+                  </div>
+                  {user.kyc.submittedAt && (
+                    <div className="form-group row d-flex align-items-center">
+                      <label className="col-form-label" style={{ width: "140px", paddingLeft: "10px" }}>Submitted On</label>
+                      <div className="col-sm-8">
+                        <input type="text" className="form-control" value={formatDate(user.kyc.submittedAt)} disabled />
+                      </div>
+                    </div>
+                  )}
+                  {user.kyc.status === "verified" && user.kyc.verifiedAt && (
+                    <div className="form-group row d-flex align-items-center">
+                      <label className="col-form-label" style={{ width: "140px", paddingLeft: "10px" }}>Verified On</label>
+                      <div className="col-sm-8">
+                        <input type="text" className="form-control" value={formatDate(user.kyc.verifiedAt)} disabled />
+                      </div>
+                    </div>
+                  )}
+                  {user.kyc.status === "rejected" && user.kyc.rejectionReason && (
+                    <div className="form-group row d-flex align-items-center">
+                      <label className="col-form-label" style={{ width: "140px", paddingLeft: "10px" }}>Reason</label>
+                      <div className="col-sm-8">
+                        <textarea className="form-control" rows={2} value={user.kyc.rejectionReason} disabled />
+                      </div>
+                    </div>
+                  )}
+
+                  {user.kyc.status !== "verified" && (
+                    <div className="d-flex justify-content-end mt-3" style={{ gap: 8 }}>
+                      <button
+                        type="button"
+                        className="btn btn-success"
+                        disabled={kycBusy}
+                        onClick={() => handleKycDecision("verified")}
+                      >
+                        {kycBusy ? "Working..." : "Approve KYC"}
+                      </button>
+                      {user.kyc.status !== "rejected" && (
+                        <button
+                          type="button"
+                          className="btn btn-danger"
+                          disabled={kycBusy}
+                          onClick={() => handleKycDecision("rejected")}
+                        >
+                          Reject KYC
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
           <div className="card mb-4 mx-0 p-0 bg-white grid-item">

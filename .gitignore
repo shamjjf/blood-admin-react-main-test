@@ -27,3 +27,5 @@ credential.json
 *.sln
 *.sw?
 .env
+.env.development
+.env.production

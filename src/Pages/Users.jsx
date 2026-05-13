@@ -20,6 +20,7 @@ const Users = () => {
   const [bloodGroupSelects, setBloodGroupSelects] = useState("All");
   const [pointsSelects, setPointsSelects] = useState("0");
   const [searchText, setSearchText] = useState("");
+  const [kycStatusSelects, setKycStatusSelects] = useState("All");
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -28,13 +29,28 @@ const Users = () => {
     setCurrentPage(1);
   };
 
+  const kycBadgeStyle = (status) => {
+    const base = { padding: "4px 12px", borderRadius: 12, fontSize: 11, fontWeight: 700, display: "inline-block", minWidth: 70, textAlign: "center" };
+    if (status === "verified") return { ...base, background: "#22C55E", color: "#FFFFFF" };
+    if (status === "rejected") return { ...base, background: "#EF4444", color: "#FFFFFF" };
+    if (status === "pending") return { ...base, background: "#F59E0B", color: "#FFFFFF" };
+    return { ...base, background: "#E5E7EB", color: "#6B7280" };
+  };
+
+  const kycLabel = (status) => {
+    if (status === "verified") return "Accepted";
+    if (status === "rejected") return "Rejected";
+    if (status === "pending") return "Pending";
+    return "None";
+  };
+
   useEffect(() => {
     const getData = async () => {
       try {
         setIsLoading(true);
         let url = `${import.meta.env.VITE_API_URL}/users?n=${limit}&p=${currentPage}&bloodGroup=${encodeURIComponent(
           bloodGroupSelects
-        )}&gender=${genderSelects}&points=${pointsSelects}&searchText=${searchText}`;
+        )}&gender=${genderSelects}&points=${pointsSelects}&searchText=${searchText}&kycStatus=${kycStatusSelects}`;
 
         const res = await axios.get(url, {
           headers: {
@@ -52,7 +68,7 @@ const Users = () => {
       }
     };
     getData();
-  }, [limit, currentPage, bloodGroupSelects, pointsSelects, genderSelects, searchText]);
+  }, [limit, currentPage, bloodGroupSelects, pointsSelects, genderSelects, searchText, kycStatusSelects]);
 
   return (
     <>
@@ -74,6 +90,8 @@ const Users = () => {
                 pointsSelects={pointsSelects}
                 setPointsSelects={setPointsSelects}
                 setSearchText={setSearchText}
+                kycStatusSelects={kycStatusSelects}
+                setKycStatusSelects={setKycStatusSelects}
               />
               {isLoading ? (
                 <div className="table-responsive">
@@ -86,6 +104,7 @@ const Users = () => {
                         <th className="align-left">Blood Group</th>
                         <th className="align-left">Points</th>
                         <th className="align-left">User Type</th>
+                        <th className="align-left">KYC</th>
 
                         <th className="align-center">View</th>
                       </tr>
@@ -112,6 +131,9 @@ const Users = () => {
                             <Skeleton height={20} width={100} />
                           </td>
                           <td className="align-left">
+                            <Skeleton height={20} width={80} />
+                          </td>
+                          <td className="align-left">
                             <Skeleton height={20} width={100} />
                           </td>
                         </tr>
@@ -131,6 +153,7 @@ const Users = () => {
                         <th className="align-left">Blood Group</th>
                         <th className="align-left">Points</th>
                         <th className="align-left">User Type</th>
+                        <th className="align-left">KYC</th>
 
                         <th className="align-center">View</th>
                       </tr>
@@ -150,6 +173,15 @@ const Users = () => {
                             <td className="align-left text-capitalize">
                               {user.type == "user" ? "Individual" : user.type}
                             </td>
+                            <td className="align-left">
+                              {user.kyc?.type ? (
+                                <span style={kycBadgeStyle(user.kyc.status)}>
+                                  {kycLabel(user.kyc.status)}
+                                </span>
+                              ) : (
+                                <span style={kycBadgeStyle()}>None</span>
+                              )}
+                            </td>
                             <td className="align-center">
                               <Link to={`/user/${user._id}`}>
                                 <i className="icons fa-regular fa-eye"></i>
@@ -159,7 +191,7 @@ const Users = () => {
                         ))
                       ) : (
                         <tr className="">
-                          <td colSpan={7} className="align-center">
+                          <td colSpan={9} className="align-center">
                             <p className="m-5 p-5 fs-4">No Data Found</p>
                           </td>
                         </tr>
