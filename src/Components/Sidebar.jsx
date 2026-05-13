@@ -56,6 +56,8 @@ const NAV_GROUPS = [
     label: "Settings",
     items: [
       { key: "settings",        icon: "ti ti-adjustments",    name: "Settings" },
+      { key: "analytics",       icon: "ti ti-chart-pie",      name: "Analytics" },
+      { key: "audit-logs",      icon: "ti ti-history",        name: "Audit Logs" },
       { key: "awssetting",      icon: "ti ti-cloud-upload",   name: "AWS Settings" },
       { key: "smtpsetting",     icon: "ti ti-mail",           name: "SMTP Settings" },
       { key: "firebasesetting", icon: "ti ti-brand-firebase", name: "Firebase" },
@@ -84,7 +86,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
     auth.isSuperAdmin
       ? ["requests","tasks","users","specialuser","admins","settings","leaderboard","badges","onboarding","organizations",
          "camp","contribution","volunteer","bloodbank","awssetting","smtpsetting","firebasesetting","bulkuser",
-         "inventory","donations-report","certificate-orders","certificate-management","reminders"]
+         "inventory","donations-report","certificate-orders","certificate-management","reminders","analytics","audit-logs"]
       : auth.roles || []
   );
 

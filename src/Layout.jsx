@@ -56,6 +56,8 @@ import DonationsReport from "./Pages/DonationsReport";
 import CertificateOrders from "./Pages/CertificateOrders";
 import CertificateManagement from "./Pages/CertificateManagement";
 import Reminders from "./Pages/Reminders";
+import Analytics from "./Pages/Analytics";
+import AuditLogs from "./Pages/AuditLogs";
 
 // import { DndProvider } from "react-dnd";
 // import { HTML5Backend } from "react-dnd-html5-backend";
@@ -103,6 +105,8 @@ const Layout = () => {
               <Route path="/certificate-orders" element={<CertificateOrders />} />
               <Route path="/certificate-management" element={<CertificateManagement />} />
               <Route path="/reminders" element={<Reminders />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/audit-logs" element={<AuditLogs />} />
               <Route path="/contribution" element={<Contribution />} />
               <Route path="/volunteer" element={<Volunteer />} />
               <Route path="/vendor" element={<Vendor />} />
