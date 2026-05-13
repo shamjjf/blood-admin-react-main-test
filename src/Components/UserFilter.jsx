@@ -12,13 +12,29 @@ const S = {
 
 const BLOOD = ["All","A+","A-","B+","B-","AB+","AB-","O+","O-","A1+","A1-","A2+","A2-","A1B+","A1B-","A2B+","A2B-","Bombay Blood Group","INRA","Don't Know"];
 
-const UserFilter = ({ bloodGroupSelects, setBloodGroupSelects, genderSelects, setGenderSelects, pointsSelects, setPointsSelects, setSearchText, kycStatusSelects, setKycStatusSelects }) => {
+const ROLES = [
+  { value: "All", label: "All" },
+  { value: "donor", label: "Donor" },
+  { value: "patient", label: "Patient" },
+  { value: "volunteer", label: "Volunteer" },
+  { value: "staff", label: "Staff" },
+  { value: "superadmin", label: "Super Admin" },
+  { value: "deactivated", label: "Deactivated" },
+];
+
+const UserFilter = ({ bloodGroupSelects, setBloodGroupSelects, genderSelects, setGenderSelects, pointsSelects, setPointsSelects, setSearchText, kycStatusSelects, setKycStatusSelects, roleSelects, setRoleSelects }) => {
   const debounce = (e) => setTimeout(() => setSearchText(e.target.value), 300);
   return (
     <div style={S.bar}>
       <div style={S.srchWrap}>
         <i className="ti ti-search" style={S.srchIcon}/>
         <input type="text" placeholder="Search users..." onChange={debounce} style={S.srchInput}/>
+      </div>
+      <div style={S.group}>
+        <label style={S.lbl}>Role</label>
+        <select value={roleSelects || "All"} onChange={e => setRoleSelects && setRoleSelects(e.target.value)} style={S.sel}>
+          {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+        </select>
       </div>
       <div style={S.group}>
         <label style={S.lbl}>Blood Group</label>

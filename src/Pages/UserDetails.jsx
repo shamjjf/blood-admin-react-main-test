@@ -58,6 +58,115 @@ const UserDetails = () => {
 
   // KYC action state
   const [kycBusy, setKycBusy] = useState(false);
+
+  // ====== Roles & Permissions state ======
+  const ADMIN_AREAS = ["users", "requests", "tasks", "settings"];
+  const [rolesForm, setRolesForm] = useState({
+    isBloodDonor: false,
+    isPlateletDonor: false,
+    isBloodRecipient: false,
+    isPlateletRecipient: false,
+    isVolunteer: false,
+    isStaff: false,
+    isSuperAdmin: false,
+    staffAreas: [],
+    blocked: false,
+  });
+  const [rolesBusy, setRolesBusy] = useState(false);
+
+  // Sync the roles form with the latest user data whenever it loads.
+  useEffect(() => {
+    if (!user) return;
+    setRolesForm({
+      isBloodDonor: !!user.isBloodDonor,
+      isPlateletDonor: !!user.isPlateletDonor,
+      isBloodRecipient: !!user.isBloodRecipient,
+      isPlateletRecipient: !!user.isPlateletRecipient,
+      isVolunteer: !!user.volunteer,
+      isStaff: !!user.adminLink && !user.adminLink?.isSuperAdmin,
+      isSuperAdmin: !!user.adminLink?.isSuperAdmin,
+      staffAreas: user.adminLink?.roles || [],
+      blocked: !!user.blocked,
+    });
+  }, [user?._id, user?.adminLink?.isSuperAdmin, user?.blocked, user?.volunteer]);
+
+  const toggleRole = (key) => {
+    setRolesForm((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      // Staff and Super Admin are mutually exclusive — toggling one off the other.
+      if (key === "isStaff" && next.isStaff) next.isSuperAdmin = false;
+      if (key === "isSuperAdmin" && next.isSuperAdmin) {
+        next.isStaff = false;
+        next.staffAreas = [];
+      }
+      // Unchecking Staff clears the selected areas.
+      if (key === "isStaff" && !next.isStaff) next.staffAreas = [];
+      return next;
+    });
+  };
+
+  const toggleStaffArea = (area) => {
+    setRolesForm((prev) => {
+      const has = prev.staffAreas.includes(area);
+      return {
+        ...prev,
+        staffAreas: has ? prev.staffAreas.filter((a) => a !== area) : [...prev.staffAreas, area],
+      };
+    });
+  };
+
+  const handleSaveRoles = async () => {
+    if (rolesForm.isStaff && rolesForm.staffAreas.length === 0) {
+      swal("Error", "Pick at least one Staff area (Users, Requests, Tasks or Settings).", "error");
+      return;
+    }
+    try {
+      setRolesBusy(true);
+      const res = await axios.patch(
+        `${import.meta.env.VITE_API_URL}/user/${id}/roles`,
+        rolesForm,
+        {
+          headers: { Authorization: sessionStorage.getItem("auth"), "Content-Type": "application/json" },
+        }
+      );
+      const payload = res?.data?.data;
+      setUser((prev) => ({
+        ...prev,
+        isBloodDonor: payload?.user?.isBloodDonor ?? prev.isBloodDonor,
+        isPlateletDonor: payload?.user?.isPlateletDonor ?? prev.isPlateletDonor,
+        isBloodRecipient: payload?.user?.isBloodRecipient ?? prev.isBloodRecipient,
+        isPlateletRecipient: payload?.user?.isPlateletRecipient ?? prev.isPlateletRecipient,
+        volunteer: payload?.user?.volunteer ?? prev.volunteer,
+        blocked: payload?.user?.blocked ?? prev.blocked,
+        adminLink: payload?.adminLink ?? null,
+      }));
+      if (payload?.tempPasswordIssued) {
+        swal({
+          title: "Admin account created",
+          text: `A temporary password was emailed to ${user.email}.\n\nFor your reference (also logged to server): ${payload.tempPasswordIssued}`,
+          icon: "success",
+        });
+      } else {
+        swal("Success", "Roles updated successfully.", "success");
+      }
+    } catch (error) {
+      console.error("updateUserRoles error:", error);
+      swal("Error", error?.response?.data?.error || "Failed to update roles", "error");
+    } finally {
+      setRolesBusy(false);
+    }
+  };
+
+  const roleBadgeStyle = (bg) => ({
+    background: bg,
+    color: "#FFFFFF",
+    padding: "3px 10px",
+    borderRadius: 12,
+    fontSize: 11,
+    fontWeight: 700,
+    display: "inline-block",
+    marginRight: 6,
+  });
   const kycBadgeStyle = (status) => {
     const base = { padding: "4px 12px", borderRadius: 12, fontSize: 12, fontWeight: 700, textTransform: "capitalize", display: "inline-block" };
     if (status === "verified") return { ...base, background: "#DCFCE7", color: "#166534" };
@@ -1129,6 +1238,169 @@ const UserDetails = () => {
               )}
             </div>
           </div>
+          {/* ===== Roles & Permissions Card ===== */}
+          <div className="card mb-4 mx-0 p-0 bg-white grid-item">
+            <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+              <div>
+                <h5>Roles & Permissions</h5>
+                <p className="small mb-0">Manage what this user is on the platform. Roles overlap freely.</p>
+              </div>
+              <div>
+                {user?.adminLink?.isSuperAdmin ? (
+                  <span style={roleBadgeStyle("#7C3AED")}>Super Admin</span>
+                ) : user?.adminLink ? (
+                  <span style={roleBadgeStyle("#0EA5E9")}>Staff</span>
+                ) : null}
+              </div>
+            </div>
+            <div className="card-body">
+              <p className="text-uppercase fw-bold text-muted small mb-2" style={{ letterSpacing: 0.5 }}>
+                Operational Roles (User App)
+              </p>
+
+              <div className="form-check mb-2">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.isBloodDonor}
+                    onChange={() => toggleRole("isBloodDonor")}
+                  />
+                  Blood Donor
+                  <i className="input-helper" />
+                </label>
+              </div>
+              <div className="form-check mb-2">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.isPlateletDonor}
+                    onChange={() => toggleRole("isPlateletDonor")}
+                  />
+                  Platelet Donor
+                  <i className="input-helper" />
+                </label>
+              </div>
+              <div className="form-check mb-2">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.isBloodRecipient}
+                    onChange={() => toggleRole("isBloodRecipient")}
+                  />
+                  Blood Recipient (Patient)
+                  <i className="input-helper" />
+                </label>
+              </div>
+              <div className="form-check mb-2">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.isPlateletRecipient}
+                    onChange={() => toggleRole("isPlateletRecipient")}
+                  />
+                  Platelet Recipient (Patient)
+                  <i className="input-helper" />
+                </label>
+              </div>
+              <div className="form-check mb-3">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.isVolunteer}
+                    onChange={() => toggleRole("isVolunteer")}
+                  />
+                  Volunteer
+                  <i className="input-helper" />
+                </label>
+              </div>
+
+              <hr />
+
+              <p className="text-uppercase fw-bold text-muted small mb-2" style={{ letterSpacing: 0.5 }}>
+                Admin Portal Access
+              </p>
+
+              <div className="form-check mb-2">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.isSuperAdmin}
+                    onChange={() => toggleRole("isSuperAdmin")}
+                  />
+                  Super Admin (full access)
+                  <i className="input-helper" />
+                </label>
+              </div>
+              <div className="form-check mb-2">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.isStaff}
+                    onChange={() => toggleRole("isStaff")}
+                  />
+                  Staff (Sub-Admin)
+                  <i className="input-helper" />
+                </label>
+              </div>
+
+              {rolesForm.isStaff && (
+                <div style={{ marginLeft: 24, marginBottom: 12 }}>
+                  <p className="small text-muted mb-2">Pick which areas this Staff can manage:</p>
+                  {ADMIN_AREAS.map((area) => (
+                    <div key={area} className="form-check d-inline-block me-3">
+                      <label className="form-check-label text-capitalize">
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          checked={rolesForm.staffAreas.includes(area)}
+                          onChange={() => toggleStaffArea(area)}
+                        />
+                        {area}
+                        <i className="input-helper" />
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <hr />
+
+              <p className="text-uppercase fw-bold text-muted small mb-2" style={{ letterSpacing: 0.5 }}>
+                Account State
+              </p>
+              <div className="form-check mb-3">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.blocked}
+                    onChange={() => toggleRole("blocked")}
+                  />
+                  Deactivate account (blocks all login)
+                  <i className="input-helper" />
+                </label>
+              </div>
+
+              <div className="d-flex justify-content-end">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={rolesBusy}
+                  onClick={handleSaveRoles}
+                >
+                  {rolesBusy ? "Saving…" : "Save Roles"}
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div className="card mb-4 mx-0 p-0 bg-white grid-item">
             <div className="card-header bg-primary text-white">
               <h5>Preferences</h5>
