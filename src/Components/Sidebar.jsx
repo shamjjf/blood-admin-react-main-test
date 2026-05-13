@@ -13,8 +13,9 @@ const NAV_GROUPS = [
     items: [
       { key: "requests",    icon: "ti ti-droplet-filled",   name: "Requests",     badgeKey: "requests" },
       { key: "tasks",       icon: "ti ti-checkup-list",     name: "Tasks",        badgeKey: "tasks" },
-      { key: "camp",        icon: "ti ti-calendar-event",   name: "Camp" },
-      { key: "contribution",icon: "ti ti-coin",             name: "Contribution" },
+      { key: "camp",          icon: "ti ti-calendar-event",  name: "Camp" },
+      { key: "organizations", icon: "ti ti-building-bank",   name: "Organizations" },
+      { key: "contribution",  icon: "ti ti-coin",            name: "Contribution" },
       { key: "volunteer",   icon: "ti ti-heart-handshake",  name: "Volunteer",    badgeKey: "volunteers" },
       { key: "bloodbank",   icon: "ti ti-building-hospital",name: "Blood Bank" },
     ],
@@ -66,7 +67,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
 
   const [adminRoles] = useState(
     auth.isSuperAdmin
-      ? ["requests","tasks","users","specialuser","admins","settings","leaderboard","badges","onboarding",
+      ? ["requests","tasks","users","specialuser","admins","settings","leaderboard","badges","onboarding","organizations",
          "camp","contribution","volunteer","bloodbank","awssetting","smtpsetting","firebasesetting","bulkuser"]
       : auth.roles || []
   );
