@@ -38,6 +38,12 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Communication",
+    items: [
+      { key: "reminders", icon: "ti ti-bell-ringing", name: "Reminders & Campaigns" },
+    ],
+  },
+  {
     label: "Donations",
     items: [
       { key: "inventory",              icon: "ti ti-box-seam",          name: "Inventory" },
@@ -78,7 +84,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
     auth.isSuperAdmin
       ? ["requests","tasks","users","specialuser","admins","settings","leaderboard","badges","onboarding","organizations",
          "camp","contribution","volunteer","bloodbank","awssetting","smtpsetting","firebasesetting","bulkuser",
-         "inventory","donations-report","certificate-orders","certificate-management"]
+         "inventory","donations-report","certificate-orders","certificate-management","reminders"]
       : auth.roles || []
   );
 

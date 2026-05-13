@@ -55,6 +55,7 @@ import Inventory from "./Pages/Inventory";
 import DonationsReport from "./Pages/DonationsReport";
 import CertificateOrders from "./Pages/CertificateOrders";
 import CertificateManagement from "./Pages/CertificateManagement";
+import Reminders from "./Pages/Reminders";
 
 // import { DndProvider } from "react-dnd";
 // import { HTML5Backend } from "react-dnd-html5-backend";
@@ -101,6 +102,7 @@ const Layout = () => {
               <Route path="/donations-report" element={<DonationsReport />} />
               <Route path="/certificate-orders" element={<CertificateOrders />} />
               <Route path="/certificate-management" element={<CertificateManagement />} />
+              <Route path="/reminders" element={<Reminders />} />
               <Route path="/contribution" element={<Contribution />} />
               <Route path="/volunteer" element={<Volunteer />} />
               <Route path="/vendor" element={<Vendor />} />
