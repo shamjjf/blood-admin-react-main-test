@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
+import { downloadCsv } from "../utils/downloadCsv";
 
 const AuditLogs = () => {
   const { setLoading } = useContext(GlobalContext);
@@ -63,7 +64,22 @@ const AuditLogs = () => {
     <>
       <SEO title="Audit Logs" />
       <div className="content-wrapper pt-5">
-        <p className="card-title p-0 m-0 mb-3">Audit Logs</p>
+        <div className="d-flex mb-3 justify-content-between align-items-center flex-wrap" style={{ gap: 12 }}>
+          <p className="card-title p-0 m-0">Audit Logs</p>
+          <button
+            className="btn btn-outline-primary"
+            onClick={() =>
+              downloadCsv("/export/audit-logs", {
+                action: actionFilter,
+                adminEmail,
+                startDate,
+                endDate,
+              }, `audit-logs-${new Date().toISOString().slice(0, 10)}.csv`)
+            }
+          >
+            <i className="ti ti-download"></i> Export CSV
+          </button>
+        </div>
 
         {/* ===== Filters ===== */}
         <div className="card mb-4">

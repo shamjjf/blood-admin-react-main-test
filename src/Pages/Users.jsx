@@ -8,6 +8,7 @@ import PageDetails from "../Components/PageDetails";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import SEO from "../SEO";
+import { downloadCsv } from "../utils/downloadCsv";
 const Users = () => {
   const { setLoading, alert } = useContext(GlobalContext);
   const [users, setUsers] = useState(null);
@@ -101,8 +102,21 @@ const Users = () => {
       <SEO title="Users" />
 
       <div className="content-wrapper pt-5">
-        <div className="d-flex mb-3 justify-content-between align-items-center">
+        <div className="d-flex mb-3 justify-content-between align-items-center flex-wrap" style={{ gap: 12 }}>
           <p className="card-title p-0 m-0">Users</p>
+          <button
+            className="btn btn-outline-primary"
+            onClick={() =>
+              downloadCsv("/export/users", {
+                bloodGroup: bloodGroupSelects,
+                gender: genderSelects,
+                kycStatus: kycStatusSelects,
+                searchText,
+              }, `users-${new Date().toISOString().slice(0, 10)}.csv`)
+            }
+          >
+            <i className="ti ti-download"></i> Export CSV
+          </button>
         </div>
 
         <div className="card">

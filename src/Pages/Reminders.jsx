@@ -3,6 +3,7 @@ import axios from "axios";
 import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
+import { downloadCsv } from "../utils/downloadCsv";
 
 const AUDIENCES = [
   { value: "all",       label: "All users" },
@@ -349,17 +350,28 @@ const Reminders = () => {
         {/* ============== History ============== */}
         {tab === "history" && (
           <div className="card">
-            <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center" style={{ gap: 12, flexWrap: "wrap" }}>
               <h5 className="mb-0">Campaign History</h5>
-              <select
-                className="form-control"
-                style={{ maxWidth: 200, color: "#111" }}
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                {["All", "draft", "scheduled", "sending", "sent", "cancelled"].map((s) =>
-                  <option key={s} value={s}>{s}</option>)}
-              </select>
+              <div className="d-flex align-items-center" style={{ gap: 8 }}>
+                <select
+                  className="form-control"
+                  style={{ maxWidth: 200, color: "#111" }}
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  {["All", "draft", "scheduled", "sending", "sent", "cancelled"].map((s) =>
+                    <option key={s} value={s}>{s}</option>)}
+                </select>
+                <button
+                  className="btn btn-light btn-sm"
+                  onClick={() =>
+                    downloadCsv("/export/campaigns", { status: statusFilter },
+                      `campaigns-${new Date().toISOString().slice(0, 10)}.csv`)
+                  }
+                >
+                  <i className="ti ti-download"></i> Export CSV
+                </button>
+              </div>
             </div>
             <div className="card-body">
               <div className="table-responsive">
