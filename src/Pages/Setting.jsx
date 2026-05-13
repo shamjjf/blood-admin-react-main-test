@@ -116,6 +116,12 @@ const Setting = () => {
         return;
       }
     }
+    if (name === "printedCertificateCourierCharge") {
+      if (intVal < 0) {
+        swal("Error!", "Courier charge cannot be negative.", "error");
+        return;
+      }
+    }
 
     // Level thresholds must be ascending: Bronze <= Silver <= Gold <= Platinum
     if (
@@ -421,6 +427,18 @@ const Setting = () => {
                       label: "Reminder Frequency For Inactive Users (days)",
                       value: setting.reminderEveryDays,
                       name: "reminderEveryDays",
+                    },
+                  ],
+                },
+                {
+                  title: "Donations — Printed Certificate",
+                  description:
+                    "Courier charge collected from donors who want a physical printed certificate shipped to them.",
+                  inputs: [
+                    {
+                      label: "Courier Charge (₹)",
+                      value: setting.printedCertificateCourierCharge,
+                      name: "printedCertificateCourierCharge",
                     },
                   ],
                 },

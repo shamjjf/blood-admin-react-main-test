@@ -51,6 +51,9 @@ import Badges from "./Pages/Badges";
 import Onboarding from "./Pages/Onboarding";
 import Organizations from "./Pages/Organizations";
 import CampDetails from "./Pages/CampDetails";
+import Inventory from "./Pages/Inventory";
+import DonationsReport from "./Pages/DonationsReport";
+import CertificateOrders from "./Pages/CertificateOrders";
 
 // import { DndProvider } from "react-dnd";
 // import { HTML5Backend } from "react-dnd-html5-backend";
@@ -93,6 +96,9 @@ const Layout = () => {
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/organizations" element={<Organizations />} />
               <Route path="/camp/:id" element={<CampDetails />} />
+              <Route path="/inventory" element={<Inventory />} />
+              <Route path="/donations-report" element={<DonationsReport />} />
+              <Route path="/certificate-orders" element={<CertificateOrders />} />
               <Route path="/contribution" element={<Contribution />} />
               <Route path="/volunteer" element={<Volunteer />} />
               <Route path="/vendor" element={<Vendor />} />

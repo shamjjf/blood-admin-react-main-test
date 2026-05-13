@@ -38,6 +38,14 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Donations",
+    items: [
+      { key: "inventory",           icon: "ti ti-box-seam",         name: "Inventory" },
+      { key: "donations-report",    icon: "ti ti-report-money",     name: "Donations Report" },
+      { key: "certificate-orders",  icon: "ti ti-certificate",      name: "Certificate Orders" },
+    ],
+  },
+  {
     label: "Settings",
     items: [
       { key: "settings",        icon: "ti ti-adjustments",    name: "Settings" },
@@ -68,7 +76,8 @@ const Sidebar = ({ sidebar, setSidebar }) => {
   const [adminRoles] = useState(
     auth.isSuperAdmin
       ? ["requests","tasks","users","specialuser","admins","settings","leaderboard","badges","onboarding","organizations",
-         "camp","contribution","volunteer","bloodbank","awssetting","smtpsetting","firebasesetting","bulkuser"]
+         "camp","contribution","volunteer","bloodbank","awssetting","smtpsetting","firebasesetting","bulkuser",
+         "inventory","donations-report","certificate-orders"]
       : auth.roles || []
   );
 
