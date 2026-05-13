@@ -40,9 +40,10 @@ const NAV_GROUPS = [
   {
     label: "Donations",
     items: [
-      { key: "inventory",           icon: "ti ti-box-seam",         name: "Inventory" },
-      { key: "donations-report",    icon: "ti ti-report-money",     name: "Donations Report" },
-      { key: "certificate-orders",  icon: "ti ti-certificate",      name: "Certificate Orders" },
+      { key: "inventory",              icon: "ti ti-box-seam",          name: "Inventory" },
+      { key: "donations-report",       icon: "ti ti-report-money",      name: "Donations Report" },
+      { key: "certificate-orders",     icon: "ti ti-certificate",       name: "Certificate Orders" },
+      { key: "certificate-management", icon: "ti ti-file-certificate",  name: "Certificate Config" },
     ],
   },
   {
@@ -77,7 +78,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
     auth.isSuperAdmin
       ? ["requests","tasks","users","specialuser","admins","settings","leaderboard","badges","onboarding","organizations",
          "camp","contribution","volunteer","bloodbank","awssetting","smtpsetting","firebasesetting","bulkuser",
-         "inventory","donations-report","certificate-orders"]
+         "inventory","donations-report","certificate-orders","certificate-management"]
       : auth.roles || []
   );
 
