@@ -32,6 +32,7 @@ const NAV_GROUPS = [
     label: "Rewards",
     items: [
       { key: "leaderboard", icon: "ti ti-trophy", name: "Leaderboard" },
+      { key: "badges",      icon: "ti ti-medal",  name: "Badges" },
     ],
   },
   {
@@ -64,7 +65,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
 
   const [adminRoles] = useState(
     auth.isSuperAdmin
-      ? ["requests","tasks","users","specialuser","admins","settings","leaderboard",
+      ? ["requests","tasks","users","specialuser","admins","settings","leaderboard","badges",
          "camp","contribution","volunteer","bloodbank","awssetting","smtpsetting","firebasesetting","bulkuser"]
       : auth.roles || []
   );

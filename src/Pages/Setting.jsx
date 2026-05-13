@@ -117,6 +117,24 @@ const Setting = () => {
       }
     }
 
+    // Level thresholds must be ascending: Bronze <= Silver <= Gold <= Platinum
+    if (
+      name === "levelBronzeAt" ||
+      name === "levelSilverAt" ||
+      name === "levelGoldAt" ||
+      name === "levelPlatinumAt"
+    ) {
+      if (intVal < 0) {
+        swal("Error!", "Level threshold cannot be negative.", "error");
+        return;
+      }
+      const next = { ...setting, [name]: intVal };
+      if (next.levelBronzeAt > next.levelSilverAt || next.levelSilverAt > next.levelGoldAt || next.levelGoldAt > next.levelPlatinumAt) {
+        swal("Error!", "Level thresholds must be in ascending order: Bronze ≤ Silver ≤ Gold ≤ Platinum.", "error");
+        return;
+      }
+    }
+
     setSetting({
       ...setting,
       [name]: parseInt(value),
@@ -404,6 +422,17 @@ const Setting = () => {
                       value: setting.reminderEveryDays,
                       name: "reminderEveryDays",
                     },
+                  ],
+                },
+                {
+                  title: "Gamification — Level Thresholds (points)",
+                  description:
+                    "Points needed to reach each tier. Levels are computed automatically from each user's points balance.",
+                  inputs: [
+                    { label: "Bronze starts at",   value: setting.levelBronzeAt,   name: "levelBronzeAt" },
+                    { label: "Silver starts at",   value: setting.levelSilverAt,   name: "levelSilverAt" },
+                    { label: "Gold starts at",     value: setting.levelGoldAt,     name: "levelGoldAt" },
+                    { label: "Platinum starts at", value: setting.levelPlatinumAt, name: "levelPlatinumAt" },
                   ],
                 },
                 {
