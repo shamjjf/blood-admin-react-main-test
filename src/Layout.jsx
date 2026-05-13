@@ -58,6 +58,7 @@ import CertificateManagement from "./Pages/CertificateManagement";
 import Reminders from "./Pages/Reminders";
 import Analytics from "./Pages/Analytics";
 import AuditLogs from "./Pages/AuditLogs";
+import IndiaContent from "./Pages/IndiaContent";
 
 // import { DndProvider } from "react-dnd";
 // import { HTML5Backend } from "react-dnd-html5-backend";
@@ -107,6 +108,7 @@ const Layout = () => {
               <Route path="/reminders" element={<Reminders />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/audit-logs" element={<AuditLogs />} />
+              <Route path="/india-content" element={<IndiaContent />} />
               <Route path="/contribution" element={<Contribution />} />
               <Route path="/volunteer" element={<Volunteer />} />
               <Route path="/vendor" element={<Vendor />} />
