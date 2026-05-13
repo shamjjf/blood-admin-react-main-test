@@ -50,7 +50,37 @@ const AddTaskForm = ({ setShowAddTask, setRefresh }) => {
     once: false,
     proofRequired: true,
     maxSubmission: 1,
+    assignedTo: [],
   });
+
+  // Volunteers eligible for explicit assignment. Empty selection = open to all.
+  const [volunteerOptions, setVolunteerOptions] = useState([]);
+  useEffect(() => {
+    const loadVolunteers = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/users?role=volunteer&n=100&p=1`,
+          { headers: { Authorization: sessionStorage.getItem("auth") } }
+        );
+        setVolunteerOptions(res?.data?.users || []);
+      } catch (err) {
+        console.error("failed to load volunteers:", err);
+      }
+    };
+    loadVolunteers();
+  }, []);
+
+  const toggleAssignee = (uid) => {
+    setMainTask((prev) => {
+      const has = prev.assignedTo.includes(uid);
+      return {
+        ...prev,
+        assignedTo: has
+          ? prev.assignedTo.filter((x) => x !== uid)
+          : [...prev.assignedTo, uid],
+      };
+    });
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -462,8 +492,48 @@ const AddTaskForm = ({ setShowAddTask, setRefresh }) => {
             />
             {errors.description && <div className="invalid-feedback">{errors.description}</div>}
           </div>
-          {/* Add more input fields for dueDate, media, once, proofRequired, and maxSubmission */}
-          {/* Rest of your form elements */}
+
+          {/* ===== Assign To volunteers (optional) ===== */}
+          <div className="form-grou mb-4 col-12 col-lg-12">
+            <label htmlFor="assignedTo" className="form-label">
+              Assign To Volunteers <span className="text-muted small">(leave empty for "open to all")</span>
+            </label>
+            <div
+              style={{
+                maxHeight: 180,
+                overflowY: "auto",
+                border: "1px solid #E5E7EB",
+                borderRadius: 8,
+                padding: 10,
+                background: "#FAFAFA",
+              }}
+            >
+              {volunteerOptions.length === 0 ? (
+                <div className="text-muted small">No volunteer users found.</div>
+              ) : (
+                volunteerOptions.map((v) => (
+                  <div className="form-check" key={v._id} style={{ marginBottom: 4 }}>
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      id={`assign-${v._id}`}
+                      checked={mainTask.assignedTo.includes(v._id)}
+                      onChange={() => toggleAssignee(v._id)}
+                    />
+                    <label className="form-check-label" htmlFor={`assign-${v._id}`}>
+                      {v.name} <span className="text-muted small">(+{v.phoneCode} {v.phone})</span>
+                    </label>
+                  </div>
+                ))
+              )}
+            </div>
+            <small className="text-muted">
+              {mainTask.assignedTo.length === 0
+                ? "Task will be visible to every eligible volunteer."
+                : `${mainTask.assignedTo.length} volunteer(s) selected — only they will see this task.`}
+            </small>
+          </div>
+
           <div className="addtask-btn ms-3">
             <button onClick={() => setShowAddTask(false)} className="btn btn-outline-secondary mr-4 mt-4">
               Cancel
