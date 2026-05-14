@@ -93,17 +93,34 @@ const Login = () => {
             <div style={styles.fieldWrap}>
               <label style={styles.label}>Password</label>
               <div style={styles.inputWrap}>
-                <i className="ti ti-lock" style={styles.inputIcon}/>
+                <svg style={styles.inputIcon} width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="5" y="11" width="14" height="10" rx="2" />
+                  <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                </svg>
                 <input
                   type={passwordShow ? "text" : "password"} name="password" value={formData.password}
                   onChange={handelChange} placeholder="Enter your password" required
                   style={{ ...styles.input, paddingRight: 42, borderColor: errors.password ? "#ef4444" : "rgba(0,0,0,0.12)" }}
                 />
-                <i
+                <span
                   onClick={() => setPasswordShow(!passwordShow)}
-                  className={`ti ti-eye${passwordShow ? "-off" : ""}`}
                   style={styles.eyeIcon}
-                />
+                  role="button"
+                  aria-label={passwordShow ? "Hide password" : "Show password"}
+                >
+                  {passwordShow ? (
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M3 3l18 18" />
+                      <path d="M10.584 10.587a2 2 0 0 0 2.828 2.83" />
+                      <path d="M9.363 5.365A9.466 9.466 0 0 1 12 5c4 0 7.333 2.333 10 7a13.16 13.16 0 0 1 -1.5 2.43m-2.07 2.08C16.61 17.83 14.48 19 12 19c-4 0-7.333 -2.333 -10 -7a13.07 13.07 0 0 1 3.825 -4.575" />
+                    </svg>
+                  ) : (
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M12 5c-4 0-7.333 2.333-10 7c2.667 4.667 6 7 10 7s7.333-2.333 10-7c-2.667-4.667-6-7-10-7z" />
+                      <circle cx="12" cy="12" r="2.5" />
+                    </svg>
+                  )}
+                </span>
               </div>
               {errors.password && <div style={styles.err}>{errors.password}</div>}
             </div>
