@@ -49,6 +49,9 @@ import SpecialUserDetails from "./Pages/SpecialUserDetails";
 import Notifications from "./Pages/Notifications";
 import Badges from "./Pages/Badges";
 import Onboarding from "./Pages/Onboarding";
+import Gifts from "./Pages/Gifts";
+import TrainingModules from "./Pages/TrainingModules";
+import RecurringRequests from "./Pages/RecurringRequests";
 import Organizations from "./Pages/Organizations";
 import CampDetails from "./Pages/CampDetails";
 import Inventory from "./Pages/Inventory";
@@ -99,6 +102,9 @@ const Layout = () => {
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/badges" element={<Badges />} />
               <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/gifts" element={<Gifts />} />
+              <Route path="/training-modules" element={<TrainingModules />} />
+              <Route path="/recurring-requests" element={<RecurringRequests />} />
               <Route path="/organizations" element={<Organizations />} />
               <Route path="/camp/:id" element={<CampDetails />} />
               <Route path="/inventory" element={<Inventory />} />
