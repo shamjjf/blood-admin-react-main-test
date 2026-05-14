@@ -47,6 +47,18 @@ import Profile from "./Pages/Profile";
 import SpecialUser from "./Pages/SpecialUser";
 import SpecialUserDetails from "./Pages/SpecialUserDetails";
 import Notifications from "./Pages/Notifications";
+import Badges from "./Pages/Badges";
+import Onboarding from "./Pages/Onboarding";
+import Organizations from "./Pages/Organizations";
+import CampDetails from "./Pages/CampDetails";
+import Inventory from "./Pages/Inventory";
+import DonationsReport from "./Pages/DonationsReport";
+import CertificateOrders from "./Pages/CertificateOrders";
+import CertificateManagement from "./Pages/CertificateManagement";
+import Reminders from "./Pages/Reminders";
+import Analytics from "./Pages/Analytics";
+import AuditLogs from "./Pages/AuditLogs";
+import IndiaContent from "./Pages/IndiaContent";
 
 // import { DndProvider } from "react-dnd";
 // import { HTML5Backend } from "react-dnd-html5-backend";
@@ -85,6 +97,18 @@ const Layout = () => {
               <Route path="/settings" element={<Setting />} />
 
               <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/badges" element={<Badges />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/organizations" element={<Organizations />} />
+              <Route path="/camp/:id" element={<CampDetails />} />
+              <Route path="/inventory" element={<Inventory />} />
+              <Route path="/donations-report" element={<DonationsReport />} />
+              <Route path="/certificate-orders" element={<CertificateOrders />} />
+              <Route path="/certificate-management" element={<CertificateManagement />} />
+              <Route path="/reminders" element={<Reminders />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/audit-logs" element={<AuditLogs />} />
+              <Route path="/india-content" element={<IndiaContent />} />
               <Route path="/contribution" element={<Contribution />} />
               <Route path="/volunteer" element={<Volunteer />} />
               <Route path="/vendor" element={<Vendor />} />

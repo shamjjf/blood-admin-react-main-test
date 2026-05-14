@@ -58,6 +58,198 @@ const UserDetails = () => {
 
   // KYC action state
   const [kycBusy, setKycBusy] = useState(false);
+
+  // ====== Roles & Permissions state ======
+  const ADMIN_AREAS = ["users", "requests", "tasks", "settings"];
+  const [rolesForm, setRolesForm] = useState({
+    isBloodDonor: false,
+    isPlateletDonor: false,
+    isBloodRecipient: false,
+    isPlateletRecipient: false,
+    isVolunteer: false,
+    isStaff: false,
+    isSuperAdmin: false,
+    staffAreas: [],
+    blocked: false,
+  });
+  const [rolesBusy, setRolesBusy] = useState(false);
+
+  // Sync the roles form with the latest user data whenever it loads.
+  useEffect(() => {
+    if (!user) return;
+    setRolesForm({
+      isBloodDonor: !!user.isBloodDonor,
+      isPlateletDonor: !!user.isPlateletDonor,
+      isBloodRecipient: !!user.isBloodRecipient,
+      isPlateletRecipient: !!user.isPlateletRecipient,
+      isVolunteer: !!user.volunteer,
+      isStaff: !!user.adminLink && !user.adminLink?.isSuperAdmin,
+      isSuperAdmin: !!user.adminLink?.isSuperAdmin,
+      staffAreas: user.adminLink?.roles || [],
+      blocked: !!user.blocked,
+    });
+  }, [user?._id, user?.adminLink?.isSuperAdmin, user?.blocked, user?.volunteer]);
+
+  const toggleRole = (key) => {
+    setRolesForm((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      // Staff and Super Admin are mutually exclusive — toggling one off the other.
+      if (key === "isStaff" && next.isStaff) next.isSuperAdmin = false;
+      if (key === "isSuperAdmin" && next.isSuperAdmin) {
+        next.isStaff = false;
+        next.staffAreas = [];
+      }
+      // Unchecking Staff clears the selected areas.
+      if (key === "isStaff" && !next.isStaff) next.staffAreas = [];
+      return next;
+    });
+  };
+
+  const toggleStaffArea = (area) => {
+    setRolesForm((prev) => {
+      const has = prev.staffAreas.includes(area);
+      return {
+        ...prev,
+        staffAreas: has ? prev.staffAreas.filter((a) => a !== area) : [...prev.staffAreas, area],
+      };
+    });
+  };
+
+  const handleSaveRoles = async () => {
+    if (rolesForm.isStaff && rolesForm.staffAreas.length === 0) {
+      swal("Error", "Pick at least one Staff area (Users, Requests, Tasks or Settings).", "error");
+      return;
+    }
+    try {
+      setRolesBusy(true);
+      const res = await axios.patch(
+        `${import.meta.env.VITE_API_URL}/user/${id}/roles`,
+        rolesForm,
+        {
+          headers: { Authorization: sessionStorage.getItem("auth"), "Content-Type": "application/json" },
+        }
+      );
+      const payload = res?.data?.data;
+      setUser((prev) => ({
+        ...prev,
+        isBloodDonor: payload?.user?.isBloodDonor ?? prev.isBloodDonor,
+        isPlateletDonor: payload?.user?.isPlateletDonor ?? prev.isPlateletDonor,
+        isBloodRecipient: payload?.user?.isBloodRecipient ?? prev.isBloodRecipient,
+        isPlateletRecipient: payload?.user?.isPlateletRecipient ?? prev.isPlateletRecipient,
+        volunteer: payload?.user?.volunteer ?? prev.volunteer,
+        blocked: payload?.user?.blocked ?? prev.blocked,
+        adminLink: payload?.adminLink ?? null,
+      }));
+      if (payload?.tempPasswordIssued) {
+        swal({
+          title: "Admin account created",
+          text: `A temporary password was emailed to ${user.email}.\n\nFor your reference (also logged to server): ${payload.tempPasswordIssued}`,
+          icon: "success",
+        });
+      } else {
+        swal("Success", "Roles updated successfully.", "success");
+      }
+    } catch (error) {
+      console.error("updateUserRoles error:", error);
+      swal("Error", error?.response?.data?.error || "Failed to update roles", "error");
+    } finally {
+      setRolesBusy(false);
+    }
+  };
+
+  const roleBadgeStyle = (bg) => ({
+    background: bg,
+    color: "#FFFFFF",
+    padding: "3px 10px",
+    borderRadius: 12,
+    fontSize: 11,
+    fontWeight: 700,
+    display: "inline-block",
+    marginRight: 6,
+  });
+
+  // ====== Gamification state (snapshot from the /admin/user/:id response) ======
+  const [gameInfo, setGameInfo] = useState(null);
+  const [gameBusy, setGameBusy] = useState(false);
+
+  // Fetch the user's badges + computed level snapshot from the dedicated endpoint
+  // (the regular user detail call doesn't include the level snapshot).
+  const refreshGamification = async () => {
+    try {
+      // Re-fetch the user from admin (it carries badges via the populated path).
+      // For level we compute from the four Setting fields and the user's points.
+      const [userRes, settingRes] = await Promise.all([
+        axios.get(`${import.meta.env.VITE_API_URL}/user/${id}`, {
+          headers: { Authorization: sessionStorage.getItem("auth") },
+        }),
+        axios.get(`${import.meta.env.VITE_API_URL}/settings`, {
+          headers: { Authorization: sessionStorage.getItem("auth") },
+        }),
+      ]);
+      const u = userRes?.data?.data?.user || {};
+      const s = settingRes?.data?.data?.setting || {};
+      const points = Number(u.points || 0);
+      const t = {
+        Bronze: Number(s.levelBronzeAt) || 0,
+        Silver: Number(s.levelSilverAt) || 500,
+        Gold: Number(s.levelGoldAt) || 2000,
+        Platinum: Number(s.levelPlatinumAt) || 5000,
+      };
+      let level = "Bronze";
+      if (points >= t.Platinum) level = "Platinum";
+      else if (points >= t.Gold) level = "Gold";
+      else if (points >= t.Silver) level = "Silver";
+      const order = ["Bronze", "Silver", "Gold", "Platinum"];
+      const i = order.indexOf(level);
+      const nextLevel = i < 3 ? order[i + 1] : null;
+      const nextAt = nextLevel ? t[nextLevel] : null;
+      setGameInfo({
+        points,
+        level,
+        nextLevel,
+        nextLevelAt: nextAt,
+        pointsToNext: nextAt != null ? Math.max(0, nextAt - points) : 0,
+        levelAt: t[level],
+        badges: u.badges || [],
+        thresholds: t,
+      });
+    } catch (err) {
+      console.error("refreshGamification error:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (user?._id) refreshGamification();
+  }, [user?._id, user?.points]);
+
+  const handleRecheckBadges = async () => {
+    try {
+      setGameBusy(true);
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/users/${id}/recheck-badges`,
+        {},
+        { headers: { Authorization: sessionStorage.getItem("auth"), "Content-Type": "application/json" } }
+      );
+      const awarded = res?.data?.data?.awarded ?? 0;
+      swal(
+        awarded > 0 ? "Badges awarded" : "No new badges",
+        awarded > 0 ? `${awarded} new badge(s) granted.` : "User already has every badge they qualify for.",
+        awarded > 0 ? "success" : "info"
+      );
+      await refreshGamification();
+    } catch (err) {
+      swal("Error", err?.response?.data?.error || "Failed to recheck badges", "error");
+    } finally {
+      setGameBusy(false);
+    }
+  };
+
+  const levelColor = (lvl) => {
+    if (lvl === "Platinum") return "#94A3B8";
+    if (lvl === "Gold") return "#EAB308";
+    if (lvl === "Silver") return "#9CA3AF";
+    return "#B45309"; // Bronze
+  };
   const kycBadgeStyle = (status) => {
     const base = { padding: "4px 12px", borderRadius: 12, fontSize: 12, fontWeight: 700, textTransform: "capitalize", display: "inline-block" };
     if (status === "verified") return { ...base, background: "#DCFCE7", color: "#166534" };
@@ -1129,6 +1321,275 @@ const UserDetails = () => {
               )}
             </div>
           </div>
+          {/* ===== Gamification Card (level + badges) ===== */}
+          <div className="card mb-4 mx-0 p-0 bg-white grid-item">
+            <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+              <div>
+                <h5>Gamification</h5>
+                <p className="small mb-0">Current level, points and earned badges.</p>
+              </div>
+              {gameInfo?.level && (
+                <span style={{
+                  background: levelColor(gameInfo.level),
+                  color: "#fff",
+                  padding: "4px 14px",
+                  borderRadius: 12,
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}>
+                  {gameInfo.level}
+                </span>
+              )}
+            </div>
+            <div className="card-body">
+              {gameInfo ? (
+                <>
+                  <div className="row g-3 mb-3">
+                    <div className="col-md-4">
+                      <div className="text-muted small">Total Points</div>
+                      <div className="fs-3 fw-bold">{gameInfo.points}</div>
+                    </div>
+                    <div className="col-md-4">
+                      <div className="text-muted small">Current Level</div>
+                      <div className="fs-3 fw-bold" style={{ color: levelColor(gameInfo.level) }}>
+                        {gameInfo.level}
+                      </div>
+                    </div>
+                    <div className="col-md-4">
+                      <div className="text-muted small">To next level</div>
+                      <div className="fs-3 fw-bold">
+                        {gameInfo.nextLevel
+                          ? `${gameInfo.pointsToNext} pts → ${gameInfo.nextLevel}`
+                          : "Max level"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {gameInfo.nextLevel && (
+                    <div style={{
+                      height: 10,
+                      background: "#E5E7EB",
+                      borderRadius: 5,
+                      overflow: "hidden",
+                      marginBottom: 20,
+                    }}>
+                      <div style={{
+                        width: `${Math.min(100, Math.max(0, ((gameInfo.points - gameInfo.levelAt) / Math.max(1, gameInfo.nextLevelAt - gameInfo.levelAt)) * 100))}%`,
+                        height: "100%",
+                        background: levelColor(gameInfo.level),
+                        transition: "width 0.4s ease",
+                      }} />
+                    </div>
+                  )}
+
+                  <hr />
+
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <h6 className="m-0">Earned Badges ({gameInfo.badges.length})</h6>
+                    <button
+                      className="btn btn-sm btn-outline-primary"
+                      disabled={gameBusy}
+                      onClick={handleRecheckBadges}
+                    >
+                      {gameBusy ? "Checking…" : "Re-check Eligibility"}
+                    </button>
+                  </div>
+
+                  {gameInfo.badges.length === 0 ? (
+                    <p className="text-muted small mb-0">No badges earned yet.</p>
+                  ) : (
+                    <div className="d-flex flex-wrap" style={{ gap: 12 }}>
+                      {gameInfo.badges.map((entry, i) => (
+                        <div key={i} style={{
+                          minWidth: 130,
+                          padding: 10,
+                          border: "1px solid #E5E7EB",
+                          borderRadius: 8,
+                          textAlign: "center",
+                          background: "#FAFAFA",
+                        }}>
+                          <div style={{ fontSize: 28 }}>{entry.badge?.icon || "🏅"}</div>
+                          <div className="fw-bold small">{entry.badge?.name || "Badge"}</div>
+                          {entry.badge?.description && (
+                            <div className="text-muted" style={{ fontSize: 11 }}>{entry.badge.description}</div>
+                          )}
+                          <div className="text-muted" style={{ fontSize: 10, marginTop: 4 }}>
+                            {entry.awardedBy === "admin" ? "Manual" : "Auto"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-muted small mb-0">Loading…</p>
+              )}
+            </div>
+          </div>
+
+          {/* ===== Roles & Permissions Card ===== */}
+          <div className="card mb-4 mx-0 p-0 bg-white grid-item">
+            <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+              <div>
+                <h5>Roles & Permissions</h5>
+                <p className="small mb-0">Manage what this user is on the platform. Roles overlap freely.</p>
+              </div>
+              <div>
+                {user?.adminLink?.isSuperAdmin ? (
+                  <span style={roleBadgeStyle("#7C3AED")}>Super Admin</span>
+                ) : user?.adminLink ? (
+                  <span style={roleBadgeStyle("#0EA5E9")}>Staff</span>
+                ) : null}
+              </div>
+            </div>
+            <div className="card-body">
+              <p className="text-uppercase fw-bold text-muted small mb-2" style={{ letterSpacing: 0.5 }}>
+                Operational Roles (User App)
+              </p>
+
+              <div className="form-check mb-2">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.isBloodDonor}
+                    onChange={() => toggleRole("isBloodDonor")}
+                  />
+                  Blood Donor
+                  <i className="input-helper" />
+                </label>
+              </div>
+              <div className="form-check mb-2">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.isPlateletDonor}
+                    onChange={() => toggleRole("isPlateletDonor")}
+                  />
+                  Platelet Donor
+                  <i className="input-helper" />
+                </label>
+              </div>
+              <div className="form-check mb-2">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.isBloodRecipient}
+                    onChange={() => toggleRole("isBloodRecipient")}
+                  />
+                  Blood Recipient (Patient)
+                  <i className="input-helper" />
+                </label>
+              </div>
+              <div className="form-check mb-2">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.isPlateletRecipient}
+                    onChange={() => toggleRole("isPlateletRecipient")}
+                  />
+                  Platelet Recipient (Patient)
+                  <i className="input-helper" />
+                </label>
+              </div>
+              <div className="form-check mb-3">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.isVolunteer}
+                    onChange={() => toggleRole("isVolunteer")}
+                  />
+                  Volunteer
+                  <i className="input-helper" />
+                </label>
+              </div>
+
+              <hr />
+
+              <p className="text-uppercase fw-bold text-muted small mb-2" style={{ letterSpacing: 0.5 }}>
+                Admin Portal Access
+              </p>
+
+              <div className="form-check mb-2">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.isSuperAdmin}
+                    onChange={() => toggleRole("isSuperAdmin")}
+                  />
+                  Super Admin (full access)
+                  <i className="input-helper" />
+                </label>
+              </div>
+              <div className="form-check mb-2">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.isStaff}
+                    onChange={() => toggleRole("isStaff")}
+                  />
+                  Staff (Sub-Admin)
+                  <i className="input-helper" />
+                </label>
+              </div>
+
+              {rolesForm.isStaff && (
+                <div style={{ marginLeft: 24, marginBottom: 12 }}>
+                  <p className="small text-muted mb-2">Pick which areas this Staff can manage:</p>
+                  {ADMIN_AREAS.map((area) => (
+                    <div key={area} className="form-check d-inline-block me-3">
+                      <label className="form-check-label text-capitalize">
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          checked={rolesForm.staffAreas.includes(area)}
+                          onChange={() => toggleStaffArea(area)}
+                        />
+                        {area}
+                        <i className="input-helper" />
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <hr />
+
+              <p className="text-uppercase fw-bold text-muted small mb-2" style={{ letterSpacing: 0.5 }}>
+                Account State
+              </p>
+              <div className="form-check mb-3">
+                <label className="form-check-label">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={rolesForm.blocked}
+                    onChange={() => toggleRole("blocked")}
+                  />
+                  Deactivate account (blocks all login)
+                  <i className="input-helper" />
+                </label>
+              </div>
+
+              <div className="d-flex justify-content-end">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={rolesBusy}
+                  onClick={handleSaveRoles}
+                >
+                  {rolesBusy ? "Saving…" : "Save Roles"}
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div className="card mb-4 mx-0 p-0 bg-white grid-item">
             <div className="card-header bg-primary text-white">
               <h5>Preferences</h5>

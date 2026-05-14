@@ -292,6 +292,7 @@ const Request = () => {
                         <th className="align-left">Units Needed</th>
                         <th className="align-left">Units Received</th>
                         <th className="align-left">Critical</th>
+                        <th className="align-left">Condition</th>
                         <th className="align-left">Date</th>
                         <th className="align-left">Status</th>
                         <th className="align-center">View</th>
@@ -308,7 +309,29 @@ const Request = () => {
                             <td className="align-left">{request.needUnits}</td>
                             <td className="align-left">{request.gotUnits}</td>
                             <td className="align-left">{request.isCritical ? "Yes" : "No"}</td>
-
+                            <td className="align-left">
+                              {request.patientCondition && request.patientCondition !== "normal" ? (
+                                <span
+                                  style={{
+                                    background: "#7C3AED",
+                                    color: "#FFFFFF",
+                                    padding: "3px 10px",
+                                    borderRadius: 10,
+                                    fontSize: 10,
+                                    fontWeight: 700,
+                                    textTransform: "capitalize",
+                                    display: "inline-block",
+                                  }}
+                                >
+                                  {request.patientCondition.replace("_", " ")}
+                                  {request.recurringEnabled && (
+                                    <span style={{ marginLeft: 4, fontSize: 9 }}>↻</span>
+                                  )}
+                                </span>
+                              ) : (
+                                <span className="text-muted small">—</span>
+                              )}
+                            </td>
                             <td className="align-left">
                               {moment(request.date, "DD-MM-YYYY").format("DD-MM-YYYY h:mm A")}
                             </td>

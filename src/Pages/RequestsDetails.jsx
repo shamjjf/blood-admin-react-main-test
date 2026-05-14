@@ -69,6 +69,80 @@ const RequestDetails = () => {
   const [tid, setTid]     = useState(0);
   const [address, setAddress] = useState([]);
 
+  // ===== Special-handling state =====
+  const CONDITIONS = [
+    { value: "normal", label: "Normal" },
+    { value: "thalassemia", label: "Thalassemia" },
+    { value: "chronic_kidney", label: "Chronic Kidney" },
+    { value: "leukemia", label: "Leukemia" },
+    { value: "cancer", label: "Cancer" },
+    { value: "sickle_cell", label: "Sickle Cell" },
+    { value: "other", label: "Other" },
+  ];
+  const [specialForm, setSpecialForm] = useState({
+    patientCondition: "normal",
+    patientConditionNotes: "",
+    recurringEnabled: false,
+    recurringIntervalDays: 21,
+  });
+  const [specialBusy, setSpecialBusy] = useState(false);
+
+  // Sync the form whenever the loaded request changes.
+  useEffect(() => {
+    if (!request?._id) return;
+    setSpecialForm({
+      patientCondition: request.patientCondition || "normal",
+      patientConditionNotes: request.patientConditionNotes || "",
+      recurringEnabled: !!request.recurringEnabled,
+      recurringIntervalDays: request.recurringIntervalDays || 21,
+    });
+  }, [request?._id, request?.patientCondition, request?.recurringEnabled]);
+
+  const saveSpecialHandling = async () => {
+    if (specialForm.recurringEnabled && (!Number(specialForm.recurringIntervalDays) || Number(specialForm.recurringIntervalDays) < 1)) {
+      return swal("Error", "Recurring interval must be ≥ 1 day when recurring is enabled.", "error");
+    }
+    try {
+      setSpecialBusy(true);
+      const res = await axios.patch(
+        `${import.meta.env.VITE_API_URL}/request/${id}/special-handling`,
+        specialForm,
+        { headers: { Authorization: sessionStorage.getItem("auth"), "Content-Type": "application/json" } }
+      );
+      setRequest((prev) => ({ ...prev, ...(res?.data?.data?.request || {}) }));
+      swal("Success", "Special handling updated.", "success");
+    } catch (err) {
+      swal("Error", err?.response?.data?.error || "Failed to save special handling", "error");
+    } finally {
+      setSpecialBusy(false);
+    }
+  };
+
+  const reassignAllDonors = async () => {
+    const ok = await swal({
+      title: "Reassign all donors?",
+      text: "Every Donation invite on this request will be cancelled, and a fresh tier-1 fan-out will run.",
+      icon: "warning",
+      buttons: ["Cancel", "Reassign"],
+      dangerMode: true,
+    });
+    if (!ok) return;
+    try {
+      setSpecialBusy(true);
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/request/${id}/reassign-all`,
+        {},
+        { headers: { Authorization: sessionStorage.getItem("auth"), "Content-Type": "application/json" } }
+      );
+      swal("Done", "All donors reassigned. New invites are being sent.", "success");
+      setflag((f) => !f);
+    } catch (err) {
+      swal("Error", err?.response?.data?.error || "Failed to reassign", "error");
+    } finally {
+      setSpecialBusy(false);
+    }
+  };
+
   const BG_LIST = ["A+","A-","B+","B-","AB+","AB-","O+","O-","A1+","A1-","A2+","A2-","A1B+","A1B-","A2B+","A2B-","Bombay Blood Group","INRA","Don't Know"];
 
   const validate = () => {
@@ -281,7 +355,13 @@ const RequestDetails = () => {
           <h1 style={{ fontFamily:"var(--f-display)", fontSize:20, fontWeight:800, color:"#111", margin:0 }}>Request Details</h1>
           <div style={{ fontSize:12, color:"#6b7280", marginTop:4 }}>View and manage this blood/platelet request</div>
         </div>
-        <div style={{ display:"flex", gap:10 }}>
+        <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+          <button className="rd-btn-edit"
+            style={{ background:"none", border:"1px solid rgba(192,57,43,0.4)", color:"#C0392B" }}
+            onClick={reassignAllDonors}
+            disabled={specialBusy}>
+            <i className="ti ti-refresh"/> Reassign All
+          </button>
           <button className="rd-btn-edit"
             style={{ background:"none", border:"1px solid rgba(0,0,0,0.15)", color:"#374151" }}
             onClick={()=>setIsApproving(!isApproving)}>
@@ -412,6 +492,109 @@ const RequestDetails = () => {
             )}
           </Section>
         </div>
+      )}
+
+      {/* Special Handling — full width below the 2-col grid */}
+      {request._id && (
+        <Section
+          title="Special Handling"
+          desc="Mark chronic / recurring patients (thalassemia, leukemia, etc.) so the matcher prioritises them and recurring transfusions can be auto-scheduled."
+        >
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div style={F.wrap}>
+              <label style={F.label}>Patient Condition</label>
+              <select
+                style={F.select}
+                value={specialForm.patientCondition}
+                onChange={(e) =>
+                  setSpecialForm({ ...specialForm, patientCondition: e.target.value })
+                }
+              >
+                {CONDITIONS.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </select>
+              <div style={{ fontSize: 11, color: "#6b7280", marginTop: 6 }}>
+                Severe conditions auto-flag the request as critical and use a wider donor radius.
+              </div>
+            </div>
+
+            <div style={F.wrap}>
+              <label style={F.label}>Notes (e.g. transfusion frequency)</label>
+              <input
+                style={F.input}
+                value={specialForm.patientConditionNotes}
+                onChange={(e) =>
+                  setSpecialForm({ ...specialForm, patientConditionNotes: e.target.value })
+                }
+                placeholder="e.g. every 21 days, A+ preferred"
+              />
+            </div>
+
+            <div style={F.wrap}>
+              <label style={F.label}>Recurring Transfusion</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, height: 40 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={specialForm.recurringEnabled}
+                    onChange={(e) =>
+                      setSpecialForm({ ...specialForm, recurringEnabled: e.target.checked })
+                    }
+                  />
+                  <span style={{ fontSize: 13 }}>Auto-schedule next request</span>
+                </label>
+              </div>
+            </div>
+
+            <div style={F.wrap}>
+              <label style={F.label}>Interval (days)</label>
+              <input
+                type="number"
+                min={1}
+                max={365}
+                style={{ ...F.input, opacity: specialForm.recurringEnabled ? 1 : 0.5 }}
+                value={specialForm.recurringIntervalDays}
+                disabled={!specialForm.recurringEnabled}
+                onChange={(e) =>
+                  setSpecialForm({ ...specialForm, recurringIntervalDays: e.target.value })
+                }
+              />
+              <div style={{ fontSize: 11, color: "#6b7280", marginTop: 6 }}>
+                Once the current request closes, a new one will be cloned every N days.
+              </div>
+            </div>
+          </div>
+
+          {request.nextRecurrenceAt && specialForm.recurringEnabled && (
+            <div
+              style={{
+                background: "#FEF3C7",
+                border: "1px solid #FDE68A",
+                color: "#92400E",
+                padding: "10px 12px",
+                borderRadius: 8,
+                fontSize: 13,
+                marginBottom: 12,
+              }}
+            >
+              <strong>Next scheduled recurrence:</strong>{" "}
+              {new Date(request.nextRecurrenceAt).toLocaleString()}
+            </div>
+          )}
+
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+            <button
+              type="button"
+              className="rd-btn-edit"
+              style={{ background: "var(--green)", color: "#fff", border: "none" }}
+              disabled={specialBusy}
+              onClick={saveSpecialHandling}
+            >
+              <i className="ti ti-device-floppy"/> {specialBusy ? "Saving..." : "Save Special Handling"}
+            </button>
+          </div>
+        </Section>
       )}
 
       {/* Pending Approvals */}

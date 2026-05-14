@@ -8,6 +8,7 @@ import PageDetails from "../Components/PageDetails";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import SEO from "../SEO";
+import { downloadCsv } from "../utils/downloadCsv";
 const Users = () => {
   const { setLoading, alert } = useContext(GlobalContext);
   const [users, setUsers] = useState(null);
@@ -21,6 +22,7 @@ const Users = () => {
   const [pointsSelects, setPointsSelects] = useState("0");
   const [searchText, setSearchText] = useState("");
   const [kycStatusSelects, setKycStatusSelects] = useState("All");
+  const [roleSelects, setRoleSelects] = useState("All");
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -44,13 +46,38 @@ const Users = () => {
     return "None";
   };
 
+  // Compute the list of role labels for a user (donor / patient / volunteer / staff / super admin / deactivated).
+  const computeRoles = (u) => {
+    const out = [];
+    if (u.adminLink?.isSuperAdmin) out.push({ label: "Super Admin", bg: "#7C3AED" });
+    else if (u.adminLink) out.push({ label: "Staff", bg: "#0EA5E9" });
+    if (u.isBloodDonor || u.isPlateletDonor) out.push({ label: "Donor", bg: "#16A34A" });
+    if (u.isBloodRecipient || u.isPlateletRecipient) out.push({ label: "Patient", bg: "#F97316" });
+    if (u.volunteer) out.push({ label: "Volunteer", bg: "#EAB308" });
+    if (u.blocked) out.push({ label: "Deactivated", bg: "#6B7280" });
+    if (out.length === 0) out.push({ label: "User", bg: "#94A3B8" });
+    return out;
+  };
+
+  const roleBadgeStyle = (bg) => ({
+    background: bg,
+    color: "#FFFFFF",
+    padding: "2px 8px",
+    borderRadius: 10,
+    fontSize: 10,
+    fontWeight: 700,
+    marginRight: 4,
+    marginBottom: 2,
+    display: "inline-block",
+  });
+
   useEffect(() => {
     const getData = async () => {
       try {
         setIsLoading(true);
         let url = `${import.meta.env.VITE_API_URL}/users?n=${limit}&p=${currentPage}&bloodGroup=${encodeURIComponent(
           bloodGroupSelects
-        )}&gender=${genderSelects}&points=${pointsSelects}&searchText=${searchText}&kycStatus=${kycStatusSelects}`;
+        )}&gender=${genderSelects}&points=${pointsSelects}&searchText=${searchText}&kycStatus=${kycStatusSelects}&role=${roleSelects}`;
 
         const res = await axios.get(url, {
           headers: {
@@ -68,15 +95,28 @@ const Users = () => {
       }
     };
     getData();
-  }, [limit, currentPage, bloodGroupSelects, pointsSelects, genderSelects, searchText, kycStatusSelects]);
+  }, [limit, currentPage, bloodGroupSelects, pointsSelects, genderSelects, searchText, kycStatusSelects, roleSelects]);
 
   return (
     <>
       <SEO title="Users" />
 
       <div className="content-wrapper pt-5">
-        <div className="d-flex mb-3 justify-content-between align-items-center">
+        <div className="d-flex mb-3 justify-content-between align-items-center flex-wrap" style={{ gap: 12 }}>
           <p className="card-title p-0 m-0">Users</p>
+          <button
+            className="btn btn-outline-primary"
+            onClick={() =>
+              downloadCsv("/export/users", {
+                bloodGroup: bloodGroupSelects,
+                gender: genderSelects,
+                kycStatus: kycStatusSelects,
+                searchText,
+              }, `users-${new Date().toISOString().slice(0, 10)}.csv`)
+            }
+          >
+            <i className="ti ti-download"></i> Export CSV
+          </button>
         </div>
 
         <div className="card">
@@ -92,6 +132,8 @@ const Users = () => {
                 setSearchText={setSearchText}
                 kycStatusSelects={kycStatusSelects}
                 setKycStatusSelects={setKycStatusSelects}
+                roleSelects={roleSelects}
+                setRoleSelects={setRoleSelects}
               />
               {isLoading ? (
                 <div className="table-responsive">
@@ -104,6 +146,7 @@ const Users = () => {
                         <th className="align-left">Blood Group</th>
                         <th className="align-left">Points</th>
                         <th className="align-left">User Type</th>
+                        <th className="align-left">Roles</th>
                         <th className="align-left">KYC</th>
 
                         <th className="align-center">View</th>
@@ -131,6 +174,9 @@ const Users = () => {
                             <Skeleton height={20} width={100} />
                           </td>
                           <td className="align-left">
+                            <Skeleton height={20} width={120} />
+                          </td>
+                          <td className="align-left">
                             <Skeleton height={20} width={80} />
                           </td>
                           <td className="align-left">
@@ -153,6 +199,7 @@ const Users = () => {
                         <th className="align-left">Blood Group</th>
                         <th className="align-left">Points</th>
                         <th className="align-left">User Type</th>
+                        <th className="align-left">Roles</th>
                         <th className="align-left">KYC</th>
 
                         <th className="align-center">View</th>
@@ -173,6 +220,13 @@ const Users = () => {
                             <td className="align-left text-capitalize">
                               {user.type == "user" ? "Individual" : user.type}
                             </td>
+                            <td className="align-left" style={{ maxWidth: 220 }}>
+                              {computeRoles(user).map((r, i) => (
+                                <span key={i} style={roleBadgeStyle(r.bg)}>
+                                  {r.label}
+                                </span>
+                              ))}
+                            </td>
                             <td className="align-left">
                               {user.kyc?.type ? (
                                 <span style={kycBadgeStyle(user.kyc.status)}>
@@ -191,7 +245,7 @@ const Users = () => {
                         ))
                       ) : (
                         <tr className="">
-                          <td colSpan={9} className="align-center">
+                          <td colSpan={10} className="align-center">
                             <p className="m-5 p-5 fs-4">No Data Found</p>
                           </td>
                         </tr>

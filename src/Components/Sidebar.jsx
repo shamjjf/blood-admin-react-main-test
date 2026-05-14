@@ -13,8 +13,9 @@ const NAV_GROUPS = [
     items: [
       { key: "requests",    icon: "ti ti-droplet-filled",   name: "Requests",     badgeKey: "requests" },
       { key: "tasks",       icon: "ti ti-checkup-list",     name: "Tasks",        badgeKey: "tasks" },
-      { key: "camp",        icon: "ti ti-calendar-event",   name: "Camp" },
-      { key: "contribution",icon: "ti ti-coin",             name: "Contribution" },
+      { key: "camp",          icon: "ti ti-calendar-event",  name: "Camp" },
+      { key: "organizations", icon: "ti ti-building-bank",   name: "Organizations" },
+      { key: "contribution",  icon: "ti ti-coin",            name: "Contribution" },
       { key: "volunteer",   icon: "ti ti-heart-handshake",  name: "Volunteer",    badgeKey: "volunteers" },
       { key: "bloodbank",   icon: "ti ti-building-hospital",name: "Blood Bank" },
     ],
@@ -32,12 +33,32 @@ const NAV_GROUPS = [
     label: "Rewards",
     items: [
       { key: "leaderboard", icon: "ti ti-trophy", name: "Leaderboard" },
+      { key: "badges",      icon: "ti ti-medal",  name: "Badges" },
+      { key: "onboarding",  icon: "ti ti-school", name: "Volunteer 101" },
+    ],
+  },
+  {
+    label: "Communication",
+    items: [
+      { key: "reminders", icon: "ti ti-bell-ringing", name: "Reminders & Campaigns" },
+    ],
+  },
+  {
+    label: "Donations",
+    items: [
+      { key: "inventory",              icon: "ti ti-box-seam",          name: "Inventory" },
+      { key: "donations-report",       icon: "ti ti-report-money",      name: "Donations Report" },
+      { key: "certificate-orders",     icon: "ti ti-certificate",       name: "Certificate Orders" },
+      { key: "certificate-management", icon: "ti ti-file-certificate",  name: "Certificate Config" },
     ],
   },
   {
     label: "Settings",
     items: [
       { key: "settings",        icon: "ti ti-adjustments",    name: "Settings" },
+      { key: "analytics",       icon: "ti ti-chart-pie",      name: "Analytics" },
+      { key: "audit-logs",      icon: "ti ti-history",        name: "Audit Logs" },
+      { key: "india-content",   icon: "ti ti-map-2",          name: "India Content" },
       { key: "awssetting",      icon: "ti ti-cloud-upload",   name: "AWS Settings" },
       { key: "smtpsetting",     icon: "ti ti-mail",           name: "SMTP Settings" },
       { key: "firebasesetting", icon: "ti ti-brand-firebase", name: "Firebase" },
@@ -64,8 +85,9 @@ const Sidebar = ({ sidebar, setSidebar }) => {
 
   const [adminRoles] = useState(
     auth.isSuperAdmin
-      ? ["requests","tasks","users","specialuser","admins","settings","leaderboard",
-         "camp","contribution","volunteer","bloodbank","awssetting","smtpsetting","firebasesetting","bulkuser"]
+      ? ["requests","tasks","users","specialuser","admins","settings","leaderboard","badges","onboarding","organizations",
+         "camp","contribution","volunteer","bloodbank","awssetting","smtpsetting","firebasesetting","bulkuser",
+         "inventory","donations-report","certificate-orders","certificate-management","reminders","analytics","audit-logs","india-content"]
       : auth.roles || []
   );
 

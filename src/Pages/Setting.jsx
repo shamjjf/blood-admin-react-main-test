@@ -116,6 +116,42 @@ const Setting = () => {
         return;
       }
     }
+    if (name === "printedCertificateCourierCharge") {
+      if (intVal < 0) {
+        swal("Error!", "Courier charge cannot be negative.", "error");
+        return;
+      }
+    }
+    if (name === "minPasswordLength") {
+      if (intVal < 4 || intVal > 64) {
+        swal("Error!", "Min password length must be between 4 and 64.", "error");
+        return;
+      }
+    }
+    if (name === "defaultPageSize") {
+      if (intVal < 5 || intVal > 200) {
+        swal("Error!", "Default page size must be between 5 and 200.", "error");
+        return;
+      }
+    }
+
+    // Level thresholds must be ascending: Bronze <= Silver <= Gold <= Platinum
+    if (
+      name === "levelBronzeAt" ||
+      name === "levelSilverAt" ||
+      name === "levelGoldAt" ||
+      name === "levelPlatinumAt"
+    ) {
+      if (intVal < 0) {
+        swal("Error!", "Level threshold cannot be negative.", "error");
+        return;
+      }
+      const next = { ...setting, [name]: intVal };
+      if (next.levelBronzeAt > next.levelSilverAt || next.levelSilverAt > next.levelGoldAt || next.levelGoldAt > next.levelPlatinumAt) {
+        swal("Error!", "Level thresholds must be in ascending order: Bronze ≤ Silver ≤ Gold ≤ Platinum.", "error");
+        return;
+      }
+    }
 
     setSetting({
       ...setting,
@@ -404,6 +440,52 @@ const Setting = () => {
                       value: setting.reminderEveryDays,
                       name: "reminderEveryDays",
                     },
+                  ],
+                },
+                {
+                  title: "System — Login & Listing Preferences",
+                  description:
+                    "Toggle signup, set the minimum password length, and pick admin-wide list defaults.",
+                  inputs: [
+                    { label: "Minimum Password Length", value: setting.minPasswordLength, name: "minPasswordLength" },
+                    { label: "Default Page Size (rows per table)", value: setting.defaultPageSize, name: "defaultPageSize" },
+                  ],
+                  dropdowns: [
+                    {
+                      label: "Signup Enabled",
+                      value: setting.signupEnabled ? "Enabled" : "Disabled",
+                      options: ["true", "false"],
+                      onSelect: (v) => setSetting({ ...setting, signupEnabled: v === "true" }),
+                    },
+                    {
+                      label: "Default Sort Direction",
+                      value: setting.defaultSortDirection || "desc",
+                      options: ["desc", "asc"],
+                      onSelect: (v) => setSetting({ ...setting, defaultSortDirection: v }),
+                    },
+                  ],
+                },
+                {
+                  title: "Donations — Printed Certificate",
+                  description:
+                    "Courier charge collected from donors who want a physical printed certificate shipped to them.",
+                  inputs: [
+                    {
+                      label: "Courier Charge (₹)",
+                      value: setting.printedCertificateCourierCharge,
+                      name: "printedCertificateCourierCharge",
+                    },
+                  ],
+                },
+                {
+                  title: "Gamification — Level Thresholds (points)",
+                  description:
+                    "Points needed to reach each tier. Levels are computed automatically from each user's points balance.",
+                  inputs: [
+                    { label: "Bronze starts at",   value: setting.levelBronzeAt,   name: "levelBronzeAt" },
+                    { label: "Silver starts at",   value: setting.levelSilverAt,   name: "levelSilverAt" },
+                    { label: "Gold starts at",     value: setting.levelGoldAt,     name: "levelGoldAt" },
+                    { label: "Platinum starts at", value: setting.levelPlatinumAt, name: "levelPlatinumAt" },
                   ],
                 },
                 {
