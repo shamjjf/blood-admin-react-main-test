@@ -12,6 +12,7 @@ const NAV_GROUPS = [
     label: "Operations",
     items: [
       { key: "requests",    icon: "ti ti-droplet-filled",   name: "Requests",     badgeKey: "requests" },
+      { key: "recurring-requests", icon: "ti ti-rotate",    name: "Recurring Requests" },
       { key: "tasks",       icon: "ti ti-checkup-list",     name: "Tasks",        badgeKey: "tasks" },
       { key: "camp",          icon: "ti ti-calendar-event",  name: "Camp" },
       { key: "organizations", icon: "ti ti-building-bank",   name: "Organizations" },
@@ -32,9 +33,11 @@ const NAV_GROUPS = [
   {
     label: "Rewards",
     items: [
-      { key: "leaderboard", icon: "ti ti-trophy", name: "Leaderboard" },
-      { key: "badges",      icon: "ti ti-medal",  name: "Badges" },
-      { key: "onboarding",  icon: "ti ti-school", name: "Volunteer 101" },
+      { key: "leaderboard",       icon: "ti ti-trophy",       name: "Leaderboard" },
+      { key: "badges",            icon: "ti ti-medal",        name: "Badges" },
+      { key: "gifts",             icon: "ti ti-gift",         name: "Gifts Catalog" },
+      { key: "onboarding",        icon: "ti ti-school",       name: "Volunteer 101" },
+      { key: "training-modules",  icon: "ti ti-book",         name: "Training Modules" },
     ],
   },
   {
@@ -85,7 +88,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
 
   const [adminRoles] = useState(
     auth.isSuperAdmin
-      ? ["requests","tasks","users","specialuser","admins","settings","leaderboard","badges","onboarding","organizations",
+      ? ["requests","recurring-requests","tasks","users","specialuser","admins","settings","leaderboard","badges","gifts","onboarding","training-modules","organizations",
          "camp","contribution","volunteer","bloodbank","awssetting","smtpsetting","firebasesetting","bulkuser",
          "inventory","donations-report","certificate-orders","certificate-management","reminders","analytics","audit-logs","india-content"]
       : auth.roles || []
