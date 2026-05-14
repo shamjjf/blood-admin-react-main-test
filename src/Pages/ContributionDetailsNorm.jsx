@@ -292,7 +292,41 @@ const ContributionDetails = () => {
                   contributions.map((sub, index) => (
                     <>
                       <tr key={index}>
-                        <td className="align-left">{sub.user.name}</td>
+                        <td className="align-left">
+                          {sub.user?.name}
+                          <div style={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "wrap" }}>
+                            {sub.isAmountOnly && (
+                              <span
+                                style={{
+                                  padding: "2px 8px",
+                                  borderRadius: 10,
+                                  fontSize: 10,
+                                  fontWeight: 700,
+                                  color: "#FFFFFF",
+                                  background: "#2563eb",
+                                }}
+                                title="Donor chose a free-form amount instead of items"
+                              >
+                                AMOUNT-ONLY
+                              </span>
+                            )}
+                            {sub.isRecurring && (
+                              <span
+                                style={{
+                                  padding: "2px 8px",
+                                  borderRadius: 10,
+                                  fontSize: 10,
+                                  fontWeight: 700,
+                                  color: "#FFFFFF",
+                                  background: "#9333EA",
+                                }}
+                                title={`Donor opted in for monthly recurring (every ${sub.recurringIntervalDays || 30} days)`}
+                              >
+                                MONTHLY
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="align-left">{sub.contributionAmount}</td>
                         <td className="">
                           {sub.sponsoredItems && sub.sponsoredItems.length > 0 ? (
