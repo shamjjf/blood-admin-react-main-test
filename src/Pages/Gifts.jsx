@@ -4,7 +4,15 @@ import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 
-const CATEGORIES = ["merch", "certificate", "sticker", "other"];
+const CATEGORIES = [
+  "merch",
+  "merchandise",
+  "certificate",
+  "sticker",
+  "bag",
+  "gift",
+  "other",
+];
 
 const emptyForm = {
   _id: null,
@@ -14,6 +22,8 @@ const emptyForm = {
   pointCost: 0,
   priceInr: 0,
   stock: -1,
+  unitCost: 0,
+  reorderAt: -1,
   category: "merch",
   active: true,
 };
@@ -66,6 +76,8 @@ const Gifts = () => {
       pointCost: g.pointCost ?? 0,
       priceInr: g.priceInr ?? 0,
       stock: g.stock ?? -1,
+      unitCost: g.unitCost ?? 0,
+      reorderAt: g.reorderAt ?? -1,
       category: g.category || "merch",
       active: !!g.active,
     });
@@ -78,12 +90,18 @@ const Gifts = () => {
     const pc = Number(form.pointCost);
     const pi = Number(form.priceInr);
     const stk = form.stock === "" ? -1 : Number(form.stock);
+    const uc = form.unitCost === "" ? 0 : Number(form.unitCost);
+    const ra = form.reorderAt === "" ? -1 : Number(form.reorderAt);
     if (!Number.isFinite(pc) || pc < 0)
       return swal("Error", "Point cost must be a non-negative number", "error");
     if (!Number.isFinite(pi) || pi < 0)
       return swal("Error", "Price (INR) must be a non-negative number", "error");
     if (!Number.isFinite(stk))
       return swal("Error", "Stock must be a number (use -1 for unlimited)", "error");
+    if (!Number.isFinite(uc) || uc < 0)
+      return swal("Error", "Unit cost must be a non-negative number", "error");
+    if (!Number.isFinite(ra) || ra < -1)
+      return swal("Error", "Reorder threshold must be -1 (disabled) or a non-negative number", "error");
 
     const payload = {
       name: form.name.trim(),
@@ -92,6 +110,8 @@ const Gifts = () => {
       pointCost: pc,
       priceInr: pi,
       stock: stk,
+      unitCost: uc,
+      reorderAt: ra,
       category: form.category,
       active: !!form.active,
     };
@@ -180,9 +200,9 @@ const Gifts = () => {
 
   return (
     <>
-      <SEO title="Gifts / Rewards" />
+      <SEO title="Gifts & Inventory" />
       <div className="content-wrapper pt-5">
-        <p className="card-title p-0 m-0 mb-3">Gifts & Rewards Catalog</p>
+        <p className="card-title p-0 m-0 mb-3">Gifts, Rewards & Inventory Catalog</p>
 
         <div className="card mb-4">
           <div className="card-header bg-primary text-white">
@@ -285,6 +305,55 @@ const Gifts = () => {
                   onChange={(e) => setForm({ ...form, stock: e.target.value })}
                 />
               </div>
+
+              <div
+                className="col-12 mt-2"
+                style={{
+                  borderTop: "1px dashed #d1d5db",
+                  paddingTop: 14,
+                }}
+              >
+                <div
+                  style={{
+                    fontWeight: 600,
+                    fontSize: 13,
+                    color: "#6b7280",
+                    marginBottom: 8,
+                  }}
+                >
+                  <i className="ti ti-package me-1"></i>
+                  INVENTORY TRACKING (admin-only — not shown to users)
+                </div>
+              </div>
+
+              <div className="col-md-6">
+                <label className="form-label">Unit cost to source (INR)</label>
+                <input
+                  type="number"
+                  min={0}
+                  className="form-control"
+                  value={form.unitCost}
+                  onChange={(e) =>
+                    setForm({ ...form, unitCost: e.target.value })
+                  }
+                  placeholder="Procurement cost per unit"
+                />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">
+                  Reorder at (-1 = disable alert)
+                </label>
+                <input
+                  type="number"
+                  min={-1}
+                  className="form-control"
+                  value={form.reorderAt}
+                  onChange={(e) =>
+                    setForm({ ...form, reorderAt: e.target.value })
+                  }
+                  placeholder="Warn when stock drops to this level"
+                />
+              </div>
             </div>
 
             <div className="d-flex justify-content-end gap-2 mt-3">
@@ -370,7 +439,27 @@ const Gifts = () => {
                             {g.stock === -1 ? (
                               <em className="text-muted">unlimited</em>
                             ) : (
-                              g.stock
+                              <>
+                                {g.stock}
+                                {g.reorderAt !== undefined &&
+                                  g.reorderAt >= 0 &&
+                                  g.stock <= g.reorderAt && (
+                                    <span
+                                      className="ms-2"
+                                      style={{
+                                        padding: "2px 8px",
+                                        borderRadius: 10,
+                                        fontSize: 10,
+                                        fontWeight: 700,
+                                        color: "#FFFFFF",
+                                        background: "#dc2626",
+                                      }}
+                                      title={`Reorder threshold: ${g.reorderAt}`}
+                                    >
+                                      LOW
+                                    </span>
+                                  )}
+                              </>
                             )}
                           </td>
                           <td className="align-left">{g.claimCount ?? 0}</td>
