@@ -4,9 +4,8 @@ import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 
-const PLACEHOLDERS = ["{{name}}", "{{date}}", "{{bloodGroup}}", "{{units}}", "{{requestType}}", "{{orgName}}"];
-
-// A small live-preview render using fake data.
+// Used by the social-share preview to substitute placeholders into the
+// admin's message template before showing the sample text.
 const PREVIEW_DATA = {
   name: "Prathamesh Dhobale",
   date: "13 May 2026",
@@ -29,11 +28,21 @@ const CertificateManagement = () => {
       bodyHtml: "",
       footerNote: "",
       signatureName: "",
+      pdfUrl: "",
+      pdfFileId: null,
+      placeholders: {
+        name: { x: 360, y: 460, size: 22 },
+        date: { x: 330, y: 405, size: 16 },
+        bloodGroup: { x: 760, y: 405, size: 16 },
+      },
     },
     socialSharing: { whatsapp: true, facebook: true, instagram: true, twitter: false },
     socialShareMessage: "",
   });
   const [saving, setSaving] = useState(false);
+  const [pdfUploading, setPdfUploading] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState(null);
 
   const load = async () => {
     try {
@@ -51,6 +60,25 @@ const CertificateManagement = () => {
           bodyHtml: s.certificateTemplate?.bodyHtml || "",
           footerNote: s.certificateTemplate?.footerNote || "",
           signatureName: s.certificateTemplate?.signatureName || "",
+          pdfUrl: s.certificateTemplate?.pdfUrl || "",
+          pdfFileId: s.certificateTemplate?.pdfFileId || null,
+          placeholders: {
+            name: {
+              x: Number(s.certificateTemplate?.placeholders?.name?.x ?? 360),
+              y: Number(s.certificateTemplate?.placeholders?.name?.y ?? 460),
+              size: Number(s.certificateTemplate?.placeholders?.name?.size ?? 22),
+            },
+            date: {
+              x: Number(s.certificateTemplate?.placeholders?.date?.x ?? 330),
+              y: Number(s.certificateTemplate?.placeholders?.date?.y ?? 405),
+              size: Number(s.certificateTemplate?.placeholders?.date?.size ?? 16),
+            },
+            bloodGroup: {
+              x: Number(s.certificateTemplate?.placeholders?.bloodGroup?.x ?? 760),
+              y: Number(s.certificateTemplate?.placeholders?.bloodGroup?.y ?? 405),
+              size: Number(s.certificateTemplate?.placeholders?.bloodGroup?.size ?? 16),
+            },
+          },
         },
         socialSharing: {
           whatsapp:  s.socialSharing?.whatsapp  !== false,
@@ -85,12 +113,117 @@ const CertificateManagement = () => {
     }
   };
 
-  const insertPlaceholder = (ph) => {
+  // Uploads the designed certificate PDF using the existing S3 presigned POST
+  // flow (/upload-test → S3 direct → /upload-ack), then stores the resulting
+  // public URL + FileObject id on the form so saving the settings persists it.
+  const uploadTemplatePdf = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      swal("Wrong file type", "Please upload a PDF template", "warning");
+      return;
+    }
+    try {
+      setPdfUploading(true);
+      const { name, size, type } = file;
+      const presign = await axios.post(
+        `${import.meta.env.VITE_API_UPLOAD}/upload-test`,
+        { name, size, mime: type },
+        { headers: { "content-type": "application/json" } }
+      );
+      const presignData = presign?.data?.data;
+      const publicUrl = presign?.data?.url;
+      if (!presignData?.url || !publicUrl) {
+        throw new Error("Upload pre-sign failed");
+      }
+
+      const fd = new FormData();
+      for (const [k, v] of Object.entries(presignData.fields)) fd.append(k, v);
+      fd.append("file", file);
+      const s3Resp = await fetch(presignData.url, { method: "POST", body: fd });
+      if (!s3Resp.ok) throw new Error("S3 upload failed");
+
+      // Mark the FileObject active so it isn't garbage-collected
+      await axios.post(
+        `${import.meta.env.VITE_API_UPLOAD}/upload-ack`,
+        { fid: presignData._id },
+        { headers: { "content-type": "application/json" } }
+      );
+
+      setForm((prev) => ({
+        ...prev,
+        certificateTemplate: {
+          ...prev.certificateTemplate,
+          pdfUrl: publicUrl,
+          pdfFileId: presignData._id,
+        },
+      }));
+      swal("Uploaded", "Template PDF uploaded. Save to apply.", "success");
+    } catch (err) {
+      console.error(err);
+      swal("Upload failed", err?.message || "Could not upload template", "error");
+    } finally {
+      setPdfUploading(false);
+    }
+  };
+
+  // Streams the rendered preview PDF from the backend so the admin can verify
+  // placeholder placement without committing the coordinates yet. The blob URL
+  // is shown in an <iframe> below the controls and revoked on the next preview.
+  const previewPdf = async () => {
+    if (!form.certificateTemplate.pdfUrl) {
+      swal("No template", "Upload a PDF template first", "info");
+      return;
+    }
+    try {
+      setPreviewing(true);
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/certificate-preview`,
+        {
+          placeholders: form.certificateTemplate.placeholders,
+          sample: {
+            name: "Jane Doe",
+            date: "13 May 2026",
+            bloodGroup: "AB+",
+          },
+        },
+        {
+          headers: { Authorization: sessionStorage.getItem("auth") },
+          responseType: "blob",
+        }
+      );
+      if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
+      const blobUrl = URL.createObjectURL(res.data);
+      setPreviewBlobUrl(blobUrl);
+    } catch (err) {
+      console.error(err);
+      // Axios swallows the error body when responseType is "blob"; re-read it
+      const text = await err?.response?.data?.text?.();
+      let msg = "Preview failed";
+      try {
+        msg = JSON.parse(text || "{}").error || msg;
+      } catch {
+        if (text) msg = text;
+      }
+      swal("Preview failed", msg, "error");
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
+  const setPlaceholder = (field, axis, value) => {
     setForm((prev) => ({
       ...prev,
       certificateTemplate: {
         ...prev.certificateTemplate,
-        bodyHtml: (prev.certificateTemplate.bodyHtml || "") + " " + ph,
+        placeholders: {
+          ...prev.certificateTemplate.placeholders,
+          [field]: {
+            ...prev.certificateTemplate.placeholders[field],
+            [axis]: Number(value) || 0,
+          },
+        },
       },
     }));
   };
@@ -109,40 +242,50 @@ const CertificateManagement = () => {
           </div>
           <div className="card-body">
             <div className="row g-3">
-              <div className="col-md-6">
-                <div className="form-check">
-                  <input
-                    type="checkbox"
-                    className="form-check-input"
-                    id="digitalToggle"
-                    checked={form.certificateDigitalEnabled}
-                    onChange={(e) => setForm({ ...form, certificateDigitalEnabled: e.target.checked })}
-                  />
-                  <label className="form-check-label" htmlFor="digitalToggle">
-                    <strong>Digital Certificates</strong>
-                    <div className="text-muted small">
-                      Auto-issued on every approved donation. Free for the donor.
+              {[
+                {
+                  key: "certificateDigitalEnabled",
+                  id: "digitalToggle",
+                  title: "Digital Certificates",
+                  desc: "Auto-issued on every approved donation. Free for the donor.",
+                },
+                {
+                  key: "certificatePrintedEnabled",
+                  id: "printedToggle",
+                  title: "Printed (Paid) Certificates",
+                  desc: "Donor pays courier charge; admin dispatches via Certificate Orders.",
+                },
+              ].map((m) => (
+                <div key={m.key} className="col-md-6">
+                  <label
+                    htmlFor={m.id}
+                    className="d-flex align-items-start gap-3 p-3 border rounded h-100"
+                    style={{
+                      cursor: "pointer",
+                      background: form[m.key] ? "#FFFFFF" : "#FAFAFA",
+                      borderColor: form[m.key] ? "#0d6efd" : "#E5E7EB",
+                      transition: "all 0.15s",
+                      marginBottom: 0,
+                    }}
+                  >
+                    <div className="form-check form-switch m-0 ps-0" style={{ minWidth: 38 }}>
+                      <input
+                        type="checkbox"
+                        role="switch"
+                        className="form-check-input m-0"
+                        id={m.id}
+                        checked={form[m.key]}
+                        onChange={(e) => setForm({ ...form, [m.key]: e.target.checked })}
+                        style={{ width: 38, height: 20, cursor: "pointer" }}
+                      />
+                    </div>
+                    <div>
+                      <div className="fw-bold">{m.title}</div>
+                      <div className="text-muted small mt-1">{m.desc}</div>
                     </div>
                   </label>
                 </div>
-              </div>
-              <div className="col-md-6">
-                <div className="form-check">
-                  <input
-                    type="checkbox"
-                    className="form-check-input"
-                    id="printedToggle"
-                    checked={form.certificatePrintedEnabled}
-                    onChange={(e) => setForm({ ...form, certificatePrintedEnabled: e.target.checked })}
-                  />
-                  <label className="form-check-label" htmlFor="printedToggle">
-                    <strong>Printed (Paid) Certificates</strong>
-                    <div className="text-muted small">
-                      Donor pays courier charge; admin dispatches via Certificate Orders.
-                    </div>
-                  </label>
-                </div>
-              </div>
+              ))}
               <div className="col-md-6">
                 <label className="form-label">Courier Charge (₹)</label>
                 <input
@@ -161,129 +304,136 @@ const CertificateManagement = () => {
           </div>
         </div>
 
-        {/* ===== Template editor + preview ===== */}
-        <div className="row g-3 mb-4">
-          {/* Editor */}
-          <div className="col-lg-7">
-            <div className="card h-100">
-              <div className="card-header bg-primary text-white">
-                <h5>Certificate Template</h5>
-                <p className="small mb-0">Used to generate digital certificates and the printable PDF.</p>
-              </div>
-              <div className="card-body">
-                <div className="mb-3">
-                  <label className="form-label">Title</label>
-                  <input
-                    className="form-control"
-                    value={form.certificateTemplate.title}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        certificateTemplate: { ...form.certificateTemplate, title: e.target.value },
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="mb-2">
-                  <label className="form-label">Body</label>
-                  <textarea
-                    className="form-control"
-                    rows={6}
-                    value={form.certificateTemplate.bodyHtml}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        certificateTemplate: { ...form.certificateTemplate, bodyHtml: e.target.value },
-                      })
-                    }
-                    placeholder="Write your certificate body. Use placeholders like {{name}}."
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <small className="text-muted d-block mb-2">Insert placeholder:</small>
-                  <div className="d-flex flex-wrap gap-2">
-                    {PLACEHOLDERS.map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        className="btn btn-sm btn-outline-secondary"
-                        onClick={() => insertPlaceholder(p)}
-                      >
-                        {p}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="row g-3">
-                  <div className="col-md-6">
-                    <label className="form-label">Footer Note</label>
-                    <input
-                      className="form-control"
-                      value={form.certificateTemplate.footerNote}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          certificateTemplate: { ...form.certificateTemplate, footerNote: e.target.value },
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="col-md-6">
-                    <label className="form-label">Signature Name</label>
-                    <input
-                      className="form-control"
-                      value={form.certificateTemplate.signatureName}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          certificateTemplate: { ...form.certificateTemplate, signatureName: e.target.value },
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* ===== PDF template (designed certificate) ===== */}
+        <div className="card mb-4">
+          <div className="card-header bg-primary text-white">
+            <h5>Designed PDF Template</h5>
+            <p className="small mb-0">
+              Upload your designed certificate PDF (e.g. LSA Final.pdf). The
+              backend overlays the donor's name, date, and blood group onto
+              the placeholders below — coordinates are in PDF points from the
+              bottom-left of the page.
+            </p>
           </div>
-
-          {/* Preview */}
-          <div className="col-lg-5">
-            <div className="card h-100">
-              <div className="card-header bg-primary text-white">
-                <h5>Live Preview</h5>
-                <p className="small mb-0">Sample data substituted into your template.</p>
+          <div className="card-body">
+            <div className="row g-3 align-items-center mb-3">
+              <div className="col-md-7">
+                <label className="form-label">Template PDF</label>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  className="form-control"
+                  onChange={uploadTemplatePdf}
+                  disabled={pdfUploading}
+                />
+                {pdfUploading && (
+                  <small className="text-muted">Uploading…</small>
+                )}
+                {!pdfUploading && form.certificateTemplate.pdfUrl && (
+                  <small className="text-success d-block mt-1">
+                    <i className="ti ti-check"></i>{" "}
+                    <a
+                      href={form.certificateTemplate.pdfUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Currently uploaded template
+                    </a>
+                  </small>
+                )}
               </div>
-              <div className="card-body">
-                <div
-                  style={{
-                    background: "#FFF8EC",
-                    border: "8px double #C0392B",
-                    padding: 24,
-                    borderRadius: 8,
-                    minHeight: 320,
-                    textAlign: "center",
-                    fontFamily: "'Georgia', serif",
-                  }}
+              <div className="col-md-5 text-md-end">
+                <button
+                  type="button"
+                  className="btn btn-outline-primary"
+                  onClick={previewPdf}
+                  disabled={previewing || !form.certificateTemplate.pdfUrl}
                 >
-                  <div style={{ fontSize: 22, fontWeight: 700, color: "#C0392B", marginBottom: 16 }}>
-                    {render(form.certificateTemplate.title)}
-                  </div>
-                  <div
-                    style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}
-                    dangerouslySetInnerHTML={{ __html: render(form.certificateTemplate.bodyHtml) }}
-                  />
-                  <div style={{ marginTop: 28, fontSize: 12, color: "#6B7280" }}>
-                    {render(form.certificateTemplate.footerNote)}
-                  </div>
-                  <div style={{ marginTop: 6, fontSize: 12, fontStyle: "italic", color: "#374151" }}>
-                    — {render(form.certificateTemplate.signatureName)}
-                  </div>
-                </div>
+                  {previewing ? "Rendering…" : "Preview with sample data"}
+                </button>
               </div>
             </div>
+
+            <div className="table-responsive">
+              <table className="table table-sm align-middle">
+                <thead>
+                  <tr>
+                    <th>Field</th>
+                    <th style={{ width: 130 }}>X (from left)</th>
+                    <th style={{ width: 130 }}>Y (from bottom)</th>
+                    <th style={{ width: 110 }}>Font size</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { key: "name", label: "Donor name" },
+                    { key: "date", label: "Donation date" },
+                    { key: "bloodGroup", label: "Blood group" },
+                  ].map(({ key, label }) => {
+                    const slot = form.certificateTemplate.placeholders[key] || {};
+                    return (
+                      <tr key={key}>
+                        <td>
+                          <strong>{label}</strong>
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            className="form-control form-control-sm"
+                            value={slot.x ?? 0}
+                            onChange={(e) =>
+                              setPlaceholder(key, "x", e.target.value)
+                            }
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            className="form-control form-control-sm"
+                            value={slot.y ?? 0}
+                            onChange={(e) =>
+                              setPlaceholder(key, "y", e.target.value)
+                            }
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            className="form-control form-control-sm"
+                            value={slot.size ?? 14}
+                            onChange={(e) =>
+                              setPlaceholder(key, "size", e.target.value)
+                            }
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <small className="text-muted d-block">
+              Tip: bump Y to move the text <strong>up</strong>; bump X to move
+              it <strong>right</strong>. Hit "Preview" after each tweak to see
+              the result without saving.
+            </small>
+
+            {previewBlobUrl && (
+              <div className="mt-3">
+                <label className="form-label">Live preview</label>
+                <iframe
+                  title="Certificate preview"
+                  src={previewBlobUrl}
+                  style={{
+                    width: "100%",
+                    height: 520,
+                    border: "1px solid #E5E7EB",
+                    borderRadius: 6,
+                    background: "#FAFAFA",
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -296,40 +446,50 @@ const CertificateManagement = () => {
             </p>
           </div>
           <div className="card-body">
-            <div className="row g-3 mb-3">
+            <div className="row row-cols-2 row-cols-md-4 g-3 mb-3">
               {[
-                { key: "whatsapp",  label: "WhatsApp",  icon: "ti ti-brand-whatsapp", color: "#25D366" },
-                { key: "facebook",  label: "Facebook",  icon: "ti ti-brand-facebook", color: "#1877F2" },
-                { key: "instagram", label: "Instagram", icon: "ti ti-brand-instagram", color: "#E1306C" },
-                { key: "twitter",   label: "Twitter / X", icon: "ti ti-brand-x",       color: "#000000" },
+                { key: "whatsapp",  label: "WhatsApp",    icon: "ti ti-brand-whatsapp", color: "#25D366" },
+                { key: "facebook",  label: "Facebook",    icon: "ti ti-brand-facebook", color: "#1877F2" },
+                { key: "instagram", label: "Instagram",   icon: "ti ti-brand-instagram", color: "#E1306C" },
+                { key: "twitter",   label: "Twitter / X", icon: "ti ti-brand-x",         color: "#000000" },
               ].map((p) => (
-                <div key={p.key} className="col-md-3">
+                <div key={p.key} className="col">
                   <div
-                    style={{
-                      border: form.socialSharing[p.key] ? `2px solid ${p.color}` : "1px solid #E5E7EB",
-                      borderRadius: 10,
-                      padding: 14,
-                      cursor: "pointer",
-                      background: form.socialSharing[p.key] ? "#FFFFFF" : "#FAFAFA",
-                      transition: "all 0.15s",
-                    }}
                     onClick={() =>
                       setForm({
                         ...form,
                         socialSharing: { ...form.socialSharing, [p.key]: !form.socialSharing[p.key] },
                       })
                     }
+                    style={{
+                      border: form.socialSharing[p.key] ? `2px solid ${p.color}` : "1px solid #E5E7EB",
+                      borderRadius: 10,
+                      padding: "14px 16px",
+                      cursor: "pointer",
+                      background: form.socialSharing[p.key] ? "#FFFFFF" : "#FAFAFA",
+                      transition: "all 0.15s",
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 12,
+                    }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <div>
-                        <i className={p.icon} style={{ fontSize: 22, color: p.color }}></i>
-                        <span className="ms-2 fw-bold">{p.label}</span>
-                      </div>
+                    <div className="d-flex align-items-center" style={{ gap: 10, minWidth: 0 }}>
+                      <i className={p.icon} style={{ fontSize: 22, color: p.color, flexShrink: 0 }}></i>
+                      <span className="fw-bold text-truncate">{p.label}</span>
+                    </div>
+                    <div
+                      className="form-check form-switch m-0 ps-0"
+                      style={{ flexShrink: 0, marginRight: 56 }}
+                    >
                       <input
                         type="checkbox"
-                        className="form-check-input"
+                        role="switch"
+                        className="form-check-input m-0"
                         checked={!!form.socialSharing[p.key]}
                         onChange={() => {}}
+                        style={{ width: 38, height: 20, cursor: "pointer" }}
                       />
                     </div>
                   </div>
