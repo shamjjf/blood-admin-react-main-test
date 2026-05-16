@@ -12,11 +12,26 @@ const statusBadge = (status) => {
   return { ...base, background: "#6B7280" };
 };
 
+// Visual styling for the contribute-flow buckets returned by /donations-report
+// in the new `byType` object. "unknown" exists for legacy rows that predate
+// the `type` field (filled in by the backend backfill script when run).
+const TYPE_META = {
+  direct:  { label: "Direct (Cause)",      color: "#0EA5E9", icon: "ti ti-heart-handshake" },
+  vendor:  { label: "Vendor / UPI Proof",  color: "#8B5CF6", icon: "ti ti-qrcode" },
+  deliver: { label: "Deliver In Person",   color: "#F59E0B", icon: "ti ti-truck-delivery" },
+  unknown: { label: "Legacy (untagged)",   color: "#6B7280", icon: "ti ti-help" },
+};
+
+const EMPTY_REPORT = { totals: {}, byMonth: [], byStatus: {}, byType: {} };
+
 const DonationsReport = () => {
   const { setLoading } = useContext(GlobalContext);
-  const [report, setReport] = useState({ totals: {}, byMonth: [], byStatus: {} });
+  const [report, setReport] = useState(EMPTY_REPORT);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  // Empty string = "All types". Backend accepts a single value
+  // ("direct" | "vendor" | "deliver") or a comma list.
+  const [type, setType] = useState("");
 
   const load = async () => {
     try {
@@ -24,11 +39,12 @@ const DonationsReport = () => {
       const params = new URLSearchParams();
       if (startDate) params.set("startDate", startDate);
       if (endDate) params.set("endDate", endDate);
+      if (type) params.set("type", type);
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/donations-report?${params.toString()}`,
         { headers: { Authorization: sessionStorage.getItem("auth") } }
       );
-      setReport(res?.data?.data || { totals: {}, byMonth: [], byStatus: {} });
+      setReport(res?.data?.data || EMPTY_REPORT);
     } catch (err) {
       console.error(err);
     } finally {
@@ -54,7 +70,7 @@ const DonationsReport = () => {
           <button
             className="btn btn-outline-primary"
             onClick={() =>
-              downloadCsv("/export/contributions", { startDate, endDate },
+              downloadCsv("/export/contributions", { startDate, endDate, type },
                 `contributions-${new Date().toISOString().slice(0, 10)}.csv`)
             }
           >
@@ -84,9 +100,30 @@ const DonationsReport = () => {
                   onChange={(e) => setEndDate(e.target.value)}
                 />
               </div>
-              <div className="col-md-6">
+              <div className="col-md-3">
+                <label className="form-label">Type</label>
+                <select
+                  className="form-control"
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                >
+                  <option value="">All types</option>
+                  <option value="direct">Direct (Cause)</option>
+                  <option value="vendor">Vendor / UPI Proof</option>
+                  <option value="deliver">Deliver In Person</option>
+                </select>
+              </div>
+              <div className="col-md-3">
                 <button className="btn btn-primary me-2" onClick={load}>Apply</button>
-                <button className="btn btn-outline-secondary" onClick={() => { setStartDate(""); setEndDate(""); setTimeout(load, 0); }}>
+                <button
+                  className="btn btn-outline-secondary"
+                  onClick={() => {
+                    setStartDate("");
+                    setEndDate("");
+                    setType("");
+                    setTimeout(load, 0);
+                  }}
+                >
                   Reset
                 </button>
               </div>
@@ -202,6 +239,46 @@ const DonationsReport = () => {
                 </table>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* ===== Breakdown by Type ===== */}
+        {/* Backend always returns byType, including a synthetic "unknown" bucket
+            for legacy rows that predate the type field. */}
+        <div className="card mt-4">
+          <div className="card-header bg-primary text-white">
+            <h5 className="mb-0">Breakdown by Type</h5>
+            <p className="small mb-0">
+              Which contribute flow the donor used. Use the Type filter above to drill into one.
+            </p>
+          </div>
+          <div className="card-body">
+            <div className="row g-3">
+              {["direct", "vendor", "deliver", "unknown"].map((t) => {
+                const row = report.byType?.[t];
+                // Hide the synthetic "unknown" bucket when there's nothing in it.
+                if (t === "unknown" && (!row || row.count === 0)) return null;
+                const meta = TYPE_META[t];
+                const data = row || { amount: 0, count: 0 };
+                return (
+                  <div key={t} className="col-md-4">
+                    <div style={{ border: "1px solid #E5E7EB", borderRadius: 8, padding: 14 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                        <i className={meta.icon} style={{ color: meta.color, fontSize: 18 }}></i>
+                        <span style={{ fontWeight: 700, color: meta.color, fontSize: 13 }}>
+                          {meta.label}
+                        </span>
+                      </div>
+                      <div className="fs-4 fw-bold">{fmtMoney(data.amount)}</div>
+                      <div className="text-muted small">{data.count} contribution(s)</div>
+                    </div>
+                  </div>
+                );
+              })}
+              {Object.keys(report.byType || {}).length === 0 && (
+                <div className="col-12 text-muted">No donations in this range.</div>
+              )}
+            </div>
           </div>
         </div>
       </div>
