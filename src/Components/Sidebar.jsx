@@ -116,8 +116,19 @@ const Sidebar = ({ sidebar, setSidebar }) => {
   }, [pathname]);
 
   return (
-    <nav className={`sidebar lsa-sidebar sidebar-offcanvas ${sidebar ? "active" : ""}`} id="sidebar">
-      <ul className="nav" style={{ flexDirection: "column" }}>
+    <>
+      {/* Mobile backdrop — dim layer behind the offcanvas sidebar so the user
+          has an obvious way to dismiss it on touch devices. CSS hides it on
+          desktop where the sidebar is permanently visible. */}
+      {sidebar && (
+        <div
+          className="lsa-sidebar-backdrop"
+          onClick={() => setSidebar(false)}
+          aria-hidden="true"
+        />
+      )}
+      <nav className={`sidebar lsa-sidebar sidebar-offcanvas ${sidebar ? "active" : ""}`} id="sidebar">
+        <ul className="nav" style={{ flexDirection: "column" }}>
         {NAV_GROUPS.map((group) => {
           const visibleItems = group.items.filter((item) => canShow(item.key));
           if (!visibleItems.length) return null;
@@ -171,19 +182,20 @@ const Sidebar = ({ sidebar, setSidebar }) => {
         })}
       </ul>
 
-      {/* Sidebar footer */}
-      <div className="lsa-sidebar-footer">
-        <div className="lsa-sf-inner">
-          <div className="lsa-sf-av">{initials}</div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="lsa-sf-name" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {auth?.name || "Admin"}
+        {/* Sidebar footer */}
+        <div className="lsa-sidebar-footer">
+          <div className="lsa-sf-inner">
+            <div className="lsa-sf-av">{initials}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="lsa-sf-name" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {auth?.name || "Admin"}
+              </div>
+              <div className="lsa-sf-role">{auth?.isSuperAdmin ? "Super Admin" : "Admin"}</div>
             </div>
-            <div className="lsa-sf-role">{auth?.isSuperAdmin ? "Super Admin" : "Admin"}</div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 };
 

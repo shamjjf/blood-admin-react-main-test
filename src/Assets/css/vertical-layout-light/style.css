@@ -8739,6 +8739,7 @@ html {
   font-family: sans-serif;
   line-height: 1.15;
   -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
@@ -8924,8 +8925,8 @@ caption {
 }
 
 th {
-  text-align: inherit;
   text-align: -webkit-match-parent;
+  text-align: match-parent;
 }
 
 label {
@@ -10577,7 +10578,6 @@ pre code {
     display: block;
     width: 100%;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
   }
   .table-responsive-sm > .table-bordered {
     border: 0;
@@ -10589,7 +10589,6 @@ pre code {
     display: block;
     width: 100%;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
   }
   .table-responsive-md > .table-bordered {
     border: 0;
@@ -10601,7 +10600,6 @@ pre code {
     display: block;
     width: 100%;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
   }
   .table-responsive-lg > .table-bordered {
     border: 0;
@@ -10613,7 +10611,6 @@ pre code {
     display: block;
     width: 100%;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
   }
   .table-responsive-xl > .table-bordered {
     border: 0;
@@ -10624,7 +10621,6 @@ pre code {
   display: block;
   width: 100%;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 .table-responsive > .table-bordered {
@@ -11620,6 +11616,7 @@ textarea.is-invalid.tt-hint {
   color: #1f1f1f;
   text-align: center;
   vertical-align: middle;
+  -webkit-user-select: none;
   user-select: none;
   background-color: transparent;
   border: 1px solid transparent;
@@ -16693,7 +16690,8 @@ input[type="button"].btn-block {
   display: block;
   min-height: 1.5rem;
   padding-left: 1.5rem;
-  color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 .custom-control-inline {

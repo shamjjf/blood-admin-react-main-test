@@ -1,5 +1,7 @@
 import "./Assets/vendors/feather/feather.css";
-import "./Assets/vendors/ti-icons/css/themify-icons.css";
+// Themify Icons removed — it collides with Tabler Icons (both use the `.ti`
+// class). Tabler is loaded via CDN in index.html and powers all sidebar /
+// dashboard glyphs (e.g. ti-gift, ti-book, ti-heart-handshake, ti-rotate).
 import "./Assets/vendors/css/vendor.bundle.base.css";
 import "./Assets/css/custom.css";
 import "./Assets/css/custom2.css";
