@@ -26,6 +26,22 @@
 
 /* ── BASE RESET ── */
 *, *::before, *::after { box-sizing: border-box; }
+
+/* Force Tabler Icons as the ONLY font for `.ti` glyphs. Legacy template ships
+   with a "themify" font that fights for the same class — even after dropping
+   the themify import, residual style blocks (Vite HMR, vendor stylesheets,
+   browser-cached SCSS bundles) can resurrect the rule. This locks the font. */
+.ti,
+[class^="ti-"],
+[class*=" ti-"] {
+  font-family: "tabler-icons" !important;
+  font-style: normal;
+  font-weight: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 html, body {
   font-family: var(--f-body) !important;
   background: var(--bg) !important;
@@ -408,7 +424,7 @@ nav.sidebar {
 .lsa-stat-bg-num {
   position: absolute; right: -8px; bottom: -12px;
   font-family: var(--f-display); font-size: 64px; font-weight: 800;
-  color: rgba(0,0,0,0.04); line-height: 1; pointer-events: none; user-select: none;
+  color: rgba(0,0,0,0.04); line-height: 1; pointer-events: none; -webkit-user-select: none; user-select: none;
 }
 .lsa-stat-card.hero .lsa-stat-bg-num { color: rgba(255,255,255,0.05); }
 
@@ -688,7 +704,7 @@ nav.sidebar {
 .add-form-holder {
   position: fixed !important; inset: 0 !important;
   background: rgba(0,0,0,0.4) !important;
-  backdrop-filter: blur(4px) !important; z-index: 9999 !important;
+  -webkit-backdrop-filter: blur(4px) !important; backdrop-filter: blur(4px) !important; z-index: 9999 !important;
 }
 .modal-content { border-radius: var(--r) !important; border: none !important; box-shadow: var(--shadow-md) !important; }
 .modal-header { border-bottom: 1px solid var(--border) !important; padding: 16px 20px !important; }
@@ -749,6 +765,103 @@ nav.sidebar {
 @media (max-width: 480px) {
   .lsa-stats-grid { grid-template-columns: 1fr !important; }
   .lsa-search-wrap { display: none !important; }
+}
+
+/* ================================================================
+   MOBILE POLISH — keep desktop pixel-identical, just tame the layout
+   on phones / tablets. Driven entirely by CSS so no page component
+   needs to know about viewport size.
+   ================================================================ */
+
+/* Dim layer behind the offcanvas sidebar. Visible only when the sidebar
+   is open AND the viewport is small enough that the sidebar overlays
+   the content. Click anywhere on it to dismiss (handler in Sidebar.jsx). */
+.lsa-sidebar-backdrop {
+  display: none;
+}
+@media (max-width: 991px) {
+  .lsa-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 999; /* sits under the navbar (1000) and sidebar (1001+) */
+    animation: lsaFadeIn 0.18s ease-out;
+  }
+  .sidebar.lsa-sidebar.active,
+  .sidebar-offcanvas.active {
+    z-index: 1001 !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  }
+}
+@keyframes lsaFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Tables: never break the layout on phones. Wrap any table in a horizontal
+   scroller and slim the padding/font so a 5-column table is still usable. */
+@media (max-width: 991px) {
+  .content-wrapper .card,
+  .content-wrapper .table-card-border {
+    overflow-x: auto;
+  }
+  .content-wrapper table,
+  .content-wrapper .table {
+    min-width: 600px; /* prevents extreme cell squish; horizontal scroll kicks in */
+  }
+}
+@media (max-width: 768px) {
+  .content-wrapper th,
+  .content-wrapper td {
+    padding: 10px 12px !important;
+    font-size: 12.5px !important;
+  }
+  .content-wrapper .card .card-body { padding: 14px !important; }
+  .content-wrapper .card .card-header { padding: 12px 14px !important; }
+  .lsa-page-head h1 { font-size: 18px !important; }
+  .lsa-page-head { margin-bottom: 14px !important; }
+  .content-wrapper .form-control,
+  .content-wrapper .form-select { font-size: 14px !important; min-height: 38px; }
+  /* Buttons in page heads stretch full-width so two of them stack neatly */
+  .lsa-page-head .lsa-btn-primary,
+  .lsa-page-head .lsa-btn-outline,
+  .lsa-page-head .btn { flex: 1 1 100%; }
+}
+
+/* Navbar: hide the elements that don't fit and shrink the admin chip so the
+   logo + hamburger + notif/settings + avatar all fit a 360px-wide phone. */
+@media (max-width: 768px) {
+  .navbar-brand.brand-logo { display: none !important; }
+  .navbar-brand.brand-logo-mini { display: flex !important; align-items: center !important; }
+  .lsa-live-wrap { display: none !important; }
+  .lsa-search-wrap { display: none !important; }
+  .lsa-admin-chip .lsa-name,
+  .lsa-admin-chip .lsa-role { display: none !important; }
+  .lsa-admin-chip { padding: 4px 6px !important; gap: 4px !important; }
+  .navbar-menu-wrapper { padding-right: 10px !important; gap: 6px !important; }
+}
+@media (max-width: 480px) {
+  .lsa-admin-chip i { display: none !important; } /* drop the chevron */
+  .lsa-notif-btn { width: 34px !important; height: 34px !important; }
+  .sidebar.lsa-sidebar.active,
+  .sidebar-offcanvas.active {
+    width: 78% !important;
+    max-width: 300px !important;
+  }
+}
+
+/* Modals: full-bleed on phones so long forms aren't cramped into a tiny box. */
+@media (max-width: 575px) {
+  .modal-dialog {
+    margin: 0 !important;
+    max-width: 100% !important;
+    min-height: 100vh !important;
+  }
+  .modal-content {
+    border-radius: 0 !important;
+    min-height: 100vh !important;
+  }
 }
 
 /* ================================================================
