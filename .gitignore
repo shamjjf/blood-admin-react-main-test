@@ -29,3 +29,4 @@ credential.json
 .env
 .env.development
 .env.production
+.env.development
