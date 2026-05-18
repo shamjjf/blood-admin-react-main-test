@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import axios from "axios";
+import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 import { downloadCsv } from "../utils/downloadCsv";
@@ -32,6 +33,57 @@ const DonationsReport = () => {
   // Empty string = "All types". Backend accepts a single value
   // ("direct" | "vendor" | "deliver") or a comma list.
   const [type, setType] = useState("");
+  // Sending the monthly recurring-reminder batch — admin trigger for the cron.
+  const [sendingReminders, setSendingReminders] = useState(false);
+
+  // Manual trigger for the monthly recurring-contribution reminder emails. The
+  // backend cron runs this automatically once a month; this lets the admin
+  // force an extra batch off-cycle. Backend dedupe (~25-day window) prevents
+  // a donor getting two emails in quick succession.
+  const sendRecurringReminders = async (dryRun = false) => {
+    if (!dryRun) {
+      const ok = await swal({
+        title: "Send monthly reminder emails?",
+        text: "Donors who opted into monthly contributions will receive a reminder email now. Already-emailed donors (within the last ~25 days) are skipped automatically.",
+        icon: "warning",
+        buttons: ["Cancel", "Send Now"],
+      });
+      if (!ok) return;
+    }
+    try {
+      setSendingReminders(true);
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/send-recurring-reminders`,
+        { dryRun },
+        {
+          headers: {
+            Authorization: sessionStorage.getItem("auth"),
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const stats = res?.data?.data || {};
+      const sent = stats.sent ?? 0;
+      const skipped = stats.skipped ?? 0;
+      const failed = stats.failed ?? 0;
+      swal(
+        dryRun ? "Dry run complete" : "Reminders sent",
+        `Sent: ${sent}\nSkipped (already emailed): ${skipped}\nFailed: ${failed}`,
+        "success"
+      );
+    } catch (err) {
+      swal(
+        "Error",
+        err?.response?.data?.error ||
+          err?.response?.data?.ms ||
+          err.message ||
+          "Failed to send reminders",
+        "error"
+      );
+    } finally {
+      setSendingReminders(false);
+    }
+  };
 
   const load = async () => {
     try {
@@ -67,15 +119,34 @@ const DonationsReport = () => {
       <div className="content-wrapper pt-5">
         <div className="d-flex mb-3 justify-content-between align-items-center flex-wrap" style={{ gap: 12 }}>
           <p className="card-title p-0 m-0">Monetary Donations Report</p>
-          <button
-            className="btn btn-outline-primary"
-            onClick={() =>
-              downloadCsv("/export/contributions", { startDate, endDate, type },
-                `contributions-${new Date().toISOString().slice(0, 10)}.csv`)
-            }
-          >
-            <i className="ti ti-download"></i> Export CSV
-          </button>
+          <div className="d-flex gap-2 flex-wrap">
+            <button
+              className="btn btn-outline-secondary"
+              onClick={() => sendRecurringReminders(true)}
+              disabled={sendingReminders}
+              title="Preview how many donors would be emailed without actually sending"
+            >
+              <i className="ti ti-eye"></i> Dry-run
+            </button>
+            <button
+              className="btn btn-warning"
+              onClick={() => sendRecurringReminders(false)}
+              disabled={sendingReminders}
+              title="Trigger the monthly recurring-contribution reminder emails now"
+            >
+              <i className="ti ti-mail-forward"></i>{" "}
+              {sendingReminders ? "Sending…" : "Send Monthly Reminders"}
+            </button>
+            <button
+              className="btn btn-outline-primary"
+              onClick={() =>
+                downloadCsv("/export/contributions", { startDate, endDate, type },
+                  `contributions-${new Date().toISOString().slice(0, 10)}.csv`)
+              }
+            >
+              <i className="ti ti-download"></i> Export CSV
+            </button>
+          </div>
         </div>
 
         {/* ===== Filters ===== */}
