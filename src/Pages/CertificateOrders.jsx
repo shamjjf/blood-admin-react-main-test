@@ -4,54 +4,54 @@ import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 
-const PAY_STATUSES = ["All", "pending", "paid", "failed", "refunded"];
-const FUL_STATUSES = ["All", "new", "in_progress", "dispatched", "delivered", "cancelled"];
+// Admin moderation view for ALL reward redemptions from the Gifts catalog
+// (GiftClaim model) — printed certificates, stickers, merch, etc. The
+// dedicated CertificateOrder flow was removed from this page since this
+// deployment funnels every reward through GiftClaim.
 
-const payBadge = (s) => {
-  const base = { padding: "3px 10px", borderRadius: 10, fontSize: 11, fontWeight: 700, color: "#fff", display: "inline-block" };
-  if (s === "paid") return { ...base, background: "#22C55E" };
-  if (s === "pending") return { ...base, background: "#F59E0B" };
-  if (s === "failed") return { ...base, background: "#EF4444" };
-  if (s === "refunded") return { ...base, background: "#6B7280" };
-  return { ...base, background: "#94A3B8" };
-};
+const CLAIM_STATUSES = ["All", "Requested", "Approved", "Shipped", "Delivered", "Canceled"];
 
-const fulBadge = (s) => {
-  const base = { padding: "3px 10px", borderRadius: 10, fontSize: 11, fontWeight: 700, color: "#fff", display: "inline-block" };
-  if (s === "delivered") return { ...base, background: "#22C55E" };
-  if (s === "dispatched") return { ...base, background: "#0EA5E9" };
-  if (s === "in_progress") return { ...base, background: "#F59E0B" };
-  if (s === "cancelled") return { ...base, background: "#EF4444" };
-  if (s === "new") return { ...base, background: "#94A3B8" };
+const claimBadge = (s) => {
+  const base = {
+    padding: "3px 10px",
+    borderRadius: 10,
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#fff",
+    display: "inline-block",
+  };
+  if (s === "Delivered") return { ...base, background: "#22C55E" };
+  if (s === "Shipped")   return { ...base, background: "#0EA5E9" };
+  if (s === "Approved")  return { ...base, background: "#10B981" };
+  if (s === "Requested") return { ...base, background: "#F59E0B" };
+  if (s === "Canceled")  return { ...base, background: "#EF4444" };
   return { ...base, background: "#94A3B8" };
 };
 
 const CertificateOrders = () => {
   const { setLoading } = useContext(GlobalContext);
-  const [orders, setOrders] = useState([]);
-  const [payFilter, setPayFilter] = useState("All");
-  const [fulFilter, setFulFilter] = useState("All");
-  const [editOrder, setEditOrder] = useState(null);
-  const [editForm, setEditForm] = useState({
-    paymentStatus: "pending",
-    paymentRef: "",
-    fulfillmentStatus: "new",
-    trackingId: "",
-    courierProvider: "",
+
+  const [claims, setClaims] = useState([]);
+  const [claimFilter, setClaimFilter] = useState("All");
+  const [editClaim, setEditClaim] = useState(null);
+  const [editClaimForm, setEditClaimForm] = useState({
+    status: "Requested",
+    trackingCode: "",
+    trackingProvider: "",
     notes: "",
   });
 
-  const load = async () => {
+  const loadClaims = async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      if (payFilter !== "All") params.set("paymentStatus", payFilter);
-      if (fulFilter !== "All") params.set("fulfillmentStatus", fulFilter);
+      if (claimFilter !== "All") params.set("status", claimFilter);
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/certificate-orders?${params.toString()}`,
+        `${import.meta.env.VITE_API_URL}/gift-claims?${params.toString()}`,
         { headers: { Authorization: sessionStorage.getItem("auth") } }
       );
-      setOrders(res?.data?.data?.orders || []);
+      const all = res?.data?.data?.claims || [];
+      setClaims(all);
     } catch (err) {
       console.error(err);
     } finally {
@@ -60,36 +60,37 @@ const CertificateOrders = () => {
   };
 
   useEffect(() => {
-    load();
-  }, [payFilter, fulFilter]);
+    loadClaims();
+  }, [claimFilter]);
 
-  const openEditor = (order) => {
-    setEditOrder(order);
-    setEditForm({
-      paymentStatus: order.paymentStatus || "pending",
-      paymentRef: order.paymentRef || "",
-      fulfillmentStatus: order.fulfillmentStatus || "new",
-      trackingId: order.trackingId || "",
-      courierProvider: order.courierProvider || "",
-      notes: order.notes || "",
+  const openClaimEditor = (claim) => {
+    setEditClaim(claim);
+    setEditClaimForm({
+      status: claim.status || "Requested",
+      trackingCode: claim.trackingCode || "",
+      trackingProvider: claim.trackingProvider || "",
+      notes: claim.notes || "",
     });
   };
 
-  const closeEditor = () => {
-    setEditOrder(null);
-  };
+  const closeClaimEditor = () => setEditClaim(null);
 
-  const saveEditor = async () => {
+  const saveClaimEditor = async () => {
     try {
       setLoading(true);
       await axios.patch(
-        `${import.meta.env.VITE_API_URL}/certificate-orders/${editOrder._id}`,
-        editForm,
-        { headers: { Authorization: sessionStorage.getItem("auth"), "Content-Type": "application/json" } }
+        `${import.meta.env.VITE_API_URL}/gift-claims/${editClaim._id}`,
+        editClaimForm,
+        {
+          headers: {
+            Authorization: sessionStorage.getItem("auth"),
+            "Content-Type": "application/json",
+          },
+        }
       );
-      swal("Saved", "Order updated", "success");
-      closeEditor();
-      await load();
+      swal("Saved", "Claim updated", "success");
+      closeClaimEditor();
+      await loadClaims();
     } catch (err) {
       swal("Error", err?.response?.data?.error || "Failed to update", "error");
     } finally {
@@ -99,33 +100,31 @@ const CertificateOrders = () => {
 
   return (
     <>
-      <SEO title="Certificate Orders" />
+      <SEO title="Reward Claims" />
       <div className="content-wrapper pt-5">
-        <p className="card-title p-0 m-0 mb-3">Printed Certificate Orders</p>
+        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap" style={{ gap: 12 }}>
+          <div>
+            <p className="card-title p-0 m-0">Reward Claims</p>
+            <p className="text-muted mb-0" style={{ fontSize: 13 }}>
+              Every reward redeemed from the Gifts catalog — certificates, stickers, merch, and more.
+            </p>
+          </div>
+        </div>
 
         <div className="card mb-4">
           <div className="card-body">
             <div className="d-flex gap-3 flex-wrap">
               <div>
-                <label className="form-label">Payment</label>
+                <label className="form-label">Status</label>
                 <select
                   className="form-control text-capitalize"
                   style={{ minWidth: 160 }}
-                  value={payFilter}
-                  onChange={(e) => setPayFilter(e.target.value)}
+                  value={claimFilter}
+                  onChange={(e) => setClaimFilter(e.target.value)}
                 >
-                  {PAY_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="form-label">Fulfillment</label>
-                <select
-                  className="form-control text-capitalize"
-                  style={{ minWidth: 160 }}
-                  value={fulFilter}
-                  onChange={(e) => setFulFilter(e.target.value)}
-                >
-                  {FUL_STATUSES.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+                  {CLAIM_STATUSES.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -139,58 +138,88 @@ const CertificateOrders = () => {
                 <thead id="request-heading">
                   <tr>
                     <th className="align-left">Customer</th>
+                    <th className="align-left">Reward</th>
                     <th className="align-left">Shipping</th>
-                    <th className="align-left">Charge</th>
-                    <th className="align-left">Payment</th>
-                    <th className="align-left">Fulfillment</th>
+                    <th className="align-left">Points / Paid</th>
+                    <th className="align-left">Status</th>
                     <th className="align-left">Tracking</th>
                     <th className="align-left">Date</th>
                     <th className="align-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.length === 0 ? (
-                    <tr><td colSpan={8} className="align-center"><p className="m-5 p-5 fs-4">No orders yet.</p></td></tr>
-                  ) : orders.map((o) => (
-                    <tr key={o._id}>
-                      <td className="align-left">
-                        <div className="fw-bold">{o.user?.name || o.shippingAddress?.name || "—"}</div>
-                        <div className="text-muted small">{o.user?.email || ""}</div>
-                        <div className="text-muted small">
-                          {o.user?.phone ? `+${o.user.phoneCode || ""} ${o.user.phone}` : (o.shippingAddress?.phone || "")}
-                        </div>
-                      </td>
-                      <td className="align-left" style={{ maxWidth: 240 }}>
-                        <div>{o.shippingAddress?.line1}</div>
-                        {o.shippingAddress?.line2 && <div>{o.shippingAddress.line2}</div>}
-                        <div className="text-muted small">
-                          {o.shippingAddress?.city}{o.shippingAddress?.state ? `, ${o.shippingAddress.state}` : ""}
-                          {o.shippingAddress?.pinCode ? ` — ${o.shippingAddress.pinCode}` : ""}
-                        </div>
-                      </td>
-                      <td className="align-left">₹{o.courierCharge}</td>
-                      <td className="align-left">
-                        <span style={payBadge(o.paymentStatus)}>{o.paymentStatus}</span>
-                      </td>
-                      <td className="align-left">
-                        <span style={fulBadge(o.fulfillmentStatus)}>{o.fulfillmentStatus?.replace("_", " ")}</span>
-                      </td>
-                      <td className="align-left">
-                        {o.trackingId ? (
-                          <div>
-                            <div className="fw-bold">{o.trackingId}</div>
-                            {o.courierProvider && <div className="text-muted small">{o.courierProvider}</div>}
-                          </div>
-                        ) : <span className="text-muted small">—</span>}
-                      </td>
-                      <td className="align-left">{new Date(o.createdAt).toLocaleDateString()}</td>
-                      <td className="align-center">
-                        <button className="btn btn-sm btn-outline-primary" onClick={() => openEditor(o)}>
-                          Manage
-                        </button>
+                  {claims.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="align-center">
+                        <p className="m-5 p-5 fs-4">No reward redemptions yet.</p>
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    claims.map((c) => (
+                      <tr key={c._id}>
+                        <td className="align-left">
+                          <div className="fw-bold">
+                            {c.user?.name || c.shippingAddress?.name || "—"}
+                          </div>
+                          <div className="text-muted small">{c.user?.email || ""}</div>
+                          <div className="text-muted small">
+                            {c.user?.phone
+                              ? `+${c.user.phoneCode || ""} ${c.user.phone}`
+                              : c.contactPhone || ""}
+                          </div>
+                        </td>
+                        <td className="align-left">
+                          <div className="fw-bold">{c.gift?.name || "—"}</div>
+                          {c.gift?.category && (
+                            <div className="text-muted small text-capitalize">
+                              {c.gift.category}
+                            </div>
+                          )}
+                        </td>
+                        <td className="align-left" style={{ maxWidth: 240 }}>
+                          <div>{c.shippingAddress?.line1}</div>
+                          {c.shippingAddress?.line2 && <div>{c.shippingAddress.line2}</div>}
+                          <div className="text-muted small">
+                            {c.shippingAddress?.city}
+                            {c.shippingAddress?.state ? `, ${c.shippingAddress.state}` : ""}
+                            {c.shippingAddress?.pinCode ? ` — ${c.shippingAddress.pinCode}` : ""}
+                          </div>
+                        </td>
+                        <td className="align-left">
+                          <div>{c.pointsSpent ? `${c.pointsSpent} pts` : "—"}</div>
+                          {c.amountPaid > 0 && (
+                            <div className="text-muted small">₹{c.amountPaid} paid</div>
+                          )}
+                        </td>
+                        <td className="align-left">
+                          <span style={claimBadge(c.status)}>{c.status}</span>
+                        </td>
+                        <td className="align-left">
+                          {c.trackingCode ? (
+                            <div>
+                              <div className="fw-bold">{c.trackingCode}</div>
+                              {c.trackingProvider && (
+                                <div className="text-muted small">{c.trackingProvider}</div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted small">—</span>
+                          )}
+                        </td>
+                        <td className="align-left">
+                          {new Date(c.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="align-center">
+                          <button
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => openClaimEditor(c)}
+                          >
+                            Manage
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -198,77 +227,94 @@ const CertificateOrders = () => {
         </div>
       </div>
 
-      {/* ===== Editor modal ===== */}
-      {editOrder && (
+      {/* ===== Claim editor modal ===== */}
+      {editClaim && (
         <div
           style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
-            zIndex: 1050, display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            zIndex: 1050,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
           }}
-          onClick={closeEditor}
+          onClick={closeClaimEditor}
         >
           <div
             style={{
-              background: "#fff", borderRadius: 12, width: "100%", maxWidth: 620,
-              maxHeight: "90vh", overflowY: "auto",
+              background: "#fff",
+              borderRadius: 12,
+              width: "100%",
+              maxWidth: 620,
+              maxHeight: "90vh",
+              overflowY: "auto",
               boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{
-              padding: "16px 20px", background: "#C0392B", color: "#fff",
-              borderTopLeftRadius: 12, borderTopRightRadius: 12,
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-            }}>
-              <h5 className="m-0">Update Order</h5>
-              <button onClick={closeEditor} style={{ background: "transparent", border: "none", color: "#fff", fontSize: 22, cursor: "pointer" }}>×</button>
+            <div
+              style={{
+                padding: "16px 20px",
+                background: "#C0392B",
+                color: "#fff",
+                borderTopLeftRadius: 12,
+                borderTopRightRadius: 12,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <h5 className="m-0">Update Reward Claim</h5>
+              <button
+                onClick={closeClaimEditor}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#fff",
+                  fontSize: 22,
+                  cursor: "pointer",
+                }}
+              >
+                ×
+              </button>
             </div>
             <div style={{ padding: 20 }}>
               <div className="row g-3">
                 <div className="col-md-6">
-                  <label className="form-label">Payment Status</label>
+                  <label className="form-label">Status</label>
                   <select
-                    className="form-control text-capitalize"
-                    value={editForm.paymentStatus}
-                    onChange={(e) => setEditForm({ ...editForm, paymentStatus: e.target.value })}
-                  >
-                    {PAY_STATUSES.slice(1).map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label">Payment Reference</label>
-                  <input
                     className="form-control"
-                    value={editForm.paymentRef}
-                    onChange={(e) => setEditForm({ ...editForm, paymentRef: e.target.value })}
-                    placeholder="Razorpay ID, UPI ref, etc."
-                  />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label">Fulfillment Status</label>
-                  <select
-                    className="form-control text-capitalize"
-                    value={editForm.fulfillmentStatus}
-                    onChange={(e) => setEditForm({ ...editForm, fulfillmentStatus: e.target.value })}
+                    value={editClaimForm.status}
+                    onChange={(e) =>
+                      setEditClaimForm({ ...editClaimForm, status: e.target.value })
+                    }
                   >
-                    {FUL_STATUSES.slice(1).map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+                    {CLAIM_STATUSES.slice(1).map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Courier Provider</label>
                   <input
                     className="form-control"
-                    value={editForm.courierProvider}
-                    onChange={(e) => setEditForm({ ...editForm, courierProvider: e.target.value })}
+                    value={editClaimForm.trackingProvider}
+                    onChange={(e) =>
+                      setEditClaimForm({ ...editClaimForm, trackingProvider: e.target.value })
+                    }
                     placeholder="Delhivery, Bluedart, India Post…"
                   />
                 </div>
                 <div className="col-md-12">
-                  <label className="form-label">Tracking ID</label>
+                  <label className="form-label">Tracking Code</label>
                   <input
                     className="form-control"
-                    value={editForm.trackingId}
-                    onChange={(e) => setEditForm({ ...editForm, trackingId: e.target.value })}
+                    value={editClaimForm.trackingCode}
+                    onChange={(e) =>
+                      setEditClaimForm({ ...editClaimForm, trackingCode: e.target.value })
+                    }
                   />
                 </div>
                 <div className="col-md-12">
@@ -276,14 +322,20 @@ const CertificateOrders = () => {
                   <textarea
                     className="form-control"
                     rows={3}
-                    value={editForm.notes}
-                    onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                    value={editClaimForm.notes}
+                    onChange={(e) =>
+                      setEditClaimForm({ ...editClaimForm, notes: e.target.value })
+                    }
                   />
                 </div>
               </div>
               <div className="d-flex justify-content-end gap-2 mt-3">
-                <button className="btn btn-outline-secondary" onClick={closeEditor}>Cancel</button>
-                <button className="btn btn-primary" onClick={saveEditor}>Save</button>
+                <button className="btn btn-outline-secondary" onClick={closeClaimEditor}>
+                  Cancel
+                </button>
+                <button className="btn btn-primary" onClick={saveClaimEditor}>
+                  Save
+                </button>
               </div>
             </div>
           </div>

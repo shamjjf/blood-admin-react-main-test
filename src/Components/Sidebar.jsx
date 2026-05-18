@@ -25,9 +25,7 @@ const NAV_GROUPS = [
     label: "People",
     items: [
       { key: "users",       icon: "ti ti-users",       name: "Users" },
-      { key: "specialuser", icon: "ti ti-star-filled",   name: "Special Users" },
       { key: "admins",      icon: "ti ti-user-check",    name: "Sub-Admins" },
-      { key: "bulkuser",    icon: "ti ti-list-details",  name: "Bulk Users" },
     ],
   },
   {
@@ -87,8 +85,8 @@ const Sidebar = ({ sidebar, setSidebar }) => {
 
   const [adminRoles] = useState(
     auth.isSuperAdmin
-      ? ["requests","recurring-requests","tasks","users","specialuser","admins","settings","leaderboard","badges","gifts","onboarding","training-modules","organizations",
-         "camp","contribution","volunteer","bloodbank","awssetting","smtpsetting","firebasesetting","bulkuser",
+      ? ["requests","recurring-requests","tasks","users","admins","settings","leaderboard","badges","gifts","onboarding","training-modules","organizations",
+         "camp","contribution","volunteer","bloodbank","awssetting","smtpsetting","firebasesetting",
          "donations-report","certificate-orders","certificate-management","reminders","analytics","audit-logs","india-content"]
       : auth.roles || []
   );

@@ -36,18 +36,15 @@ import Camps from "./Pages/Camps";
 import Contribution from "./Pages/Contribution";
 import ContributionDetails from "./Pages/ContributionDetails";
 import ContributionDetailsNorm from "./Pages/ContributionDetailsNorm";
-import BulkUserDetails from "./Pages/BulkUserDetails";
+import ContributionItemDetails from "./Pages/ContributionItemDetails";
 import Volunteer from "./Pages/Volunteer";
 import VolunteerDetails from "./Pages/VolunteerDetails";
 import BloodBank from "./Pages/BloodBank";
 import AWSSetting from "./Pages/AWSSetting";
 import SMTPSetting from "./Pages/SMTPSetting";
-import BulkUsers from "./Pages/BulkUsers";
 import FirebaseSetting from "./Pages/Firebase";
 import Vendor from "./Pages/Vender";
 import Profile from "./Pages/Profile";
-import SpecialUser from "./Pages/SpecialUser";
-import SpecialUserDetails from "./Pages/SpecialUserDetails";
 import Notifications from "./Pages/Notifications";
 import Badges from "./Pages/Badges";
 import Onboarding from "./Pages/Onboarding";
@@ -90,13 +87,12 @@ const Layout = () => {
               <Route path="/task/:id" element={<TaskDetails />} />
               <Route path="/contribution/:id" element={<ContributionDetails />} />
               <Route path="/contributionNorm/:id" element={<ContributionDetailsNorm />} />
+              <Route path="/contribution-item/:id" element={<ContributionItemDetails />} />
 
               <Route path="/users" element={<Users />} />
               <Route path="/user/:id" element={<UserDetails />} />
               <Route path="/profile" element={<Profile />} />
 
-              <Route path="/specialuser" element={<SpecialUser />} />
-              <Route path="/specialuser/:id" element={<SpecialUserDetails />} />
               <Route path="/admins" element={<Admins />} />
               <Route path="/settings" element={<Setting />} />
 
@@ -118,8 +114,6 @@ const Layout = () => {
               <Route path="/contribution" element={<Contribution />} />
               <Route path="/volunteer" element={<Volunteer />} />
               <Route path="/vendor" element={<Vendor />} />
-              <Route path="/bulkuser" element={<BulkUsers />} />
-              <Route path="/bulkuser/:id" element={<BulkUserDetails />} />
               <Route path="/bloodbank" element={<BloodBank />} />
               <Route path="/awssetting" element={<AWSSetting />} />
               <Route path="/smtpsetting" element={<SMTPSetting />} />
