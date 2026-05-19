@@ -2,7 +2,7 @@ import { useContext, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { GlobalContext } from "../GlobalContext";
-import logo from "../Assets/images/life-logo.png";
+import logo from "../Assets/images/_LSA Holdings  (1).jpg";
 import SEO from "../SEO";
 
 const Login = () => {
