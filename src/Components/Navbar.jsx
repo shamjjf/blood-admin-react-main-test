@@ -1,7 +1,7 @@
 import { useContext, useState, useRef, useEffect } from "react";
 import { GlobalContext } from "../GlobalContext";
-import logo from "../Assets/images/life-logo.png";
-import logoMini from "../Assets/images/life-small-logo.png";
+import logo from "../Assets/images/_LSA Holdings  (1).jpg";
+import logoMini from "../Assets/images/_LSA Holdings  (1).jpg";
 import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
 
@@ -48,7 +48,7 @@ function Navbar({ setSidebar }) {
     <nav className="navbar lsa-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
       <div className="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
         <Link className="navbar-brand brand-logo" to="/">
-          <img src={logo} alt="Life Saver Army" style={{ height: 50, width: "auto", maxWidth: 170, objectFit: "contain", filter: "brightness(1.1)" }} />
+          <img src={logo} alt="Life Saver Army" style={{ height: 60, width: "auto", maxWidth: 220, objectFit: "contain" }} />
         </Link>
         <Link className="navbar-brand brand-logo-mini" to="/">
           <img src={logoMini} alt="LSA" style={{ maxHeight: 32, width: "auto" }} />
@@ -57,7 +57,7 @@ function Navbar({ setSidebar }) {
 
       <div className="navbar-menu-wrapper d-flex align-items-center" style={{ gap: 10, paddingRight: 20 }}>
         <button onClick={() => setSidebar((p) => !p)} className="navbar-toggler navbar-toggler align-self-center" type="button"
-          style={{ color: "rgba(255,255,255,0.6)", fontSize: 20, background: "none", border: "none" }}>
+          style={{ color: "var(--muted)", fontSize: 20, background: "none", border: "none" }}>
           <span className="icon-menu" />
         </button>
 
@@ -96,7 +96,7 @@ function Navbar({ setSidebar }) {
               <div className="lsa-name">{auth?.name || "Admin"}</div>
               <div className="lsa-role">{auth?.isSuperAdmin ? "SUPER ADMIN" : "ADMIN"}</div>
             </div>
-            <i className="ti ti-chevron-down" style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginLeft: 2 }} />
+            <i className="ti ti-chevron-down" style={{ fontSize: 12, color: "var(--muted2)", marginLeft: 2 }} />
           </div>
 
           {dropdownOpen && (
