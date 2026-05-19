@@ -331,8 +331,8 @@ const Home = () => {
           ))}
         </div>
 
-        {/* ── CHARTS ROW 1: Blood + Gender ── */}
-        <div className="ph3" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 16 }}>
+        {/* ── CHARTS ROW 1: Blood + Gender + Special Users ── */}
+        <div className="ph3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
 
           {/* Blood Requests Donut */}
           <ChartCard title="Blood Requests" sub="Critical vs Normal" tag="Live" tagColor="red">
@@ -359,6 +359,13 @@ const Home = () => {
               ) : (
                 <DonutChart segments={genderSegs} total={totalUsers} label="USERS" />
               )}
+            </div>
+          </ChartCard>
+
+          {/* Special Users Bar */}
+          <ChartCard title="Special Users" sub="By organization type" tag={`${totalSpecial} Total`} tagColor="amber">
+            <div style={{ padding: "14px 18px 18px" }}>
+              <BarChart rows={specialBars} />
             </div>
           </ChartCard>
         </div>
