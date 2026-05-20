@@ -5,6 +5,25 @@ import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 
 const CATEGORIES = ["onboarding", "operations", "outreach", "emergency"];
+// Tab visuals mirror the admin Contributions card-tabs.
+const LEVELS = [
+  {
+    key: "beginner",
+    label: "Beginner",
+    description:
+      "Volunteer 101 starter tasks. Volunteer submits proofs, admin approves.",
+    icon: "ti ti-school",
+    color: "#3B82F6",
+  },
+  {
+    key: "advanced",
+    label: "Advanced",
+    description:
+      "Post-Trainee modules. Same submission flow with admin approval.",
+    icon: "ti ti-medal",
+    color: "#8B5CF6",
+  },
+];
 
 const emptyForm = {
   _id: null,
@@ -13,6 +32,11 @@ const emptyForm = {
   estimatedMinutes: 5,
   order: 0,
   category: "onboarding",
+  // Level is locked to whichever tab is currently active when "Create" is clicked.
+  // This keeps the admin from accidentally publishing a Beginner module under
+  // the Advanced tab and vice-versa.
+  level: "beginner",
+  approvalCriteria: "",
   active: true,
   sections: [{ heading: "", body: "" }],
 };
@@ -20,8 +44,9 @@ const emptyForm = {
 const TrainingModules = () => {
   const { setLoading } = useContext(GlobalContext);
   const [modules, setModules] = useState([]);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState({ ...emptyForm, level: "beginner" });
   const [editing, setEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState("beginner");
   const [filterCategory, setFilterCategory] = useState("");
   const [filterActive, setFilterActive] = useState("");
 
@@ -29,6 +54,7 @@ const TrainingModules = () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
+      params.append("level", activeTab);
       if (filterCategory) params.append("category", filterCategory);
       if (filterActive) params.append("active", filterActive);
       const qs = params.toString() ? `?${params.toString()}` : "";
@@ -47,10 +73,19 @@ const TrainingModules = () => {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterCategory, filterActive]);
+  }, [activeTab, filterCategory, filterActive]);
+
+  // Switching tabs clears any in-progress create form so the new module
+  // inherits the current tab's level (no accidental cross-tab publishing).
+  useEffect(() => {
+    if (!editing) {
+      setForm((f) => ({ ...emptyForm, level: activeTab }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const resetForm = () => {
-    setForm(emptyForm);
+    setForm({ ...emptyForm, level: activeTab });
     setEditing(false);
   };
 
@@ -62,6 +97,8 @@ const TrainingModules = () => {
       estimatedMinutes: m.estimatedMinutes ?? 5,
       order: m.order ?? 0,
       category: m.category || "onboarding",
+      level: m.level || activeTab,
+      approvalCriteria: m.approvalCriteria || "",
       active: !!m.active,
       sections:
         Array.isArray(m.sections) && m.sections.length > 0
@@ -121,6 +158,8 @@ const TrainingModules = () => {
       estimatedMinutes: minutes,
       order: Number.isFinite(ord) ? ord : 0,
       category: form.category,
+      level: form.level || activeTab,
+      approvalCriteria: (form.approvalCriteria || "").trim(),
       active: !!form.active,
       sections,
     };
@@ -210,18 +249,142 @@ const TrainingModules = () => {
     }
   };
 
+  // Re-run the Volunteer 101 catalog seeder. Idempotent on the backend: it
+  // upserts the 7 modules by title and hides any stragglers. With
+  // wipeExisting=true it hard-deletes stragglers that have no submissions.
+  const reseedCatalog = async () => {
+    const ok = await swal({
+      title: "Re-seed Volunteer 101 catalog?",
+      text:
+        "This restores the 7 standard modules (with all 121 tasks) and hides any beginner module not in the catalog. Modules with submissions are preserved.",
+      icon: "info",
+      buttons: ["Cancel", "Re-seed"],
+    });
+    if (!ok) return;
+    try {
+      setLoading(true);
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/volunteer101/seed`,
+        { wipeExisting: true },
+        {
+          headers: {
+            Authorization: sessionStorage.getItem("auth"),
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const d = res?.data?.data || {};
+      const created = (d.modules || []).filter((m) => m.action === "created").length;
+      const updated = (d.modules || []).filter((m) => m.action === "updated").length;
+      swal(
+        "Catalog seeded",
+        `Created ${created} · Updated ${updated} · ${d.strayHidden || 0} legacy hidden · ${d.strayDeleted || 0} deleted · ${d.totalTasks || 0} tasks total`,
+        "success"
+      );
+      await load();
+    } catch (err) {
+      swal("Error", err?.response?.data?.error || "Failed to seed", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <SEO title="Training Modules" />
       <div className="content-wrapper pt-5">
-        <p className="card-title p-0 m-0 mb-3">Training Modules</p>
+        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <p className="card-title p-0 m-0">Training Modules</p>
+          {activeTab === "beginner" && (
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-primary"
+              onClick={reseedCatalog}
+              title="Restore the 7 standard Volunteer 101 modules with all 121 tasks"
+            >
+              <i className="ti ti-refresh me-1" />
+              Re-seed Volunteer 101 catalog
+            </button>
+          )}
+        </div>
+
+        {/* Beginner / Advanced — card-tab style copied from Contributions. */}
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            marginBottom: 16,
+            flexWrap: "wrap",
+          }}
+        >
+          {LEVELS.map((t) => {
+            const active = t.key === activeTab;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => {
+                  setActiveTab(t.key);
+                  setEditing(false);
+                }}
+                style={{
+                  flex: "1 1 220px",
+                  textAlign: "left",
+                  padding: "14px 16px",
+                  borderRadius: 12,
+                  border: active
+                    ? `2px solid ${t.color}`
+                    : "2px solid transparent",
+                  background: active ? `${t.color}10` : "#FFFFFF",
+                  boxShadow: active
+                    ? "0 4px 14px rgba(0,0,0,0.05)"
+                    : "0 1px 3px rgba(0,0,0,0.04)",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    marginBottom: 6,
+                  }}
+                >
+                  <i
+                    className={t.icon}
+                    style={{ fontSize: 20, color: t.color }}
+                  />
+                  <span
+                    style={{
+                      fontWeight: 700,
+                      fontSize: 14,
+                      color: "#111827",
+                    }}
+                  >
+                    {t.label}
+                  </span>
+                </div>
+                <div
+                  style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.4 }}
+                >
+                  {t.description}
+                </div>
+              </button>
+            );
+          })}
+        </div>
 
         <div className="card mb-4">
           <div className="card-header bg-primary text-white">
-            <h5>{editing ? "Edit Module" : "Create Module"}</h5>
+            <h5>
+              {editing ? "Edit Module" : "Create Module"} —{" "}
+              {activeTab === "beginner" ? "Beginner" : "Advanced"}
+            </h5>
             <p className="small mb-0">
-              Modules appear in the user app&apos;s Training page, sorted by{" "}
-              <strong>Order</strong>. Each module has multiple sections (heading + body).
+              {activeTab === "beginner"
+                ? "Beginner tasks are the 7 Volunteer 101 categories. Volunteers submit a description + uploaded chats/images; admin approves or rejects."
+                : "Advanced modules are post-Trainee training. Same submission flow — description + uploaded proofs reviewed by admin."}
             </p>
           </div>
           <div className="card-body">
@@ -299,6 +462,26 @@ const TrainingModules = () => {
                 />
               </div>
 
+              {/* Approval criteria — admin's rubric. Shown on the review */}
+              {/* screen so reviewers know what counts as a valid submission. */}
+              <div className="col-md-12">
+                <label className="form-label">
+                  Approval criteria
+                  <small className="text-muted ms-2">
+                    (what must the volunteer's submission show before approving?)
+                  </small>
+                </label>
+                <textarea
+                  className="form-control"
+                  rows={3}
+                  value={form.approvalCriteria}
+                  onChange={(e) =>
+                    setForm({ ...form, approvalCriteria: e.target.value })
+                  }
+                  placeholder="e.g. Screenshot of at least one chat where the volunteer answered a donor inquiry, plus a 2-3 sentence description of the conversation."
+                />
+              </div>
+
               <div className="col-md-12">
                 <div className="d-flex align-items-center justify-content-between mb-2">
                   <label className="form-label m-0">
@@ -367,7 +550,10 @@ const TrainingModules = () => {
 
         <div className="card">
           <div className="card-header d-flex flex-wrap gap-2 align-items-center">
-            <strong className="me-auto">All Modules ({modules.length})</strong>
+            <strong className="me-auto">
+              {activeTab === "beginner" ? "Beginner" : "Advanced"} Modules (
+              {modules.length})
+            </strong>
             <select
               className="form-select form-select-sm"
               style={{ maxWidth: 180 }}
