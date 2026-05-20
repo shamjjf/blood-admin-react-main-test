@@ -68,13 +68,6 @@ const TABS = [
     color: "#0EA5E9",
   },
   {
-    key: "vendor",
-    label: "Contribute in Kind",
-    description: "Vendor / UPI proof submissions awaiting verification.",
-    icon: "ti ti-qrcode",
-    color: "#8B5CF6",
-  },
-  {
     key: "deliver",
     label: "Contribute in Kind & Deliver",
     description: "Donors sending items directly. Coordinate pickup / drop-off.",
@@ -117,8 +110,8 @@ const fmtDateTime = (iso) => {
   );
 };
 
-// Render uploaded proof files (UPI screenshots for vendor / receipts for
-// deliver). Images get a clickable thumbnail; PDFs / other types get a labelled
+// Render uploaded proof files (receipts / images for the Deliver tab).
+// Images get a clickable thumbnail; PDFs / other types get a labelled
 // "View" pill. Falls back to "—" when the donor didn't attach anything.
 const renderProofs = (row) => {
   const proofs = row.proofs || [];
@@ -621,11 +614,8 @@ const Contribution = () => {
                       // Amount hidden on the Deliver tab — donors give items,
                       // not money, so the column is always ₹0 there.
                       activeTab !== "deliver" && { label: "Amount", width: 110 },
-                      // Items / Notes hidden on the Vendor (Kind) tab — UPI
-                      // proofs rarely carry item lists, and notes show up
-                      // alongside the proof thumbnail instead.
-                      activeTab !== "vendor" && { label: "Items / Notes", width: null },
-                      // Proofs only meaningful on vendor / deliver tabs.
+                      { label: "Items / Notes", width: null },
+                      // Proofs only meaningful on the Deliver tab.
                       activeTab !== "direct" && { label: "Proofs", width: 180 },
                       { label: "Date & Time", width: 140 },
                       { label: "Status", width: 110 },
@@ -655,7 +645,6 @@ const Contribution = () => {
                   {(() => {
                     // Column count per tab (all 6 today):
                     //  direct  → Donor, Amount, Items/Notes, Date&Time, Status, Actions
-                    //  vendor  → Donor, Amount, Proofs, Date&Time, Status, Actions
                     //  deliver → Donor, Items/Notes, Proofs, Date&Time, Status, Actions
                     const colCount = 6;
                     if (isLoading) {
@@ -723,20 +712,18 @@ const Contribution = () => {
                               {fmtMoney(row.contributionAmount)}
                             </td>
                           )}
-                          {activeTab !== "vendor" && (
-                            <td
-                              style={{
-                                padding: "12px 14px",
-                                borderBottom: "1px solid #f3f4f6",
-                              }}
-                            >
-                              {renderItemsOrNote(row, (r) =>
-                                navigate(`/contribution-item/${r._id}`, {
-                                  state: { contribution: r },
-                                })
-                              )}
-                            </td>
-                          )}
+                          <td
+                            style={{
+                              padding: "12px 14px",
+                              borderBottom: "1px solid #f3f4f6",
+                            }}
+                          >
+                            {renderItemsOrNote(row, (r) =>
+                              navigate(`/contribution-item/${r._id}`, {
+                                state: { contribution: r },
+                              })
+                            )}
+                          </td>
                           {activeTab !== "direct" && (
                             <td
                               style={{
