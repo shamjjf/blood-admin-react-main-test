@@ -308,9 +308,8 @@ const Home = () => {
         </div>
 
         {/* ── QUICK STATS ROW ── */}
-        <div className="ph2" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
+        <div className="ph2" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
           {[
-            { icon: "ti ti-star-filled",      label: "Special Users",  val: s.specialUserCount ?? 0,    bg: "var(--purple-bg)", cl: "var(--purple)" },
             { icon: "ti ti-checkup-list",     label: "Open Tasks",     val: s.openTasks ?? 0,           bg: "var(--red-pale)",  cl: "var(--red)" },
             { icon: "ti ti-building-hospital",label: "Blood Banks",    val: s.bloodBankCount ?? 0,      bg: "var(--green-bg)",  cl: "var(--green)" },
             { icon: "ti ti-users-group",      label: "Volunteers",     val: s.volunteersCount ?? 0,     bg: "var(--amber-bg)",  cl: "var(--amber)" },
