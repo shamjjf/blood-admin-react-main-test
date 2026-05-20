@@ -478,6 +478,14 @@ const Onboarding = () => {
                                       ) : sub.proofs?.length ? (
                                         <> • {sub.proofs.length} proof(s)</>
                                       ) : null}
+                                      {sub.testScore?.total > 0 ? (
+                                        <>
+                                          {" "}
+                                          • test {sub.testScore.correct}/
+                                          {sub.testScore.total} (
+                                          {sub.testScore.percent}%)
+                                        </>
+                                      ) : null}
                                     </div>
                                   </div>
                                   <span
@@ -590,6 +598,101 @@ const Onboarding = () => {
                             ) : null}
                           </>
                         )}
+
+                        {/* Test answers + score — advanced modules only. */}
+                        {sub.testAnswers?.length ? (
+                          <div className="mb-3">
+                            <div
+                              className="fw-bold mb-2 d-flex align-items-center gap-2"
+                              style={{
+                                fontSize: 15,
+                                color: "#374151",
+                              }}
+                            >
+                              <span>Test answers</span>
+                              <span
+                                style={{
+                                  padding: "3px 10px",
+                                  borderRadius: 999,
+                                  fontSize: 13,
+                                  fontWeight: 700,
+                                  color: "#FFFFFF",
+                                  background:
+                                    (sub.testScore?.percent || 0) >=
+                                    (sub.module?.test?.passingScorePercent || 60)
+                                      ? "#22C55E"
+                                      : "#F59E0B",
+                                }}
+                              >
+                                {sub.testScore?.correct ?? 0}/
+                                {sub.testScore?.total ?? 0} ·{" "}
+                                {sub.testScore?.percent ?? 0}%
+                              </span>
+                            </div>
+                            {sub.testAnswers.map((a, idx) => {
+                              const q = (sub.module?.test?.questions || []).find(
+                                (qq) => String(qq._id) === String(a.questionId)
+                              );
+                              const chosen =
+                                q && a.selectedOption >= 0
+                                  ? q.options[a.selectedOption]
+                                  : "(no answer)";
+                              const correctAnswer =
+                                q && Number.isFinite(q.correctOption)
+                                  ? q.options[q.correctOption]
+                                  : null;
+                              return (
+                                <div
+                                  key={`${a.questionId}-${idx}`}
+                                  className="border rounded p-3 mb-2"
+                                  style={{
+                                    background: "#FFFFFF",
+                                    fontSize: 15,
+                                  }}
+                                >
+                                  <div
+                                    className="fw-bold"
+                                    style={{
+                                      fontSize: 15,
+                                      lineHeight: 1.5,
+                                      marginBottom: 6,
+                                    }}
+                                  >
+                                    Q{idx + 1}. {a.questionText || q?.question}
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: 14,
+                                      lineHeight: 1.5,
+                                      color: a.isCorrect ? "#15803D" : "#991B1B",
+                                      fontWeight: 500,
+                                    }}
+                                  >
+                                    <i
+                                      className={`ti ${
+                                        a.isCorrect ? "ti-check" : "ti-x"
+                                      } me-1`}
+                                    />
+                                    Chose: {chosen}
+                                  </div>
+                                  {!a.isCorrect && correctAnswer ? (
+                                    <div
+                                      className="text-muted"
+                                      style={{
+                                        marginLeft: 22,
+                                        marginTop: 4,
+                                        fontSize: 13.5,
+                                        lineHeight: 1.5,
+                                      }}
+                                    >
+                                      Correct: {correctAnswer}
+                                    </div>
+                                  ) : null}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : null}
 
                         {sub.status === "rejected" && sub.rejectionReason ? (
                           <div className="mb-3">
