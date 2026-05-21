@@ -160,7 +160,28 @@ const Volunteer = () => {
                         camps?.map((camp, index) => (
                           <tr key={index}>
                             <td className="align-left">{index + 1}</td>
-                            <td className="align-left">{camp?.user?.name}</td>
+                            <td className="align-left">
+                              <div>{camp?.user?.name}</div>
+                              {camp?.source === "ngo" && (
+                                <div style={{ fontSize: 10.5, marginTop: 2 }}>
+                                  <span
+                                    style={{
+                                      background: "rgba(124,58,237,0.12)",
+                                      color: "#6d28d9",
+                                      padding: "1px 6px",
+                                      borderRadius: 4,
+                                      fontWeight: 700,
+                                      marginRight: 4,
+                                    }}
+                                  >
+                                    NGO
+                                  </span>
+                                  <span style={{ color: "#6b7280" }}>
+                                    {camp?.ngo?.name || "—"}
+                                  </span>
+                                </div>
+                              )}
+                            </td>
                             <td className="align-left">{camp?.education}</td>
                             <td className="align-center wrap-text">{camp?.interests[0]}</td>
                             <td className="align-left">{camp?.skills[0]}</td>

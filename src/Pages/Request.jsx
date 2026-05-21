@@ -303,7 +303,38 @@ const Request = () => {
                         requests.map((request, index) => (
                           <tr key={index}>
                             <td className="align-left">{index + 1}</td>
-                            <td className="align-left">{request.name}</td>
+                            <td className="align-left">
+                              <div>{request.name}</div>
+                              {request.ngoCreator ? (
+                                <div style={{ fontSize: 10.5, marginTop: 2 }}>
+                                  <span
+                                    style={{
+                                      background: "rgba(124,58,237,0.12)",
+                                      color: "#6d28d9",
+                                      padding: "1px 6px",
+                                      borderRadius: 4,
+                                      fontWeight: 700,
+                                      marginRight: 4,
+                                    }}
+                                  >
+                                    NGO
+                                  </span>
+                                  <span style={{ color: "#6b7280" }}>
+                                    {request.ngoCreator.name || "—"}
+                                  </span>
+                                </div>
+                              ) : request.recipient ? (
+                                <div
+                                  style={{
+                                    fontSize: 10.5,
+                                    color: "#6b7280",
+                                    marginTop: 2,
+                                  }}
+                                >
+                                  Donor: {request.recipient.name || "—"}
+                                </div>
+                              ) : null}
+                            </td>
                             <td className="align-left">{request.phone}</td>
                             <td className="align-left">{request.bloodGroup}</td>
                             <td className="align-left">{request.needUnits}</td>

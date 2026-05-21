@@ -101,6 +101,7 @@ const Tasks = () => {
                         <th className="align-left">Due Date</th>
                         <th className="align-left">Proof Required</th>
                         <th className="align-left">Max Submissions</th>
+                        <th className="align-left">NGO Volunteers</th>
                         <th className="align-center">View</th>
                       </tr>
                     </thead>
@@ -167,6 +168,7 @@ const Tasks = () => {
                         <th className="align-left">Due Date</th>
                         <th className="align-left">Proof Required</th>
                         <th className="align-left">Max Submissions</th>
+                        <th className="align-left">NGO Volunteers</th>
                         <th className="align-center">View</th>
                       </tr>
                     </thead>
@@ -184,6 +186,69 @@ const Tasks = () => {
                             <td className="align-left">{formatDate(task.dueDate)}</td>
                             <td className="align-left">{task.proofRequired ? "Yes" : "No"}</td>
                             <td className="align-left">{task.maxSubmission}</td>
+                            <td className="align-left">
+                              <label
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 6,
+                                  cursor: "pointer",
+                                  fontSize: 12,
+                                }}
+                                title="When ON, this task appears in the NGO panel's Task Assignment tab."
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={!!task.availableToNgoVolunteers}
+                                  onChange={async (e) => {
+                                    const next = e.target.checked;
+                                    // Optimistic update — flip locally, then PATCH.
+                                    setTasks((prev) =>
+                                      prev.map((t) =>
+                                        t._id === task._id
+                                          ? { ...t, availableToNgoVolunteers: next }
+                                          : t
+                                      )
+                                    );
+                                    try {
+                                      await axios.post(
+                                        `${import.meta.env.VITE_API_URL}/updatetask/${task._id}`,
+                                        { availableToNgoVolunteers: next },
+                                        {
+                                          headers: {
+                                            Authorization:
+                                              sessionStorage.getItem("auth"),
+                                          },
+                                        }
+                                      );
+                                    } catch (err) {
+                                      // Revert on failure.
+                                      setTasks((prev) =>
+                                        prev.map((t) =>
+                                          t._id === task._id
+                                            ? {
+                                                ...t,
+                                                availableToNgoVolunteers: !next,
+                                              }
+                                            : t
+                                        )
+                                      );
+                                      console.error("toggle ngo failed:", err);
+                                    }
+                                  }}
+                                />
+                                <span
+                                  style={{
+                                    color: task.availableToNgoVolunteers
+                                      ? "#6d28d9"
+                                      : "#6b7280",
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  {task.availableToNgoVolunteers ? "On" : "Off"}
+                                </span>
+                              </label>
+                            </td>
                             {/* <td>
                           <Link to={`/task/${task._id}`}>View</Link>
                         </td> */}
@@ -196,7 +261,7 @@ const Tasks = () => {
                         ))
                       ) : (
                         <tr className="">
-                          <td colSpan={9} className="align-center">
+                          <td colSpan={10} className="align-center">
                             <p className="m-5 p-5 fs-4">No Data Found</p>
                           </td>
                         </tr>
