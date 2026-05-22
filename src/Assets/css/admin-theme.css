@@ -239,6 +239,16 @@ nav.sidebar {
 .sidebar::-webkit-scrollbar-thumb { display: none !important; }
 .sidebar { scrollbar-width: none !important; -ms-overflow-style: none !important; overflow-y: auto !important; }
 
+/* The inner <ul.nav> is where the actual scroll happens (style.css forces
+   overflow-y: scroll on it). Hide its scrollbar across all engines while
+   keeping the scroll behavior. Without these the bar is visible on the
+   right edge of the sidebar even though the outer .sidebar rules above
+   already hide its own scrollbar. */
+.sidebar .nav { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+.sidebar .nav::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
+.sidebar .nav::-webkit-scrollbar-track { display: none !important; }
+.sidebar .nav::-webkit-scrollbar-thumb { display: none !important; }
+
 /* Nav group label */
 .lsa-nav-group {
   font-size: 9px !important; font-weight: 700 !important;
