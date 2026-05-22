@@ -51,6 +51,7 @@ const AddTaskForm = ({ setShowAddTask, setRefresh }) => {
     proofRequired: true,
     maxSubmission: 1,
     assignedTo: [],
+    availableToNgoVolunteers: false,
   });
 
   // Volunteers eligible for explicit assignment. Empty selection = open to all.
@@ -194,6 +195,7 @@ const AddTaskForm = ({ setShowAddTask, setRefresh }) => {
             once: mainTask.once,
             proofRequired: mainTask.proofRequired,
             maxSubmission: mainTask.maxSubmission,
+            availableToNgoVolunteers: mainTask.availableToNgoVolunteers,
           },
           {
             headers: {
@@ -473,6 +475,51 @@ const AddTaskForm = ({ setShowAddTask, setRefresh }) => {
                     No
                   </label>
                 </div>
+              </div>
+            </div>
+
+            {/* When ticked, this task also surfaces under the NGO panel's
+                Volunteers → Task Assignment tab so partner NGOs can hand it
+                to their own volunteer roster. */}
+            <div className="form-grou mb-4 col-12">
+              <div
+                style={{
+                  padding: "12px 14px",
+                  background: "rgba(124,58,237,0.06)",
+                  border: "1px solid rgba(124,58,237,0.2)",
+                  borderRadius: 8,
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 10,
+                }}
+              >
+                <input
+                  type="checkbox"
+                  id="availableToNgoVolunteers"
+                  name="availableToNgoVolunteers"
+                  className="form-check-input"
+                  style={{ marginTop: 3 }}
+                  checked={!!mainTask.availableToNgoVolunteers}
+                  onChange={(e) =>
+                    setMainTask({
+                      ...mainTask,
+                      availableToNgoVolunteers: e.target.checked,
+                    })
+                  }
+                />
+                <label
+                  htmlFor="availableToNgoVolunteers"
+                  className="form-check-label"
+                  style={{ cursor: "pointer", flex: 1 }}
+                >
+                  <div style={{ fontWeight: 700, fontSize: 13 }}>
+                    Also make available to NGO volunteers
+                  </div>
+                  <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
+                    Partner NGOs will see this task in their panel and can
+                    distribute it to their roster.
+                  </div>
+                </label>
               </div>
             </div>
           </div>
