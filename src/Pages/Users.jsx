@@ -9,6 +9,7 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import SEO from "../SEO";
 import { downloadCsv } from "../utils/downloadCsv";
+import ConfirmModal from "../Components/ConfirmModal";
 const Users = () => {
   const { setLoading, alert } = useContext(GlobalContext);
   const [users, setUsers] = useState(null);
@@ -25,6 +26,35 @@ const Users = () => {
   const [roleSelects, setRoleSelects] = useState("All");
 
   const [isLoading, setIsLoading] = useState(true);
+
+  // User being targeted by the delete confirmation modal. `null` = modal closed.
+  const [userToDelete, setUserToDelete] = useState(null);
+  // Bumps every time we mutate (delete) so the list refetch effect re-runs
+  // without us having to reach into its filter dependencies.
+  const [refreshTick, setRefreshTick] = useState(0);
+
+  const handleDeleteUser = async (e) => {
+    e.preventDefault();
+    if (!userToDelete) return;
+    try {
+      setLoading(true);
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/user/${userToDelete._id}`,
+        { headers: { Authorization: sessionStorage.getItem("auth") } }
+      );
+      alert("User deleted successfully", "success");
+      setUserToDelete(null);
+      setRefreshTick((t) => t + 1);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to delete user";
+      alert(msg, "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handelLimit = (e) => {
     setLimit(e);
@@ -95,7 +125,7 @@ const Users = () => {
       }
     };
     getData();
-  }, [limit, currentPage, bloodGroupSelects, pointsSelects, genderSelects, searchText, kycStatusSelects, roleSelects]);
+  }, [limit, currentPage, bloodGroupSelects, pointsSelects, genderSelects, searchText, kycStatusSelects, roleSelects, refreshTick]);
 
   return (
     <>
@@ -150,6 +180,7 @@ const Users = () => {
                         <th className="align-left">KYC</th>
 
                         <th className="align-center">View</th>
+                        <th className="align-center">Delete</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -182,6 +213,9 @@ const Users = () => {
                           <td className="align-left">
                             <Skeleton height={20} width={100} />
                           </td>
+                          <td className="align-center">
+                            <Skeleton height={20} width={40} />
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -203,6 +237,7 @@ const Users = () => {
                         <th className="align-left">KYC</th>
 
                         <th className="align-center">View</th>
+                        <th className="align-center">Delete</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -241,11 +276,27 @@ const Users = () => {
                                 <i className="icons fa-regular fa-eye"></i>
                               </Link>
                             </td>
+                            <td className="align-center">
+                              <button
+                                type="button"
+                                onClick={() => setUserToDelete(user)}
+                                title="Delete user"
+                                style={{
+                                  background: "transparent",
+                                  border: "none",
+                                  padding: 0,
+                                  cursor: "pointer",
+                                  color: "#DC2626",
+                                }}
+                              >
+                                <i className="icons fa-regular fa-trash-can"></i>
+                              </button>
+                            </td>
                           </tr>
                         ))
                       ) : (
                         <tr className="">
-                          <td colSpan={10} className="align-center">
+                          <td colSpan={11} className="align-center">
                             <p className="m-5 p-5 fs-4">No Data Found</p>
                           </td>
                         </tr>
@@ -274,6 +325,22 @@ const Users = () => {
           </div>
         </div>
       </div>
+
+      {userToDelete && (
+        <ConfirmModal
+          setConfirmModal={() => setUserToDelete(null)}
+          handleSubmit={handleDeleteUser}
+          description={
+            <>
+              Are you sure you want to permanently delete{" "}
+              <strong>{userToDelete.name || "this user"}</strong>
+              {userToDelete.phone ? ` (+${userToDelete.phoneCode} ${userToDelete.phone})` : ""}?
+              This will also remove their admin access and volunteer profile if any. This action cannot be undone.
+            </>
+          }
+          buttonText="Delete"
+        />
+      )}
     </>
   );
 };
