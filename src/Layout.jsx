@@ -52,6 +52,7 @@ import Gifts from "./Pages/Gifts";
 import TrainingModules from "./Pages/TrainingModules";
 import RecurringRequests from "./Pages/RecurringRequests";
 import Organizations from "./Pages/Organizations";
+import OrganizationDetails from "./Pages/OrganizationDetails";
 import CampDetails from "./Pages/CampDetails";
 import DonationsReport from "./Pages/DonationsReport";
 import CertificateOrders from "./Pages/CertificateOrders";
@@ -103,6 +104,7 @@ const Layout = () => {
               <Route path="/training-modules" element={<TrainingModules />} />
               <Route path="/recurring-requests" element={<RecurringRequests />} />
               <Route path="/organizations" element={<Organizations />} />
+              <Route path="/organizations/:id" element={<OrganizationDetails />} />
               <Route path="/camp/:id" element={<CampDetails />} />
               <Route path="/donations-report" element={<DonationsReport />} />
               <Route path="/certificate-orders" element={<CertificateOrders />} />
