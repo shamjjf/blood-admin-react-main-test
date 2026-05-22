@@ -246,7 +246,28 @@ const Camps = () => {
                           return (
                             <tr key={index}>
                               <td className="align-left">{index + 1}</td>
-                              <td className="align-left">{camp.organization?.name || camp.organizerName}</td>
+                              <td className="align-left">
+                                <div>{camp.organization?.name || camp.organizerName}</div>
+                                {camp.ngoCreator && (
+                                  <div style={{ fontSize: 10.5, marginTop: 2 }}>
+                                    <span
+                                      style={{
+                                        background: "rgba(124,58,237,0.12)",
+                                        color: "#6d28d9",
+                                        padding: "1px 6px",
+                                        borderRadius: 4,
+                                        fontWeight: 700,
+                                        marginRight: 4,
+                                      }}
+                                    >
+                                      NGO
+                                    </span>
+                                    <span style={{ color: "#6b7280" }}>
+                                      {camp.ngoCreator.name || "—"}
+                                    </span>
+                                  </div>
+                                )}
+                              </td>
                               <td className="align-left">{camp.organizerEmailId}</td>
                               <td className="align-center wrap-text">{camp.location}</td>
                               <td className="align-left">{camp.purpose}</td>
