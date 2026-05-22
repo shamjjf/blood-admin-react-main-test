@@ -18,6 +18,9 @@ const NAV_GROUPS = [
       { key: "organizations", icon: "ti ti-building-bank",   name: "Organizations" },
       { key: "contribution",  icon: "ti ti-coin",            name: "Contribution" },
       { key: "volunteer",   icon: "ti ti-heart-handshake",  name: "Volunteer",    badgeKey: "volunteers" },
+      // Influencer review sits directly under Volunteer in the Operations
+      // group — admins approve / reject new influencer applications here.
+      { key: "influencers", icon: "ti ti-speakerphone",     name: "Influencer",   badgeKey: "influencers" },
       { key: "bloodbank",   icon: "ti ti-building-hospital",name: "Blood Bank" },
     ],
   },
@@ -86,7 +89,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
   const [adminRoles] = useState(
     auth.isSuperAdmin
       ? ["requests","recurring-requests","tasks","users","admins","settings","leaderboard","badges","gifts","onboarding","training-modules","organizations",
-         "camp","contribution","volunteer","bloodbank","awssetting","smtpsetting","firebasesetting",
+         "camp","contribution","volunteer","influencers","bloodbank","awssetting","smtpsetting","firebasesetting",
          "donations-report","certificate-orders","certificate-management","reminders","analytics","audit-logs","india-content"]
       : auth.roles || []
   );

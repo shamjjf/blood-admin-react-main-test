@@ -39,6 +39,7 @@ import ContributionDetailsNorm from "./Pages/ContributionDetailsNorm";
 import ContributionItemDetails from "./Pages/ContributionItemDetails";
 import Volunteer from "./Pages/Volunteer";
 import VolunteerDetails from "./Pages/VolunteerDetails";
+import Influencer from "./Pages/Influencer";
 import BloodBank from "./Pages/BloodBank";
 import AWSSetting from "./Pages/AWSSetting";
 import SMTPSetting from "./Pages/SMTPSetting";
@@ -113,6 +114,7 @@ const Layout = () => {
               <Route path="/india-content" element={<IndiaContent />} />
               <Route path="/contribution" element={<Contribution />} />
               <Route path="/volunteer" element={<Volunteer />} />
+              <Route path="/influencers" element={<Influencer />} />
               <Route path="/vendor" element={<Vendor />} />
               <Route path="/bloodbank" element={<BloodBank />} />
               <Route path="/awssetting" element={<AWSSetting />} />
