@@ -21,6 +21,24 @@ const STATUS_TABS = [
   { key: "docsPending",      label: "Docs Pending",      color: "#7c3aed", countKey: "docsPending"      },
   { key: "all",              label: "Registered",        color: "#0ea5e9", countKey: "all"              },
   { key: "hospitalRequests", label: "Hospital Requests", color: "#0d9488", countKey: "hospitalRequests" },
+  { key: "donationDrives",   label: "Donation Drives",   color: "#c0392b", countKey: "donationDrives"   },
+];
+
+// Tag → accent color (for drive rows). Mirrors the NGO frontend.
+const DRIVE_TAG_COLORS = {
+  "EMERGENCY DRIVE": "#c0392b",
+  FEATURED: "#b45309",
+  UPCOMING: "#1d4ed8",
+  RURAL: "#15803d",
+};
+
+// Sub-filter buttons shown above the table when the Donation Drives tab is
+// active. Mirrors the bucket selector on the NGO panel.
+const DRIVE_SUBSTATUS_TABS = [
+  { key: "pending",  label: "Pending Review", color: "#f59e0b" },
+  { key: "approved", label: "Approved",       color: "#16a34a" },
+  { key: "rejected", label: "Rejected",       color: "#b91c1c" },
+  { key: "all",      label: "All",            color: "#475569" },
 ];
 
 // Pill cluster that summarises a row's document review state. Hidden when
@@ -97,6 +115,8 @@ const Ngos = () => {
   const [counts, setCounts] = useState({});
   const [status, setStatus] = useState("pending");
   const [searchText, setSearchText] = useState("");
+  // Sub-filter for the Donation Drives tab.
+  const [driveStatus, setDriveStatus] = useState("pending");
 
   // Auxiliary loader for the Hospital Requests tab — separate endpoint and
   // separate row shape (hospitals vs NGOs). When the user is on any other
@@ -110,29 +130,65 @@ const Ngos = () => {
         // Pull pending hospital connections + counts in parallel.
         const params = new URLSearchParams({ status: "pending" });
         if (searchText) params.set("searchText", searchText);
-        const [hospRes, ngosRes] = await Promise.all([
+        const [hospRes, ngosRes, drivesRes] = await Promise.all([
           axios.get(`${import.meta.env.VITE_API_URL}/ngo-hospitals?${params.toString()}`, { headers }),
           // We also re-fetch /ngos to keep the other tabs' counts fresh.
           axios.get(`${import.meta.env.VITE_API_URL}/ngos`, { headers }),
+          axios.get(`${import.meta.env.VITE_API_URL}/donation-drives?status=pending`, { headers }),
         ]);
         const hospCounts = hospRes?.data?.data?.counts || {};
         const ngoCounts = ngosRes?.data?.data?.counts || {};
+        const driveItems = drivesRes?.data?.data?.items || [];
         setItems(hospRes?.data?.data?.items || []);
-        setCounts({ ...ngoCounts, hospitalRequests: hospCounts.pending ?? 0 });
+        setCounts({
+          ...ngoCounts,
+          hospitalRequests: hospCounts.pending ?? 0,
+          donationDrives: driveItems.length,
+        });
+        return;
+      }
+
+      if (status === "donationDrives") {
+        // Pull drives for the chosen sub-status, plus NGO counts so the other
+        // tabs stay current.
+        const driveParams = new URLSearchParams();
+        if (driveStatus && driveStatus !== "all") driveParams.set("status", driveStatus);
+        const [drivesRes, pendingDrivesRes, ngosRes, hospRes] = await Promise.all([
+          axios.get(`${import.meta.env.VITE_API_URL}/donation-drives?${driveParams.toString()}`, { headers }),
+          // Pending-drive count powers the tab badge regardless of sub-filter.
+          axios.get(`${import.meta.env.VITE_API_URL}/donation-drives?status=pending`, { headers }),
+          axios.get(`${import.meta.env.VITE_API_URL}/ngos`, { headers }),
+          axios.get(`${import.meta.env.VITE_API_URL}/ngo-hospitals?status=pending`, { headers }),
+        ]);
+        const ngoCounts = ngosRes?.data?.data?.counts || {};
+        const hospCounts = hospRes?.data?.data?.counts || {};
+        const pendingDriveCount = (pendingDrivesRes?.data?.data?.items || []).length;
+        setItems(drivesRes?.data?.data?.items || []);
+        setCounts({
+          ...ngoCounts,
+          hospitalRequests: hospCounts.pending ?? 0,
+          donationDrives: pendingDriveCount,
+        });
         return;
       }
 
       const params = new URLSearchParams();
       if (status) params.set("status", status);
       if (searchText) params.set("searchText", searchText);
-      const [ngosRes, hospRes] = await Promise.all([
+      const [ngosRes, hospRes, drivesRes] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_URL}/ngos?${params.toString()}`, { headers }),
         axios.get(`${import.meta.env.VITE_API_URL}/ngo-hospitals?status=pending`, { headers }),
+        axios.get(`${import.meta.env.VITE_API_URL}/donation-drives?status=pending`, { headers }),
       ]);
       const ngoCounts = ngosRes?.data?.data?.counts || {};
       const hospCounts = hospRes?.data?.data?.counts || {};
+      const pendingDriveCount = (drivesRes?.data?.data?.items || []).length;
       setItems(ngosRes?.data?.data?.items || []);
-      setCounts({ ...ngoCounts, hospitalRequests: hospCounts.pending ?? 0 });
+      setCounts({
+        ...ngoCounts,
+        hospitalRequests: hospCounts.pending ?? 0,
+        donationDrives: pendingDriveCount,
+      });
     } catch (err) {
       console.error("load ngos failed:", err);
     } finally {
@@ -171,10 +227,67 @@ const Ngos = () => {
     }
   };
 
+  // Per-row drive action: approve / reject / delete + refresh.
+  const reviewDrive = async (drive, action) => {
+    try {
+      if (action === "approve") {
+        const ok = await swal({
+          title: `Approve "${drive.title}"?`,
+          text: "It will become visible to all NGOs.",
+          icon: "info",
+          buttons: ["Cancel", "Approve"],
+        });
+        if (!ok) return;
+      }
+      let reason = "";
+      if (action === "reject") {
+        reason = await swal({
+          title: `Reject "${drive.title}"?`,
+          text: "Optional reason (sent to the NGO):",
+          content: "input",
+          buttons: ["Cancel", "Reject"],
+          dangerMode: true,
+        });
+        if (reason === null) return;
+      }
+      if (action === "delete") {
+        const ok = await swal({
+          title: `Delete "${drive.title}"?`,
+          text: "This permanently removes the drive.",
+          icon: "warning",
+          dangerMode: true,
+          buttons: ["Cancel", "Delete"],
+        });
+        if (!ok) return;
+      }
+
+      setLoading(true);
+      const headers = { Authorization: sessionStorage.getItem("auth") };
+      if (action === "delete") {
+        await axios.delete(
+          `${import.meta.env.VITE_API_URL}/donation-drives/${drive._id}`,
+          { headers }
+        );
+      } else {
+        await axios.post(
+          `${import.meta.env.VITE_API_URL}/donation-drives/${drive._id}/${action}`,
+          action === "reject" ? { reason: reason || "" } : {},
+          { headers }
+        );
+      }
+      load();
+    } catch (err) {
+      console.error("drive review failed:", err);
+      swal("Error", err?.response?.data?.error || "Action failed", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [status, driveStatus]);
 
   const onSearchSubmit = (e) => {
     e.preventDefault();
@@ -246,7 +359,39 @@ const Ngos = () => {
           })}
         </div>
 
-        {/* Search */}
+        {/* Sub-filter for donation drives (Pending / Approved / Rejected / All) */}
+        {status === "donationDrives" && (
+          <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+            {DRIVE_SUBSTATUS_TABS.map((s) => {
+              const active = driveStatus === s.key;
+              return (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => setDriveStatus(s.key)}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: 6,
+                    border: "1px solid",
+                    borderColor: active ? s.color : "#e2e8f0",
+                    background: active ? s.color : "white",
+                    color: active ? "white" : "#475569",
+                    fontWeight: 700,
+                    fontSize: 12,
+                    cursor: "pointer",
+                    transition: "all 0.12s",
+                  }}
+                >
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Search — hidden on the donation drives tab (not yet wired into
+            the /donation-drives endpoint) */}
+        {status !== "donationDrives" && (
         <form onSubmit={onSearchSubmit} className="mb-3" style={{ maxWidth: 360 }}>
           <div className="input-group">
             <input
@@ -261,6 +406,7 @@ const Ngos = () => {
             </button>
           </div>
         </form>
+        )}
 
         {/* Table */}
         <div style={{ overflowX: "auto" }}>
@@ -280,6 +426,8 @@ const Ngos = () => {
               <tr style={{ background: "#f9fafb" }}>
                 {(status === "hospitalRequests"
                   ? ["Hospital", "From NGO", "Phone", "Doctor", "Email", "Submitted", "Actions"]
+                  : status === "donationDrives"
+                  ? ["Drive", "NGO", "Tag", "Date", "Goal", "Status", "Actions"]
                   : ["NGO", "Contact", "City", "Registered", "Documents", "Status", "Actions"]
                 ).map((h) => (
                   <th
@@ -306,9 +454,134 @@ const Ngos = () => {
                   <td colSpan={7} style={{ padding: "40px 16px", textAlign: "center", color: "#6b7280" }}>
                     {status === "hospitalRequests"
                       ? "No hospital connection requests pending."
+                      : status === "donationDrives"
+                      ? "No drives in this bucket."
                       : "No NGOs in this view."}
                   </td>
                 </tr>
+              ) : status === "donationDrives" ? (
+                items.map((d) => {
+                  const accent = d.image || DRIVE_TAG_COLORS[d.tag] || "#c0392b";
+                  return (
+                    <tr key={d._id}>
+                      <td style={{ padding: "12px 14px", borderBottom: "1px solid #f3f4f6" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <span
+                            style={{
+                              width: 4,
+                              alignSelf: "stretch",
+                              borderRadius: 2,
+                              background: accent,
+                              minHeight: 28,
+                            }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: 700 }}>{d.title}</div>
+                            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>
+                              {d.location || "—"}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ padding: "12px 14px", borderBottom: "1px solid #f3f4f6" }}>
+                        <div style={{ fontWeight: 600, fontSize: 12.5 }}>
+                          {d.ngoSummary?.name || d.organizer || "—"}
+                        </div>
+                        <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>
+                          {d.ngoSummary?.email || ""}
+                        </div>
+                      </td>
+                      <td style={{ padding: "12px 14px", borderBottom: "1px solid #f3f4f6" }}>
+                        <span
+                          style={{
+                            fontSize: 10.5,
+                            fontWeight: 800,
+                            letterSpacing: 0.7,
+                            padding: "2px 8px",
+                            borderRadius: 4,
+                            background: "white",
+                            border: `1px solid ${accent}`,
+                            color: accent,
+                          }}
+                        >
+                          {d.tag}
+                        </span>
+                      </td>
+                      <td style={{ padding: "12px 14px", borderBottom: "1px solid #f3f4f6", whiteSpace: "nowrap" }}>
+                        {d.date || "—"}
+                        <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>
+                          {d.daysLeft
+                            ? `in ${d.daysLeft} day${d.daysLeft === 1 ? "" : "s"}`
+                            : "today / past"}
+                        </div>
+                      </td>
+                      <td style={{ padding: "12px 14px", borderBottom: "1px solid #f3f4f6", whiteSpace: "nowrap" }}>
+                        <strong>{d.progress || 0}</strong>
+                        <span style={{ color: "#9ca3af" }}> / {d.goal || 0}</span>
+                      </td>
+                      <td style={{ padding: "12px 14px", borderBottom: "1px solid #f3f4f6" }}>
+                        {(() => {
+                          const map = {
+                            pending:  { bg: "#fef3c7", color: "#92400e", label: "Pending" },
+                            approved: { bg: "#dcfce7", color: "#15803d", label: "Approved" },
+                            rejected: { bg: "#fee2e2", color: "#991b1b", label: "Rejected" },
+                          };
+                          const s = map[d.status] || map.pending;
+                          return (
+                            <span
+                              title={d.rejectionReason || ""}
+                              style={{
+                                display: "inline-block",
+                                padding: "2px 9px",
+                                fontSize: 10.5,
+                                fontWeight: 800,
+                                background: s.bg,
+                                color: s.color,
+                                borderRadius: 4,
+                                letterSpacing: 0.5,
+                              }}
+                            >
+                              {s.label.toUpperCase()}
+                            </span>
+                          );
+                        })()}
+                      </td>
+                      <td style={{ padding: "12px 14px", borderBottom: "1px solid #f3f4f6", whiteSpace: "nowrap" }}>
+                        <div style={{ display: "inline-flex", gap: 6 }}>
+                          {d.status !== "approved" && (
+                            <button
+                              type="button"
+                              onClick={() => reviewDrive(d, "approve")}
+                              className="btn btn-sm btn-success"
+                              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+                            >
+                              <i className="ti ti-check me-1"></i>Approve
+                            </button>
+                          )}
+                          {d.status !== "rejected" && (
+                            <button
+                              type="button"
+                              onClick={() => reviewDrive(d, "reject")}
+                              className="btn btn-sm btn-outline-danger"
+                              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+                            >
+                              <i className="ti ti-x me-1"></i>Reject
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => reviewDrive(d, "delete")}
+                            className="btn btn-sm btn-outline-secondary"
+                            style={{ fontSize: 11, padding: "3px 8px", borderRadius: 5 }}
+                            title="Delete drive"
+                          >
+                            <i className="ti ti-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : status === "hospitalRequests" ? (
                 items.map((h) => (
                   <tr key={h._id}>
