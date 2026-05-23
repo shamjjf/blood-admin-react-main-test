@@ -19,6 +19,7 @@ const PERM_LABELS = {
   "reports":          { label: "Reports & Analytics", icon: "ti ti-chart-pie",        hint: "View dashboards and export reports." },
   "documents":        { label: "Documents",          icon: "ti ti-file-certificate",  hint: "Upload + manage NGO documents (always granted)." },
   "support":          { label: "Support",            icon: "ti ti-lifebuoy",          hint: "Raise tickets and view complaints." },
+  "donation-drives":  { label: "Donation Drives",    icon: "ti ti-flame",             hint: "Create and run blood-donation drives; submissions go to admin for approval." },
 };
 
 const statusBadge = (status) => {
