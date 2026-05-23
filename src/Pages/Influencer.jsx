@@ -24,6 +24,7 @@ const TOP_TABS = [
   { key: "profiles", label: "Profiles", icon: "ti ti-users" },
   { key: "posts", label: "Awareness Posts", icon: "ti ti-news" },
   { key: "campaigns", label: "Campaigns", icon: "ti ti-flag" },
+  { key: "drives", label: "Drives", icon: "ti ti-droplet" },
   { key: "rewards", label: "Rewards", icon: "ti ti-trophy" },
   { key: "mediakit", label: "Media Kit", icon: "ti ti-photo" },
 ];
@@ -34,7 +35,12 @@ const PLATFORM_META = {
   twitter: { label: "Twitter / X", icon: "ti ti-brand-twitter", color: "#1DA1F2" },
   facebook: { label: "Facebook", icon: "ti ti-brand-facebook", color: "#1877F2" },
   linkedin: { label: "LinkedIn", icon: "ti ti-brand-linkedin", color: "#0A66C2" },
+  tiktok: { label: "TikTok", icon: "ti ti-brand-tiktok", color: "#000000" },
   threads: { label: "Threads", icon: "ti ti-brand-threads", color: "#000000" },
+  snapchat: { label: "Snapchat", icon: "ti ti-brand-snapchat", color: "#FFFC00" },
+  pinterest: { label: "Pinterest", icon: "ti ti-brand-pinterest", color: "#E60023" },
+  whatsapp: { label: "WhatsApp", icon: "ti ti-brand-whatsapp", color: "#25D366" },
+  telegram: { label: "Telegram", icon: "ti ti-brand-telegram", color: "#0088CC" },
   other: { label: "Other", icon: "ti ti-link", color: "#6B7280" },
 };
 
@@ -231,6 +237,8 @@ const Influencer = () => {
           <AwarenessPostsPanel />
         ) : topTab === "campaigns" ? (
           <CampaignsPanel />
+        ) : topTab === "drives" ? (
+          <DrivesAdminPanel />
         ) : topTab === "rewards" ? (
           <RewardsAdminPanel />
         ) : topTab === "mediakit" ? (
@@ -1032,12 +1040,21 @@ const Influencer = () => {
 };
 
 // ─── Awareness Posts admin panel ───────────────────────────────────────────
+// Keep this list in sync with PLATFORMS in routes/admin/awarenessPost.js
+// on the backend (and with ASSIGNED_POST_PLATFORMS in the influencer
+// client's InfluencerSection.jsx).
 const POST_PLATFORMS = [
   { name: "Instagram", icon: "ti ti-brand-instagram", color: "#E1306C" },
+  { name: "YouTube", icon: "ti ti-brand-youtube", color: "#FF0000" },
   { name: "Facebook", icon: "ti ti-brand-facebook", color: "#1877F2" },
   { name: "Twitter / X", icon: "ti ti-brand-twitter", color: "#1DA1F2" },
   { name: "LinkedIn", icon: "ti ti-brand-linkedin", color: "#0A66C2" },
-  { name: "YouTube", icon: "ti ti-brand-youtube", color: "#FF0000" },
+  { name: "TikTok", icon: "ti ti-brand-tiktok", color: "#000000" },
+  { name: "Threads", icon: "ti ti-brand-threads", color: "#000000" },
+  { name: "Snapchat", icon: "ti ti-brand-snapchat", color: "#FFFC00" },
+  { name: "Pinterest", icon: "ti ti-brand-pinterest", color: "#E60023" },
+  { name: "WhatsApp", icon: "ti ti-brand-whatsapp", color: "#25D366" },
+  { name: "Telegram", icon: "ti ti-brand-telegram", color: "#0088CC" },
 ];
 
 // Helper to render the initials avatar for an influencer.
@@ -1924,6 +1941,176 @@ const AwarenessPostsPanel = () => {
                       })()}
                     </div>
 
+                    {/* Live links per influencer — one block per assignee
+                        who's marked the post published AND pasted at
+                        least one platformPublications row with a URL.
+                        Lets admin click straight through to the actual
+                        Instagram / YouTube / etc. post. */}
+                    {(() => {
+                      const livePublishers = (p.assignees || []).filter(
+                        (a) =>
+                          a.state === "published" &&
+                          ((a.platformPublications || []).some(
+                            (pp) => pp.liveLink
+                          ) ||
+                            a.liveLink)
+                      );
+                      if (livePublishers.length === 0) return null;
+                      // Respect the tab — hide on Scheduled (those rows
+                      // aren't published).
+                      if (filter === "scheduled") return null;
+                      return (
+                        <div className="mb-2">
+                          {livePublishers.map((a) => {
+                            const uid = a.user?._id || a.user;
+                            const meta = roster.find(
+                              (u) => u.id === String(uid)
+                            );
+                            const name =
+                              meta?.name || a.user?.name || "Influencer";
+                            const color = meta?.color || "#15803D";
+                            const rows =
+                              (a.platformPublications || []).filter(
+                                (pp) => pp.liveLink
+                              ).length > 0
+                                ? (a.platformPublications || []).filter(
+                                    (pp) => pp.liveLink
+                                  )
+                                : a.liveLink
+                                ? [
+                                    {
+                                      platform:
+                                        a.publishedPlatform || "Other",
+                                      liveLink: a.liveLink,
+                                    },
+                                  ]
+                                : [];
+                            return (
+                              <div
+                                key={String(uid)}
+                                className="rounded p-2 mb-2"
+                                style={{
+                                  background: "#F0FDF4",
+                                  border: "1px solid #BBF7D0",
+                                }}
+                              >
+                                <div
+                                  className="d-flex align-items-center gap-2 mb-2"
+                                  style={{
+                                    color,
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      width: 18,
+                                      height: 18,
+                                      borderRadius: "50%",
+                                      background: color,
+                                      color: "#FFFFFF",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      fontSize: 9,
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    {initialsOf(name)}
+                                  </span>
+                                  {name} — live on{" "}
+                                  {rows.length} platform
+                                  {rows.length === 1 ? "" : "s"}
+                                  {a.publishedAt && (
+                                    <span
+                                      className="ms-auto small"
+                                      style={{
+                                        fontWeight: 400,
+                                        color: "#6B7280",
+                                      }}
+                                    >
+                                      {new Date(a.publishedAt).toLocaleString()}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="d-flex flex-column gap-1">
+                                  {rows.map((pp) => {
+                                    const m =
+                                      POST_PLATFORMS.find(
+                                        (x) => x.name === pp.platform
+                                      ) || {
+                                        icon: "ti ti-link",
+                                        color: "#6B7280",
+                                      };
+                                    return (
+                                      <a
+                                        key={pp.platform}
+                                        href={pp.liveLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                          gap: 6,
+                                          padding: "4px 8px",
+                                          borderRadius: 6,
+                                          background: "#FFFFFF",
+                                          border: "1px solid #E5E7EB",
+                                          textDecoration: "none",
+                                          color: "#111827",
+                                          fontSize: 12,
+                                        }}
+                                      >
+                                        <span
+                                          style={{
+                                            padding: "2px 6px",
+                                            borderRadius: 4,
+                                            background: `${m.color}1f`,
+                                            color: m.color,
+                                            fontWeight: 700,
+                                            fontSize: 10,
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: 3,
+                                            flexShrink: 0,
+                                          }}
+                                        >
+                                          <i
+                                            className={m.icon}
+                                            style={{ fontSize: 11 }}
+                                          />
+                                          {pp.platform}
+                                        </span>
+                                        <span
+                                          style={{
+                                            color: "#3B82F6",
+                                            wordBreak: "break-all",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            whiteSpace: "nowrap",
+                                            flex: 1,
+                                          }}
+                                        >
+                                          {pp.liveLink}
+                                        </span>
+                                        <i
+                                          className="ti ti-external-link"
+                                          style={{
+                                            color: "#3B82F6",
+                                            flexShrink: 0,
+                                          }}
+                                        />
+                                      </a>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+
                     {/* Rejection callouts — one row per influencer who said
                         no. Hidden on the Published tab (rejected ≠ published). */}
                     {visibleRejections.map((a) => {
@@ -2398,6 +2585,371 @@ const CRITERIA_OPTIONS = [
   },
   { key: "manual", label: "Manual / admin-awarded only" },
 ];
+
+// ─── DRIVES ADMIN PANEL ───────────────────────────────────────────────────
+//
+//   Two-pane layout: left side lists every approved influencer with a
+//   quick summary (registered / attended / promoted / promo reach), and
+//   the right pane shows the selected influencer's drive activity
+//   broken into Registrations + Promotions.
+//
+//   Data sources:
+//     GET /admin/influencers/drives-summary        — left roster
+//     GET /admin/influencers/:id/drives            — right detail
+//
+// NGO drive approval lives in NGO Partners → Donation Drives (not here).
+// This tab focuses on per-influencer activity: who promoted what drive,
+// who joined which, and the totals admin uses to spot stars.
+const DrivesAdminPanel = () => {
+  const [roster, setRoster] = useState([]);
+  const [loadingRoster, setLoadingRoster] = useState(true);
+  const [selectedId, setSelectedId] = useState("");
+  const [detail, setDetail] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingRoster(true);
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/influencers/drives-summary`, {
+        headers: { Authorization: sessionStorage.getItem("auth") },
+      })
+      .then((r) => {
+        if (cancelled) return;
+        const list = r?.data?.data?.influencers || [];
+        setRoster(list);
+        if (list.length > 0 && !selectedId) setSelectedId(list[0].influencerId);
+      })
+      .catch(() => {})
+      .finally(() => !cancelled && setLoadingRoster(false));
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!selectedId) {
+      setDetail(null);
+      return;
+    }
+    let cancelled = false;
+    setLoadingDetail(true);
+    axios
+      .get(
+        `${import.meta.env.VITE_API_URL}/influencers/${selectedId}/drives`,
+        { headers: { Authorization: sessionStorage.getItem("auth") } }
+      )
+      .then((r) => !cancelled && setDetail(r?.data?.data || null))
+      .catch(() => !cancelled && setDetail(null))
+      .finally(() => !cancelled && setLoadingDetail(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedId]);
+
+  const filteredRoster = roster.filter((r) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      (r.name || "").toLowerCase().includes(q) ||
+      (r.email || "").toLowerCase().includes(q) ||
+      (r.niche || "").toLowerCase().includes(q)
+    );
+  });
+
+  const selected = roster.find((r) => r.influencerId === selectedId);
+
+  return (
+    <div className="row g-3">
+      {/* Roster */}
+      <div className="col-12 col-lg-4">
+        <div
+          style={{
+            background: "#FFFFFF",
+            border: "1px solid #E5E7EB",
+            borderRadius: 12,
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ padding: "12px 14px", borderBottom: "1px solid #F3F4F6" }}>
+            <input
+              type="search"
+              className="form-control form-control-sm"
+              placeholder="Search influencer…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          {loadingRoster ? (
+            <div className="text-center text-muted small p-4">Loading…</div>
+          ) : filteredRoster.length === 0 ? (
+            <div className="text-center text-muted small p-4">
+              No approved influencers yet.
+            </div>
+          ) : (
+            <div style={{ maxHeight: 600, overflowY: "auto" }}>
+              {filteredRoster.map((r) => {
+                const active = r.influencerId === selectedId;
+                return (
+                  <button
+                    key={r.influencerId}
+                    type="button"
+                    onClick={() => setSelectedId(r.influencerId)}
+                    style={{
+                      width: "100%",
+                      display: "block",
+                      textAlign: "left",
+                      border: "none",
+                      padding: "10px 14px",
+                      background: active ? "#EEF2FF" : "transparent",
+                      borderBottom: "1px solid #F3F4F6",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div className="d-flex justify-content-between align-items-start gap-2">
+                      <div style={{ minWidth: 0 }}>
+                        <div
+                          className="fw-bold"
+                          style={{
+                            color: active ? "#3730A3" : "#111827",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {r.name}
+                        </div>
+                        <div className="small text-muted">{r.niche || r.email}</div>
+                      </div>
+                      <div className="text-end small" style={{ flexShrink: 0 }}>
+                        <div style={{ color: "#15803D", fontWeight: 700 }}>
+                          {r.promoted} promo
+                        </div>
+                        <div style={{ color: "#1E40AF" }}>
+                          {r.registered} reg
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Detail */}
+      <div className="col-12 col-lg-8">
+        <div
+          style={{
+            background: "#FFFFFF",
+            border: "1px solid #E5E7EB",
+            borderRadius: 12,
+            padding: 16,
+            minHeight: 200,
+          }}
+        >
+          {!selected ? (
+            <div className="text-center text-muted">Pick an influencer to see their drive activity.</div>
+          ) : (
+            <>
+              <div className="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-3">
+                <div>
+                  <h4 className="m-0">{selected.name}</h4>
+                  <div className="small text-muted">{selected.email}</div>
+                </div>
+                <div className="d-flex gap-3 flex-wrap">
+                  {[
+                    { label: "Registered", value: selected.registered, color: "#1E40AF" },
+                    { label: "Attended", value: selected.attended, color: "#15803D" },
+                    { label: "Promoted", value: selected.promoted, color: "#6D28D9" },
+                    { label: "Promo reach", value: selected.promoReach, color: "#EC4899" },
+                  ].map((s) => (
+                    <div key={s.label} className="text-end">
+                      <div
+                        style={{ fontSize: 20, fontWeight: 700, color: s.color }}
+                      >
+                        {(s.value || 0).toLocaleString()}
+                      </div>
+                      <div className="small text-muted">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {loadingDetail ? (
+                <div className="text-center text-muted small p-3">Loading…</div>
+              ) : (
+                <>
+                  {/* Promotions */}
+                  <h6 className="mt-3 mb-2">
+                    <i
+                      className="ti ti-megaphone me-1"
+                      style={{ color: "#6D28D9" }}
+                    />
+                    Promotions ({detail?.promotions?.length || 0})
+                  </h6>
+                  {(detail?.promotions || []).length === 0 ? (
+                    <div className="small text-muted mb-3">
+                      Hasn't promoted any drives yet.
+                    </div>
+                  ) : (
+                    <div className="table-responsive mb-4">
+                      <table className="table table-sm" style={{ fontSize: 13 }}>
+                        <thead>
+                          <tr>
+                            <th>Drive</th>
+                            <th>Source</th>
+                            <th>Platform</th>
+                            <th className="text-end">Reach</th>
+                            <th className="text-end">Clicks</th>
+                            <th>Link</th>
+                            <th>When</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(detail?.promotions || []).map((p) => (
+                            <tr key={p._id}>
+                              <td>
+                                <div style={{ fontWeight: 600 }}>{p.campName}</div>
+                                <div className="small text-muted">{p.venue}</div>
+                              </td>
+                              <td>
+                                <span
+                                  style={{
+                                    padding: "2px 6px",
+                                    borderRadius: 4,
+                                    background:
+                                      p.source === "NGO" ? "#EFF6FF" : "#F5F3FF",
+                                    color: p.source === "NGO" ? "#1E40AF" : "#6D28D9",
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  {p.source}
+                                </span>
+                              </td>
+                              <td>{p.platform || "—"}</td>
+                              <td className="text-end">
+                                {(p.reach || 0).toLocaleString()}
+                              </td>
+                              <td className="text-end">
+                                {(p.clicks || 0).toLocaleString()}
+                              </td>
+                              <td>
+                                {p.shareUrl ? (
+                                  <a
+                                    href={p.shareUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    Open
+                                  </a>
+                                ) : (
+                                  "—"
+                                )}
+                              </td>
+                              <td>{fmtDate(p.promotedAt)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Registrations */}
+                  <h6 className="mt-3 mb-2">
+                    <i
+                      className="ti ti-clipboard-check me-1"
+                      style={{ color: "#15803D" }}
+                    />
+                    Registrations ({detail?.registrations?.length || 0})
+                  </h6>
+                  {(detail?.registrations || []).length === 0 ? (
+                    <div className="small text-muted">
+                      Hasn't registered for any drives.
+                    </div>
+                  ) : (
+                    <div className="table-responsive">
+                      <table className="table table-sm" style={{ fontSize: 13 }}>
+                        <thead>
+                          <tr>
+                            <th>Drive</th>
+                            <th>Source</th>
+                            <th>Status</th>
+                            <th>Venue date</th>
+                            <th>Attended at</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(detail?.registrations || []).map((r) => (
+                            <tr key={r._id}>
+                              <td>
+                                <div style={{ fontWeight: 600 }}>{r.campName}</div>
+                                <div className="small text-muted">{r.venue}</div>
+                              </td>
+                              <td>
+                                <span
+                                  style={{
+                                    padding: "2px 6px",
+                                    borderRadius: 4,
+                                    background:
+                                      r.source === "NGO" ? "#EFF6FF" : "#F5F3FF",
+                                    color: r.source === "NGO" ? "#1E40AF" : "#6D28D9",
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  {r.source}
+                                </span>
+                              </td>
+                              <td>
+                                <span
+                                  style={{
+                                    padding: "2px 6px",
+                                    borderRadius: 4,
+                                    background:
+                                      r.status === "attended"
+                                        ? "#DCFCE7"
+                                        : r.status === "no-show"
+                                        ? "#FEE2E2"
+                                        : r.status === "cancelled"
+                                        ? "#F3F4F6"
+                                        : "#EFF6FF",
+                                    color:
+                                      r.status === "attended"
+                                        ? "#15803D"
+                                        : r.status === "no-show"
+                                        ? "#991B1B"
+                                        : r.status === "cancelled"
+                                        ? "#6B7280"
+                                        : "#1E40AF",
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  {r.status}
+                                </span>
+                              </td>
+                              <td>{r.venueDate ? new Date(r.venueDate).toLocaleDateString() : "—"}</td>
+                              <td>{fmtDate(r.attendedAt)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const RewardsAdminPanel = () => {
   const { setLoading } = useContext(GlobalContext);
