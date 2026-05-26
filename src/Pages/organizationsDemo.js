@@ -13,7 +13,7 @@
 
 import axios from "axios";
 
-export const DEMO_MODE = true;
+export const DEMO_MODE = false;
 
 const DEMO_STORAGE_KEY = "organizationsDemoStore_v1";
 
