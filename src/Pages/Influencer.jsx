@@ -25,6 +25,8 @@ const TOP_TABS = [
   { key: "posts", label: "Awareness Posts", icon: "ti ti-news" },
   { key: "campaigns", label: "Campaigns", icon: "ti ti-flag" },
   { key: "drives", label: "Drives", icon: "ti ti-droplet" },
+  { key: "community", label: "Community", icon: "ti ti-users-group" },
+  { key: "engagement", label: "Followers Engagement", icon: "ti ti-message-2" },
   { key: "rewards", label: "Rewards", icon: "ti ti-trophy" },
   { key: "mediakit", label: "Media Kit", icon: "ti ti-photo" },
 ];
@@ -53,12 +55,9 @@ const Influencer = () => {
   const [rows, setRows] = useState([]);
   const [counts, setCounts] = useState({ pending: 0, approved: 0, rejected: 0 });
   const [expanded, setExpanded] = useState({}); // influencerId -> bool
-  // Referral stats fetched lazily when admin expands a row.
-  // influencerId -> { loading, error, stats }
-  const [referrals, setReferrals] = useState({});
-  // Per-member expand state for the joined-members list. Keyed by the
-  // member's _id; click a row to toggle its contribution panel open.
-  const [memberOpen, setMemberOpen] = useState({});
+  // Joined-members + contributions live in the standalone Community
+  // tab (CommunityAdminPanel) — Profile expand only handles profile
+  // review + social-link approval.
   const [blockDraft, setBlockDraft] = useState({}); // influencerId -> reason
   const [search, setSearch] = useState("");
 
@@ -239,6 +238,10 @@ const Influencer = () => {
           <CampaignsPanel />
         ) : topTab === "drives" ? (
           <DrivesAdminPanel />
+        ) : topTab === "community" ? (
+          <CommunityAdminPanel />
+        ) : topTab === "engagement" ? (
+          <FollowersEngagementAdminPanel />
         ) : topTab === "rewards" ? (
           <RewardsAdminPanel />
         ) : topTab === "mediakit" ? (
@@ -379,49 +382,13 @@ const Influencer = () => {
                       className="d-flex flex-wrap align-items-center gap-2 p-3"
                       style={{ cursor: "pointer" }}
                       onClick={() => {
-                        const wasOpen = !!expanded[inf._id];
                         setExpanded((e) => ({
                           ...e,
                           [inf._id]: !e[inf._id],
                         }));
-                        // Fetch the influencer's referral stats the first
-                        // time the row opens; subsequent opens reuse cache.
-                        if (!wasOpen && !referrals[inf._id]) {
-                          setReferrals((r) => ({
-                            ...r,
-                            [inf._id]: { loading: true },
-                          }));
-                          axios
-                            .get(
-                              `${import.meta.env.VITE_API_URL}/influencers/${inf._id}/referrals`,
-                              {
-                                headers: {
-                                  Authorization:
-                                    sessionStorage.getItem("auth"),
-                                },
-                              }
-                            )
-                            .then((res) =>
-                              setReferrals((r) => ({
-                                ...r,
-                                [inf._id]: {
-                                  loading: false,
-                                  stats: res?.data?.data,
-                                },
-                              }))
-                            )
-                            .catch((err) =>
-                              setReferrals((r) => ({
-                                ...r,
-                                [inf._id]: {
-                                  loading: false,
-                                  error:
-                                    err?.response?.data?.error ||
-                                    "Could not load referrals",
-                                },
-                              }))
-                            );
-                        }
+                        // Joined members + contributions live in the
+                        // Community tab now — no per-row referral fetch
+                        // needed on the Profiles tab.
                       }}
                     >
                       <div
@@ -499,6 +466,70 @@ const Influencer = () => {
                         className="border-top p-3"
                         style={{ background: "#F9FAFB" }}
                       >
+                        {/* Personal details block — email, phone,
+                            gender, blood group. Gender + blood group
+                            live on the User doc (not Influencer) but
+                            backend now populates them on the user
+                            reference, so we just read them through. */}
+                        <div className="row g-2 mb-3">
+                          {[
+                            {
+                              label: "Email",
+                              value: inf.user?.email,
+                              icon: "ti ti-mail",
+                            },
+                            {
+                              label: "Phone",
+                              value:
+                                inf.user?.phone
+                                  ? `${inf.user?.phoneCode || ""} ${inf.user.phone}`.trim()
+                                  : "",
+                              icon: "ti ti-phone",
+                            },
+                            {
+                              label: "Gender",
+                              value: inf.user?.gender,
+                              icon: "ti ti-user",
+                            },
+                            {
+                              label: "Blood group",
+                              value: inf.user?.bloodGroup,
+                              icon: "ti ti-droplet",
+                              valueStyle:
+                                inf.user?.bloodGroup &&
+                                inf.user.bloodGroup !== "Don't Know"
+                                  ? { color: "#B91C1C", fontWeight: 700 }
+                                  : {},
+                            },
+                          ].map((f) => (
+                            <div className="col-6 col-md-3" key={f.label}>
+                              <div
+                                className="border rounded p-2"
+                                style={{ background: "#FFFFFF" }}
+                              >
+                                <div
+                                  className="small text-muted"
+                                  style={{ fontSize: 11 }}
+                                >
+                                  <i className={`${f.icon} me-1`} />
+                                  {f.label}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: 13,
+                                    wordBreak: "break-all",
+                                    ...(f.valueStyle || {}),
+                                  }}
+                                >
+                                  {f.value || (
+                                    <span className="text-muted">—</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
                         {inf.bio && (
                           <div className="mb-3">
                             <div className="small text-muted fw-bold">
@@ -527,7 +558,18 @@ const Influencer = () => {
                                 const meta =
                                   PLATFORM_META[h.platform] ||
                                   PLATFORM_META.other;
-                                const url = h.url || h.handle;
+                                // Display the URL exactly as the
+                                // influencer entered it, but auto-
+                                // prepend https:// for the href so
+                                // bare-domain pastes ("www.youtube.com/@…")
+                                // actually navigate instead of being
+                                // treated as relative paths.
+                                const rawUrl = String(h.url || h.handle || "").trim();
+                                const url = rawUrl
+                                  ? /^https?:\/\//i.test(rawUrl)
+                                    ? rawUrl
+                                    : `https://${rawUrl}`
+                                  : "";
                                 const handleId = h._id || String(idx);
                                 const hStatus = h.status || "pending";
                                 const statusPillMeta = {
@@ -591,7 +633,7 @@ const Influencer = () => {
                                           color: "#1E40AF",
                                         }}
                                       >
-                                        {url}
+                                        {rawUrl}
                                       </a>
                                       <span
                                         style={{
@@ -644,294 +686,10 @@ const Influencer = () => {
                           )}
                         </div>
 
-                        {/* Joined members — list of users who signed up
-                            with this influencer's referral link. Fetched
-                            lazily the first time the row is expanded. */}
-                        <div className="mb-3">
-                          <div
-                            className="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2"
-                          >
-                            <div className="fw-bold" style={{ fontSize: 14 }}>
-                              Joined members{" "}
-                              {referrals[inf._id]?.stats?.members && (
-                                <span
-                                  className="ms-2"
-                                  style={{
-                                    background: "#1E40AF",
-                                    color: "#FFFFFF",
-                                    padding: "2px 8px",
-                                    borderRadius: 999,
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  {referrals[inf._id].stats.members.length}
-                                </span>
-                              )}
-                            </div>
-                            {referrals[inf._id]?.stats?.referralCode && (
-                              <span className="small text-muted">
-                                Referral code:{" "}
-                                <code>
-                                  {referrals[inf._id].stats.referralCode}
-                                </code>
-                              </span>
-                            )}
-                          </div>
-                          {referrals[inf._id]?.loading ? (
-                            <p className="text-muted small m-0">
-                              Loading joined members…
-                            </p>
-                          ) : referrals[inf._id]?.error ? (
-                            <p className="text-danger small m-0">
-                              {referrals[inf._id].error}
-                            </p>
-                          ) : (
-                            (() => {
-                              const members =
-                                referrals[inf._id]?.stats?.members || [];
-                              if (members.length === 0) {
-                                return (
-                                  <p className="text-muted small m-0">
-                                    No one has joined through this
-                                    influencer's referral link yet.
-                                  </p>
-                                );
-                              }
-                              return (
-                                <div
-                                  className="d-flex flex-column gap-1"
-                                  style={{
-                                    maxHeight: 320,
-                                    overflowY: "auto",
-                                  }}
-                                >
-                                  {members.map((m) => {
-                                    const c = m.contributions;
-                                    const hasContrib = !!(c && c.count > 0);
-                                    const isOpen = !!memberOpen[m._id];
-                                    return (
-                                    <div
-                                      key={m._id}
-                                      className="border rounded"
-                                      style={{
-                                        background: "#FFFFFF",
-                                        fontSize: 13,
-                                      }}
-                                    >
-                                      <div
-                                        className="d-flex align-items-center gap-2 p-2"
-                                        style={{
-                                          cursor: hasContrib
-                                            ? "pointer"
-                                            : "default",
-                                        }}
-                                        onClick={() => {
-                                          if (!hasContrib) return;
-                                          setMemberOpen((s) => ({
-                                            ...s,
-                                            [m._id]: !s[m._id],
-                                          }));
-                                        }}
-                                      >
-                                        <div
-                                          style={{
-                                            width: 28,
-                                            height: 28,
-                                            borderRadius: "50%",
-                                            background: "#EFF6FF",
-                                            color: "#1E40AF",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            fontWeight: 700,
-                                            fontSize: 11,
-                                            flexShrink: 0,
-                                          }}
-                                        >
-                                          {(m.name || "?")
-                                            .charAt(0)
-                                            .toUpperCase()}
-                                        </div>
-                                        <div
-                                          className="flex-grow-1"
-                                          style={{ minWidth: 0 }}
-                                        >
-                                          <div className="fw-bold">
-                                            {m.name || "—"}
-                                          </div>
-                                          <div className="small text-muted">
-                                            {m.email || ""}
-                                            {m.phone ? ` · ${m.phone}` : ""}
-                                            {m.bloodGroup
-                                              ? ` · ${m.bloodGroup}`
-                                              : ""}
-                                            {" · joined "}
-                                            {m.joinedAt
-                                              ? new Date(
-                                                  m.joinedAt
-                                                ).toLocaleDateString()
-                                              : "—"}
-                                          </div>
-                                        </div>
-                                        {m.isDonor && (
-                                          <span
-                                            style={{
-                                              padding: "2px 8px",
-                                              borderRadius: 999,
-                                              fontSize: 10,
-                                              fontWeight: 700,
-                                              color: "#15803D",
-                                              background: "#DCFCE7",
-                                              whiteSpace: "nowrap",
-                                            }}
-                                          >
-                                            Active donor
-                                          </span>
-                                        )}
-                                        {hasContrib && (
-                                          <span
-                                            style={{
-                                              padding: "2px 8px",
-                                              borderRadius: 999,
-                                              fontSize: 10,
-                                              fontWeight: 700,
-                                              color: "#92400E",
-                                              background: "#FEF3C7",
-                                              whiteSpace: "nowrap",
-                                            }}
-                                            title="Click row to view contributions"
-                                          >
-                                            <i className="ti ti-heart-handshake me-1" />
-                                            {c.count}
-                                          </span>
-                                        )}
-                                        {hasContrib && (
-                                          <i
-                                            className={`ti ${
-                                              isOpen
-                                                ? "ti-chevron-up"
-                                                : "ti-chevron-down"
-                                            }`}
-                                            style={{
-                                              color: "#6B7280",
-                                              fontSize: 16,
-                                            }}
-                                          />
-                                        )}
-                                      </div>
-
-                                      {/* Approved-contributions roll-up.
-                                          Only renders when the member row
-                                          has been expanded by the admin. */}
-                                      {hasContrib && isOpen && (
-                                        <div
-                                          className="border-top p-2"
-                                          style={{ background: "#F9FAFB" }}
-                                        >
-                                          <div
-                                            className="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1"
-                                          >
-                                            <div
-                                              className="fw-bold"
-                                              style={{
-                                                fontSize: 12,
-                                                color: "#15803D",
-                                              }}
-                                            >
-                                              <i className="ti ti-heart-handshake me-1" />
-                                              {c.count} approved contribution{c.count === 1 ? "" : "s"}
-                                              {c.totalAmount > 0 && (
-                                                <span style={{ marginLeft: 6 }}>
-                                                  · ₹{c.totalAmount.toLocaleString()}
-                                                </span>
-                                              )}
-                                            </div>
-                                            <div className="small text-muted">
-                                              {c.types.direct > 0 && (
-                                                <span style={{ marginRight: 6 }}>
-                                                  To Cause: {c.types.direct}
-                                                </span>
-                                              )}
-                                              {c.types.vendor > 0 && (
-                                                <span style={{ marginRight: 6 }}>
-                                                  Kind-Vendor: {c.types.vendor}
-                                                </span>
-                                              )}
-                                              {c.types.deliver > 0 && (
-                                                <span>
-                                                  Kind-Deliver: {c.types.deliver}
-                                                </span>
-                                              )}
-                                            </div>
-                                          </div>
-                                          <div className="d-flex flex-column gap-1">
-                                            {c.recent.map((row) => {
-                                              const typeMeta = {
-                                                direct: { label: "Cause", color: "#15803D", bg: "#DCFCE7" },
-                                                vendor: { label: "Kind · Vendor", color: "#B45309", bg: "#FEF3C7" },
-                                                deliver: { label: "Kind · Deliver", color: "#1E40AF", bg: "#DBEAFE" },
-                                              }[row.type] || { label: row.type, color: "#374151", bg: "#E5E7EB" };
-                                              const itemsLabel = (row.items || [])
-                                                .map((it) => `${it.itemName} ×${it.quantity}`)
-                                                .join(", ");
-                                              return (
-                                                <div
-                                                  key={row._id}
-                                                  className="d-flex align-items-center gap-2"
-                                                  style={{ fontSize: 12 }}
-                                                >
-                                                  <span
-                                                    style={{
-                                                      padding: "2px 8px",
-                                                      borderRadius: 999,
-                                                      fontSize: 10,
-                                                      fontWeight: 700,
-                                                      color: typeMeta.color,
-                                                      background: typeMeta.bg,
-                                                      whiteSpace: "nowrap",
-                                                      flexShrink: 0,
-                                                    }}
-                                                  >
-                                                    {typeMeta.label}
-                                                  </span>
-                                                  <span
-                                                    className="flex-grow-1"
-                                                    style={{
-                                                      color: "#111827",
-                                                      whiteSpace: "nowrap",
-                                                      overflow: "hidden",
-                                                      textOverflow: "ellipsis",
-                                                    }}
-                                                  >
-                                                    {row.amount > 0
-                                                      ? `₹${row.amount.toLocaleString()}`
-                                                      : ""}
-                                                    {row.amount > 0 && itemsLabel ? " · " : ""}
-                                                    {itemsLabel}
-                                                  </span>
-                                                  <span
-                                                    className="small text-muted"
-                                                    style={{ flexShrink: 0 }}
-                                                  >
-                                                    {row.createdAt
-                                                      ? new Date(row.createdAt).toLocaleDateString()
-                                                      : ""}
-                                                  </span>
-                                                </div>
-                                              );
-                                            })}
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                    );
-                                  })}
-                                </div>
-                              );
-                            })()
-                          )}
-                        </div>
+                        {/* Joined members + contributions live in the
+                            standalone Community tab now — see
+                            CommunityAdminPanel. Profile expand stays
+                            focused on profile review + social links. */}
 
                         {/* Media kit moved to its own top-level tab —
                             see the "Media Kit" tab above. */}
@@ -1711,13 +1469,21 @@ const AwarenessPostsPanel = () => {
               }}
             >
               {list.map((p) => {
-                // Tab-aware pill: when viewing the Published tab, show
-                // "Published"; when viewing Scheduled show "Scheduled".
-                // For the "All" view fall back to the stored post status.
+                // Tab-aware pill:
+                //   - On Scheduled / Published tab: use the tab name.
+                //   - On the All tab: derive from the assignee states —
+                //     post-level `p.status` stays "scheduled" forever
+                //     (no auto-promotion), so we can't trust it. If ANY
+                //     assignee has flipped to published, show "Published".
+                const anyPublished = (p.assignees || []).some(
+                  (a) => a.state === "published"
+                );
                 const tabStatus =
                   filter === "scheduled" || filter === "published"
                     ? filter
-                    : p.status;
+                    : anyPublished
+                    ? "published"
+                    : "scheduled";
                 const meta = STATUS_META[tabStatus] || STATUS_META.scheduled;
 
                 // Which assignees show on this card depends on the tab:
@@ -2021,6 +1787,21 @@ const AwarenessPostsPanel = () => {
                                   {name} — live on{" "}
                                   {rows.length} platform
                                   {rows.length === 1 ? "" : "s"}
+                                  {a.reach > 0 && (
+                                    <span
+                                      className="ms-2"
+                                      style={{
+                                        padding: "2px 8px",
+                                        borderRadius: 999,
+                                        background: "#15803D",
+                                        color: "#FFFFFF",
+                                        fontWeight: 700,
+                                        fontSize: 11,
+                                      }}
+                                    >
+                                      {a.reach.toLocaleString()} reach
+                                    </span>
+                                  )}
                                   {a.publishedAt && (
                                     <span
                                       className="ms-auto small"
@@ -2042,6 +1823,8 @@ const AwarenessPostsPanel = () => {
                                         icon: "ti ti-link",
                                         color: "#6B7280",
                                       };
+                                    const synced =
+                                      pp.reach || pp.likes || pp.comments;
                                     return (
                                       <a
                                         key={pp.platform}
@@ -2059,6 +1842,7 @@ const AwarenessPostsPanel = () => {
                                           textDecoration: "none",
                                           color: "#111827",
                                           fontSize: 12,
+                                          flexWrap: "wrap",
                                         }}
                                       >
                                         <span
@@ -2081,6 +1865,47 @@ const AwarenessPostsPanel = () => {
                                           />
                                           {pp.platform}
                                         </span>
+                                        {synced ? (
+                                          <span
+                                            style={{
+                                              color: "#15803D",
+                                              fontWeight: 700,
+                                              flexShrink: 0,
+                                              fontSize: 11,
+                                            }}
+                                          >
+                                            {pp.reach > 0 && (
+                                              <>
+                                                {pp.reach.toLocaleString()}{" "}
+                                                reach
+                                              </>
+                                            )}
+                                            {pp.likes > 0 && (
+                                              <>
+                                                {" "}
+                                                · ♥{" "}
+                                                {pp.likes.toLocaleString()}
+                                              </>
+                                            )}
+                                            {pp.comments > 0 && (
+                                              <>
+                                                {" "}
+                                                · 💬{" "}
+                                                {pp.comments.toLocaleString()}
+                                              </>
+                                            )}
+                                          </span>
+                                        ) : (
+                                          <span
+                                            className="text-muted"
+                                            style={{
+                                              fontSize: 10,
+                                              flexShrink: 0,
+                                            }}
+                                          >
+                                            no API data yet
+                                          </span>
+                                        )}
                                         <span
                                           style={{
                                             color: "#3B82F6",
@@ -2089,6 +1914,7 @@ const AwarenessPostsPanel = () => {
                                             textOverflow: "ellipsis",
                                             whiteSpace: "nowrap",
                                             flex: 1,
+                                            minWidth: 80,
                                           }}
                                         >
                                           {pp.liveLink}
@@ -2206,10 +2032,48 @@ const AwarenessPostsPanel = () => {
                       className="small text-muted pt-2"
                       style={{ borderTop: "1px solid #F3F4F6" }}
                     >
-                      <i className="ti ti-calendar me-1" />
-                      {p.scheduledFor
-                        ? new Date(p.scheduledFor).toLocaleString()
-                        : "Not scheduled"}
+                      <div>
+                        <i className="ti ti-calendar me-1" />
+                        Scheduled:{" "}
+                        {p.scheduledFor
+                          ? new Date(p.scheduledFor).toLocaleString()
+                          : "Not scheduled"}
+                      </div>
+                      {/* Per-assignee publish timestamps — only listed
+                          for assignees who actually flipped to
+                          "published". One line per influencer who has
+                          gone live. */}
+                      {(() => {
+                        const livePublishers = (p.assignees || []).filter(
+                          (a) => a.state === "published"
+                        );
+                        if (livePublishers.length === 0) return null;
+                        return (
+                          <div className="mt-1">
+                            {livePublishers.map((a) => {
+                              const uid = a.user?._id || a.user;
+                              const meta = roster.find(
+                                (u) => u.id === String(uid)
+                              );
+                              const name =
+                                meta?.name ||
+                                a.user?.name ||
+                                "Influencer";
+                              return (
+                                <div key={String(uid)}>
+                                  <i className="ti ti-rocket me-1" style={{ color: "#15803D" }} />
+                                  <strong>{name}</strong> published{" "}
+                                  {a.publishedAt
+                                    ? new Date(
+                                        a.publishedAt
+                                      ).toLocaleString()
+                                    : "—"}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 );
@@ -2762,10 +2626,8 @@ const DrivesAdminPanel = () => {
                 </div>
                 <div className="d-flex gap-3 flex-wrap">
                   {[
-                    { label: "Registered", value: selected.registered, color: "#1E40AF" },
-                    { label: "Attended", value: selected.attended, color: "#15803D" },
+                    { label: "Joined", value: selected.registered, color: "#1E40AF" },
                     { label: "Promoted", value: selected.promoted, color: "#6D28D9" },
-                    { label: "Promo reach", value: selected.promoReach, color: "#EC4899" },
                   ].map((s) => (
                     <div key={s.label} className="text-end">
                       <div
@@ -2802,10 +2664,6 @@ const DrivesAdminPanel = () => {
                           <tr>
                             <th>Drive</th>
                             <th>Source</th>
-                            <th>Platform</th>
-                            <th className="text-end">Reach</th>
-                            <th className="text-end">Clicks</th>
-                            <th>Link</th>
                             <th>When</th>
                           </tr>
                         </thead>
@@ -2831,26 +2689,6 @@ const DrivesAdminPanel = () => {
                                   {p.source}
                                 </span>
                               </td>
-                              <td>{p.platform || "—"}</td>
-                              <td className="text-end">
-                                {(p.reach || 0).toLocaleString()}
-                              </td>
-                              <td className="text-end">
-                                {(p.clicks || 0).toLocaleString()}
-                              </td>
-                              <td>
-                                {p.shareUrl ? (
-                                  <a
-                                    href={p.shareUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    Open
-                                  </a>
-                                ) : (
-                                  "—"
-                                )}
-                              </td>
                               <td>{fmtDate(p.promotedAt)}</td>
                             </tr>
                           ))}
@@ -2865,11 +2703,11 @@ const DrivesAdminPanel = () => {
                       className="ti ti-clipboard-check me-1"
                       style={{ color: "#15803D" }}
                     />
-                    Registrations ({detail?.registrations?.length || 0})
+                    Joined drives ({detail?.registrations?.length || 0})
                   </h6>
                   {(detail?.registrations || []).length === 0 ? (
                     <div className="small text-muted">
-                      Hasn't registered for any drives.
+                      Hasn't joined any drives.
                     </div>
                   ) : (
                     <div className="table-responsive">
@@ -2878,9 +2716,8 @@ const DrivesAdminPanel = () => {
                           <tr>
                             <th>Drive</th>
                             <th>Source</th>
-                            <th>Status</th>
                             <th>Venue date</th>
-                            <th>Attended at</th>
+                            <th>Joined at</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -2905,36 +2742,8 @@ const DrivesAdminPanel = () => {
                                   {r.source}
                                 </span>
                               </td>
-                              <td>
-                                <span
-                                  style={{
-                                    padding: "2px 6px",
-                                    borderRadius: 4,
-                                    background:
-                                      r.status === "attended"
-                                        ? "#DCFCE7"
-                                        : r.status === "no-show"
-                                        ? "#FEE2E2"
-                                        : r.status === "cancelled"
-                                        ? "#F3F4F6"
-                                        : "#EFF6FF",
-                                    color:
-                                      r.status === "attended"
-                                        ? "#15803D"
-                                        : r.status === "no-show"
-                                        ? "#991B1B"
-                                        : r.status === "cancelled"
-                                        ? "#6B7280"
-                                        : "#1E40AF",
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  {r.status}
-                                </span>
-                              </td>
                               <td>{r.venueDate ? new Date(r.venueDate).toLocaleDateString() : "—"}</td>
-                              <td>{fmtDate(r.attendedAt)}</td>
+                              <td>{fmtDate(r.registeredAt)}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -2942,6 +2751,877 @@ const DrivesAdminPanel = () => {
                     </div>
                   )}
                 </>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── COMMUNITY ADMIN PANEL ────────────────────────────────────────────────
+//
+//   Standalone view of every approved influencer's joined-members + their
+//   contributions. Same data the Profiles tab shows on a row-expand, but
+//   surfaced in a dedicated two-pane layout because the inline view
+//   gets cramped fast.
+//
+//   Data sources:
+//     GET /admin/influencers?status=approved&search=…  — left roster
+//     GET /admin/influencers/:id/referrals             — right detail
+//
+const CommunityAdminPanel = () => {
+  const [roster, setRoster] = useState([]);
+  const [loadingRoster, setLoadingRoster] = useState(true);
+  const [selectedId, setSelectedId] = useState("");
+  const [detail, setDetail] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [search, setSearch] = useState("");
+  // Per-member expand state — keyed by member._id. Click a row to
+  // toggle the contribution detail panel under it.
+  const [memberOpen, setMemberOpen] = useState({});
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingRoster(true);
+    axios
+      .get(
+        `${import.meta.env.VITE_API_URL}/influencers?status=approved`,
+        { headers: { Authorization: sessionStorage.getItem("auth") } }
+      )
+      .then((r) => {
+        if (cancelled) return;
+        const list = r?.data?.data?.influencers || [];
+        setRoster(list);
+        if (list.length > 0 && !selectedId) setSelectedId(list[0]._id);
+      })
+      .catch(() => {})
+      .finally(() => !cancelled && setLoadingRoster(false));
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!selectedId) {
+      setDetail(null);
+      return;
+    }
+    let cancelled = false;
+    setLoadingDetail(true);
+    axios
+      .get(
+        `${import.meta.env.VITE_API_URL}/influencers/${selectedId}/referrals`,
+        { headers: { Authorization: sessionStorage.getItem("auth") } }
+      )
+      .then((r) => !cancelled && setDetail(r?.data?.data || null))
+      .catch(() => !cancelled && setDetail(null))
+      .finally(() => !cancelled && setLoadingDetail(false));
+    setMemberOpen({}); // collapse all when influencer changes
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedId]);
+
+  const filteredRoster = roster.filter((inf) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      (inf.user?.name || "").toLowerCase().includes(q) ||
+      (inf.user?.email || "").toLowerCase().includes(q) ||
+      (inf.niche || "").toLowerCase().includes(q)
+    );
+  });
+
+  const selected = roster.find((inf) => inf._id === selectedId);
+  const members = detail?.members || [];
+  const donorCount = members.filter((m) => m.isDonor).length;
+  const totalContributions = members.reduce(
+    (s, m) => s + (m.contributions?.count || 0),
+    0
+  );
+
+  return (
+    <div className="row g-3">
+      {/* Roster */}
+      <div className="col-12 col-lg-4">
+        <div
+          style={{
+            background: "#FFFFFF",
+            border: "1px solid #E5E7EB",
+            borderRadius: 12,
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              padding: "12px 14px",
+              borderBottom: "1px solid #F3F4F6",
+            }}
+          >
+            <input
+              type="search"
+              className="form-control form-control-sm"
+              placeholder="Search influencer…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          {loadingRoster ? (
+            <div className="text-center text-muted small p-4">Loading…</div>
+          ) : filteredRoster.length === 0 ? (
+            <div className="text-center text-muted small p-4">
+              No approved influencers yet.
+            </div>
+          ) : (
+            <div style={{ maxHeight: 600, overflowY: "auto" }}>
+              {filteredRoster.map((inf) => {
+                const active = inf._id === selectedId;
+                return (
+                  <button
+                    key={inf._id}
+                    type="button"
+                    onClick={() => setSelectedId(inf._id)}
+                    style={{
+                      width: "100%",
+                      display: "block",
+                      textAlign: "left",
+                      border: "none",
+                      padding: "10px 14px",
+                      background: active ? "#EEF2FF" : "transparent",
+                      borderBottom: "1px solid #F3F4F6",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div
+                      className="fw-bold"
+                      style={{
+                        color: active ? "#3730A3" : "#111827",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {inf.user?.name || "Unknown"}
+                    </div>
+                    <div className="small text-muted">
+                      {inf.niche || inf.user?.email || ""}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Detail */}
+      <div className="col-12 col-lg-8">
+        <div
+          style={{
+            background: "#FFFFFF",
+            border: "1px solid #E5E7EB",
+            borderRadius: 12,
+            padding: 16,
+            minHeight: 200,
+          }}
+        >
+          {!selected ? (
+            <div className="text-center text-muted">
+              Pick an influencer to see their community.
+            </div>
+          ) : (
+            <>
+              <div className="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-3">
+                <div style={{ minWidth: 0 }}>
+                  <h4 className="m-0">{selected.user?.name}</h4>
+                  <div className="small text-muted">
+                    {selected.user?.email}
+                  </div>
+                  {detail?.referralCode && (
+                    <div className="small mt-1">
+                      Referral code:{" "}
+                      <strong style={{ color: "#6D28D9" }}>
+                        {detail.referralCode}
+                      </strong>
+                    </div>
+                  )}
+                </div>
+                <div className="d-flex gap-3 flex-wrap">
+                  {[
+                    {
+                      label: "Members",
+                      value: members.length,
+                      color: "#1E40AF",
+                    },
+                    {
+                      label: "Active donors",
+                      value: donorCount,
+                      color: "#15803D",
+                    },
+                    {
+                      label: "Contributions",
+                      value: totalContributions,
+                      color: "#6D28D9",
+                    },
+                  ].map((s) => (
+                    <div key={s.label} className="text-end">
+                      <div
+                        style={{
+                          fontSize: 22,
+                          fontWeight: 700,
+                          color: s.color,
+                        }}
+                      >
+                        {s.value.toLocaleString()}
+                      </div>
+                      <div className="small text-muted">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {loadingDetail ? (
+                <div className="text-center text-muted small p-3">
+                  Loading members…
+                </div>
+              ) : members.length === 0 ? (
+                <div
+                  className="text-center text-muted p-4"
+                  style={{
+                    background: "#F9FAFB",
+                    borderRadius: 8,
+                  }}
+                >
+                  <i
+                    className="ti ti-users"
+                    style={{ fontSize: 36, color: "#9CA3AF" }}
+                  />
+                  <p className="m-0 mt-2">
+                    No one's signed up with this referral code yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="d-flex flex-column gap-2">
+                  {members.map((m) => {
+                    const c = m.contributions || { count: 0 };
+                    const hasContrib = !!(c && c.count > 0);
+                    const isOpen = !!memberOpen[m._id];
+                    return (
+                      <div
+                        key={m._id}
+                        className="border rounded"
+                        style={{ background: "#FFFFFF" }}
+                      >
+                        {/* Header row — always clickable so admin can
+                            expand even members with zero contributions
+                            (the empty-state inside explains why). */}
+                        <div
+                          className="d-flex align-items-center gap-2 p-2"
+                          style={{ cursor: "pointer" }}
+                          onClick={() =>
+                            setMemberOpen((s) => ({
+                              ...s,
+                              [m._id]: !s[m._id],
+                            }))
+                          }
+                        >
+                          <span
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: "50%",
+                              background: "#EFF6FF",
+                              color: "#1E40AF",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: 12,
+                              fontWeight: 700,
+                              flexShrink: 0,
+                            }}
+                          >
+                            {(m.name || "?").charAt(0).toUpperCase()}
+                          </span>
+                          <div
+                            className="flex-grow-1"
+                            style={{ minWidth: 0 }}
+                          >
+                            <div style={{ fontWeight: 600, fontSize: 13 }}>
+                              {m.name || "—"}
+                            </div>
+                            <div
+                              className="text-muted"
+                              style={{ fontSize: 11 }}
+                            >
+                              {m.email || ""}
+                              {m.phone ? ` · ${m.phone}` : ""}
+                              {m.bloodGroup &&
+                              m.bloodGroup !== "Don't Know"
+                                ? ` · ${m.bloodGroup}`
+                                : ""}
+                              {m.joinedAt
+                                ? ` · joined ${new Date(
+                                    m.joinedAt
+                                  ).toLocaleDateString()}`
+                                : ""}
+                            </div>
+                          </div>
+                          {m.isDonor && (
+                            <span
+                              style={{
+                                padding: "2px 8px",
+                                borderRadius: 999,
+                                fontSize: 10,
+                                fontWeight: 700,
+                                color: "#15803D",
+                                background: "#DCFCE7",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              Donor
+                            </span>
+                          )}
+                          {hasContrib && (
+                            <span
+                              style={{
+                                padding: "2px 8px",
+                                borderRadius: 999,
+                                fontSize: 10,
+                                fontWeight: 700,
+                                color: "#92400E",
+                                background: "#FEF3C7",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              <i className="ti ti-heart-handshake me-1" />
+                              {c.count} contribution
+                              {c.count === 1 ? "" : "s"}
+                            </span>
+                          )}
+                          <i
+                            className={`ti ${
+                              isOpen ? "ti-chevron-up" : "ti-chevron-down"
+                            }`}
+                            style={{ color: "#6B7280", fontSize: 18 }}
+                          />
+                        </div>
+
+                        {/* Expanded contribution detail */}
+                        {isOpen && (
+                          <div
+                            className="border-top p-3"
+                            style={{ background: "#F9FAFB" }}
+                          >
+                            {!hasContrib ? (
+                              <div className="small text-muted">
+                                This member hasn't made any approved
+                                contributions yet.
+                              </div>
+                            ) : (
+                              <>
+                                <div className="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-1">
+                                  <div
+                                    className="fw-bold"
+                                    style={{
+                                      fontSize: 13,
+                                      color: "#15803D",
+                                    }}
+                                  >
+                                    <i className="ti ti-heart-handshake me-1" />
+                                    {c.count} approved contribution
+                                    {c.count === 1 ? "" : "s"}
+                                    {c.totalAmount > 0 && (
+                                      <span style={{ marginLeft: 6 }}>
+                                        · ₹
+                                        {c.totalAmount.toLocaleString()}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div
+                                    className="small text-muted"
+                                    style={{ fontSize: 11 }}
+                                  >
+                                    {c.types?.direct > 0 && (
+                                      <span style={{ marginRight: 8 }}>
+                                        To Cause: {c.types.direct}
+                                      </span>
+                                    )}
+                                    {c.types?.vendor > 0 && (
+                                      <span style={{ marginRight: 8 }}>
+                                        Kind-Vendor: {c.types.vendor}
+                                      </span>
+                                    )}
+                                    {c.types?.deliver > 0 && (
+                                      <span>
+                                        Kind-Deliver: {c.types.deliver}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="d-flex flex-column gap-1">
+                                  {(c.recent || []).map((row) => {
+                                    const typeMeta = {
+                                      direct: {
+                                        label: "Cause",
+                                        color: "#15803D",
+                                        bg: "#DCFCE7",
+                                      },
+                                      vendor: {
+                                        label: "Kind · Vendor",
+                                        color: "#B45309",
+                                        bg: "#FEF3C7",
+                                      },
+                                      deliver: {
+                                        label: "Kind · Deliver",
+                                        color: "#1E40AF",
+                                        bg: "#DBEAFE",
+                                      },
+                                    }[row.type] || {
+                                      label: row.type,
+                                      color: "#374151",
+                                      bg: "#E5E7EB",
+                                    };
+                                    const itemsLabel = (row.items || [])
+                                      .map(
+                                        (it) =>
+                                          `${it.itemName} ×${it.quantity}`
+                                      )
+                                      .join(", ");
+                                    return (
+                                      <div
+                                        key={row._id}
+                                        className="d-flex align-items-center gap-2 p-2 border rounded"
+                                        style={{
+                                          fontSize: 12,
+                                          background: "#FFFFFF",
+                                        }}
+                                      >
+                                        <span
+                                          style={{
+                                            padding: "2px 8px",
+                                            borderRadius: 999,
+                                            fontSize: 10,
+                                            fontWeight: 700,
+                                            color: typeMeta.color,
+                                            background: typeMeta.bg,
+                                            whiteSpace: "nowrap",
+                                            flexShrink: 0,
+                                          }}
+                                        >
+                                          {typeMeta.label}
+                                        </span>
+                                        <span
+                                          className="flex-grow-1"
+                                          style={{
+                                            color: "#111827",
+                                            whiteSpace: "nowrap",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                          }}
+                                        >
+                                          {row.amount > 0
+                                            ? `₹${row.amount.toLocaleString()}`
+                                            : ""}
+                                          {row.amount > 0 && itemsLabel
+                                            ? " · "
+                                            : ""}
+                                          {itemsLabel}
+                                        </span>
+                                        <span
+                                          className="small text-muted"
+                                          style={{ flexShrink: 0 }}
+                                        >
+                                          {row.createdAt
+                                            ? new Date(
+                                                row.createdAt
+                                              ).toLocaleDateString()
+                                            : ""}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── FOLLOWERS ENGAGEMENT ADMIN PANEL ────────────────────────────────────
+//
+//   Read-only view of YouTube comments cached when influencers link
+//   videos to awareness posts. Two-pane layout matching the Drives +
+//   Community tabs:
+//     - LEFT  : roster of approved influencers
+//     - RIGHT : grouped-by-video comment feed for the selected one
+//
+//   Data sources:
+//     GET /admin/influencers?status=approved             — left roster
+//     GET /admin/influencers/:id/youtube-comments        — right feed
+//
+const FollowersEngagementAdminPanel = () => {
+  const [roster, setRoster] = useState([]);
+  const [loadingRoster, setLoadingRoster] = useState(true);
+  const [selectedId, setSelectedId] = useState("");
+  const [feed, setFeed] = useState(null);
+  const [loadingFeed, setLoadingFeed] = useState(false);
+  const [search, setSearch] = useState("");
+  // Per-video expand state — click video header to reveal comments.
+  // Resets when admin switches influencer so the next view starts
+  // clean (everything collapsed).
+  const [expandedVideos, setExpandedVideos] = useState({});
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingRoster(true);
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/influencers?status=approved`, {
+        headers: { Authorization: sessionStorage.getItem("auth") },
+      })
+      .then((r) => {
+        if (cancelled) return;
+        const list = r?.data?.data?.influencers || [];
+        setRoster(list);
+        if (list.length > 0 && !selectedId) setSelectedId(list[0]._id);
+      })
+      .catch(() => {})
+      .finally(() => !cancelled && setLoadingRoster(false));
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!selectedId) {
+      setFeed(null);
+      return;
+    }
+    let cancelled = false;
+    setLoadingFeed(true);
+    setExpandedVideos({}); // collapse all when switching influencer
+    axios
+      .get(
+        `${import.meta.env.VITE_API_URL}/influencers/${selectedId}/youtube-comments`,
+        { headers: { Authorization: sessionStorage.getItem("auth") } }
+      )
+      .then((r) => !cancelled && setFeed(r?.data?.data || null))
+      .catch(() => !cancelled && setFeed(null))
+      .finally(() => !cancelled && setLoadingFeed(false));
+    return () => { cancelled = true; };
+  }, [selectedId]);
+
+  const filteredRoster = roster.filter((inf) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      (inf.user?.name || "").toLowerCase().includes(q) ||
+      (inf.user?.email || "").toLowerCase().includes(q) ||
+      (inf.niche || "").toLowerCase().includes(q)
+    );
+  });
+
+  const selected = roster.find((inf) => inf._id === selectedId);
+  const groups = feed?.groups || [];
+  const total = feed?.totalComments || 0;
+
+  return (
+    <div className="row g-3">
+      {/* Roster */}
+      <div className="col-12 col-lg-4">
+        <div
+          style={{
+            background: "#FFFFFF",
+            border: "1px solid #E5E7EB",
+            borderRadius: 12,
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              padding: "12px 14px",
+              borderBottom: "1px solid #F3F4F6",
+            }}
+          >
+            <input
+              type="search"
+              className="form-control form-control-sm"
+              placeholder="Search influencer…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          {loadingRoster ? (
+            <div className="text-center text-muted small p-4">Loading…</div>
+          ) : filteredRoster.length === 0 ? (
+            <div className="text-center text-muted small p-4">
+              No approved influencers yet.
+            </div>
+          ) : (
+            <div style={{ maxHeight: 600, overflowY: "auto" }}>
+              {filteredRoster.map((inf) => {
+                const active = inf._id === selectedId;
+                return (
+                  <button
+                    key={inf._id}
+                    type="button"
+                    onClick={() => setSelectedId(inf._id)}
+                    style={{
+                      width: "100%",
+                      display: "block",
+                      textAlign: "left",
+                      border: "none",
+                      padding: "10px 14px",
+                      background: active ? "#FEF2F2" : "transparent",
+                      borderBottom: "1px solid #F3F4F6",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div
+                      className="fw-bold"
+                      style={{
+                        color: active ? "#991B1B" : "#111827",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {inf.user?.name || "Unknown"}
+                    </div>
+                    <div className="small text-muted">
+                      {inf.niche || inf.user?.email || ""}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Comment feed */}
+      <div className="col-12 col-lg-8">
+        <div
+          style={{
+            background: "#FFFFFF",
+            border: "1px solid #E5E7EB",
+            borderRadius: 12,
+            padding: 16,
+            minHeight: 200,
+          }}
+        >
+          {!selected ? (
+            <div className="text-center text-muted">
+              Pick an influencer to read their YouTube comments.
+            </div>
+          ) : (
+            <>
+              <div className="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-3">
+                <div>
+                  <h4 className="m-0">{selected.user?.name}</h4>
+                  <div className="small text-muted">
+                    <i className="ti ti-brand-youtube me-1" style={{ color: "#FF0000" }} />
+                    {total} cached comment{total === 1 ? "" : "s"} across{" "}
+                    {groups.length} video{groups.length === 1 ? "" : "s"}
+                  </div>
+                </div>
+                <span
+                  className="small text-muted"
+                  style={{ fontSize: 11 }}
+                >
+                  Read-only. Comments refresh when the influencer syncs.
+                </span>
+              </div>
+
+              {loadingFeed ? (
+                <div className="text-center text-muted small p-3">
+                  Loading comments…
+                </div>
+              ) : groups.length === 0 ? (
+                <div
+                  className="text-center text-muted p-4"
+                  style={{ background: "#F9FAFB", borderRadius: 8 }}
+                >
+                  <i
+                    className="ti ti-message-2"
+                    style={{ fontSize: 36, color: "#9CA3AF" }}
+                  />
+                  <p className="m-0 mt-2">
+                    No YouTube comments cached yet. The influencer needs
+                    to link a YouTube video to a published awareness
+                    post (Profile → Connected accounts → connect, then
+                    Assigned Posts → Published → Link YouTube video).
+                  </p>
+                </div>
+              ) : (
+                <div className="d-flex flex-column gap-3">
+                  {groups.map((g) => {
+                    const isOpen = !!expandedVideos[g.videoId];
+                    return (
+                    <div
+                      key={g.videoId}
+                      className="border rounded"
+                      style={{ background: "#FFFFFF" }}
+                    >
+                      {/* Header — click anywhere to toggle. "Open video"
+                          stops propagation so it just opens the link. */}
+                      <div
+                        onClick={() =>
+                          setExpandedVideos((m) => ({
+                            ...m,
+                            [g.videoId]: !m[g.videoId],
+                          }))
+                        }
+                        style={{
+                          padding: "10px 14px",
+                          borderBottom: isOpen
+                            ? "1px solid #F3F4F6"
+                            : "none",
+                          background: "#FFF1F2",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                        }}
+                      >
+                        <i
+                          className={`ti ${
+                            isOpen ? "ti-chevron-up" : "ti-chevron-down"
+                          }`}
+                          style={{
+                            color: "#991B1B",
+                            fontSize: 16,
+                            flexShrink: 0,
+                          }}
+                        />
+                        <div
+                          className="flex-grow-1"
+                          style={{ minWidth: 0 }}
+                        >
+                          <div className="fw-bold small" style={{ color: "#991B1B" }}>
+                            <i className="ti ti-brand-youtube me-1" style={{ color: "#FF0000" }} />
+                            {g.postTitle || "Linked video"}
+                          </div>
+                          <a
+                            href={`https://www.youtube.com/watch?v=${g.videoId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ fontSize: 11, color: "#3B82F6" }}
+                          >
+                            Open video <i className="ti ti-external-link" />
+                          </a>
+                        </div>
+                        <span
+                          style={{
+                            padding: "2px 8px",
+                            borderRadius: 999,
+                            background: "#FEE2E2",
+                            color: "#991B1B",
+                            fontSize: 11,
+                            fontWeight: 700,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {g.comments.length} comment
+                          {g.comments.length === 1 ? "" : "s"}
+                        </span>
+                      </div>
+                      {/* Smoothly-animated collapse wrapper. We give
+                          max-height a generous ceiling (10000px) so
+                          long comment threads still fit. The
+                          interpolation between 0 and the ceiling
+                          produces a smooth slide. opacity adds a
+                          gentle fade for polish. */}
+                      <div
+                        style={{
+                          maxHeight: isOpen ? 10000 : 0,
+                          opacity: isOpen ? 1 : 0,
+                          overflow: "hidden",
+                          transition:
+                            "max-height 350ms ease-in-out, opacity 250ms ease-in-out",
+                        }}
+                      >
+                      {g.comments.map((c, i) => (
+                        <div
+                          key={c._id}
+                          className="d-flex gap-2 p-3"
+                          style={{
+                            borderTop: i === 0 ? "none" : "1px solid #F3F4F6",
+                          }}
+                        >
+                          {c.authorImage ? (
+                            <img
+                              src={c.authorImage}
+                              alt=""
+                              style={{
+                                width: 36,
+                                height: 36,
+                                borderRadius: "50%",
+                                flexShrink: 0,
+                                objectFit: "cover",
+                              }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                width: 36,
+                                height: 36,
+                                borderRadius: "50%",
+                                background: "#FEE2E2",
+                                color: "#B91C1C",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontWeight: 700,
+                                flexShrink: 0,
+                              }}
+                            >
+                              {(c.author || "?").charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                            <div className="fw-bold small">
+                              {c.author || "Anonymous"}
+                              {c.publishedAt && (
+                                <span className="text-muted fw-normal">
+                                  {" "}
+                                  ·{" "}
+                                  {new Date(c.publishedAt).toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ wordWrap: "break-word", fontSize: 13 }}>
+                              {String(c.text || "").replace(/<[^>]*>/g, "")}
+                            </div>
+                            {c.likeCount > 0 && (
+                              <div
+                                className="small text-muted mt-1"
+                                style={{ fontSize: 11 }}
+                              >
+                                ♥ {c.likeCount.toLocaleString()}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      </div>
+                    </div>
+                    );
+                  })}
+                </div>
               )}
             </>
           )}
@@ -4054,68 +4734,9 @@ const MediaKitAdminPanel = () => {
               </div>
             </div>
 
-            {/* Approved socials */}
-            <div className="card mb-3">
-              <div className="card-body">
-                <h5 className="mb-3">Approved social profiles</h5>
-                {(kit.social || []).length === 0 ? (
-                  <p className="text-muted small m-0">
-                    No approved social links.
-                  </p>
-                ) : (
-                  <div className="d-flex flex-column gap-2">
-                    {kit.social.map((s, i) => {
-                      const meta =
-                        SOCIAL_META_ADMIN[s.platform] ||
-                        SOCIAL_META_ADMIN.other;
-                      return (
-                        <div
-                          key={`${s.platform}-${i}`}
-                          className="d-flex align-items-center gap-2 border rounded p-2"
-                          style={{ background: "#FFFFFF" }}
-                        >
-                          <i
-                            className={meta.icon}
-                            style={{
-                              fontSize: 18,
-                              color: meta.color,
-                              flexShrink: 0,
-                            }}
-                          />
-                          <div
-                            className="fw-bold"
-                            style={{ minWidth: 110, flexShrink: 0 }}
-                          >
-                            {meta.label}
-                          </div>
-                          <a
-                            href={s.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              flex: 1,
-                              wordBreak: "break-all",
-                              color: "#1E40AF",
-                            }}
-                          >
-                            {s.url}
-                          </a>
-                          <a
-                            href={s.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn btn-outline-secondary btn-sm"
-                            title="Open"
-                          >
-                            <i className="ti ti-external-link" />
-                          </a>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Approved social profiles block removed — same data is
+                visible on the Profiles tab inline view, no need to
+                duplicate in the Media Kit. */}
 
             {/* Uploaded portfolio */}
             <div className="card mb-3">
