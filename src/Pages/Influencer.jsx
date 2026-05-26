@@ -3284,6 +3284,10 @@ const FollowersEngagementAdminPanel = () => {
   // Resets when admin switches influencer so the next view starts
   // clean (everything collapsed).
   const [expandedVideos, setExpandedVideos] = useState({});
+  // Time-window filter for the comments feed — "24h" (default) keeps
+  // the panel scoped to the rolling past-24-hours window so admin
+  // doesn't drown in cached history once an influencer gets traction.
+  const [range, setRange] = useState("24h");
 
   useEffect(() => {
     let cancelled = false;
@@ -3311,17 +3315,17 @@ const FollowersEngagementAdminPanel = () => {
     }
     let cancelled = false;
     setLoadingFeed(true);
-    setExpandedVideos({}); // collapse all when switching influencer
+    setExpandedVideos({}); // collapse all when switching influencer / range
     axios
       .get(
-        `${import.meta.env.VITE_API_URL}/influencers/${selectedId}/youtube-comments`,
+        `${import.meta.env.VITE_API_URL}/influencers/${selectedId}/youtube-comments?range=${range}`,
         { headers: { Authorization: sessionStorage.getItem("auth") } }
       )
       .then((r) => !cancelled && setFeed(r?.data?.data || null))
       .catch(() => !cancelled && setFeed(null))
       .finally(() => !cancelled && setLoadingFeed(false));
     return () => { cancelled = true; };
-  }, [selectedId]);
+  }, [selectedId, range]);
 
   const filteredRoster = roster.filter((inf) => {
     const q = search.trim().toLowerCase();
@@ -3433,16 +3437,64 @@ const FollowersEngagementAdminPanel = () => {
                   <h4 className="m-0">{selected.user?.name}</h4>
                   <div className="small text-muted">
                     <i className="ti ti-brand-youtube me-1" style={{ color: "#FF0000" }} />
-                    {total} cached comment{total === 1 ? "" : "s"} across{" "}
+                    {total} comment{total === 1 ? "" : "s"} across{" "}
                     {groups.length} video{groups.length === 1 ? "" : "s"}
+                    {range !== "all" && (
+                      <span style={{ marginLeft: 6, color: "#9CA3AF" }}>
+                        ({range === "24h" ? "past 24 hours" : "past 7 days"})
+                      </span>
+                    )}
                   </div>
                 </div>
                 <span
                   className="small text-muted"
                   style={{ fontSize: 11 }}
                 >
-                  Read-only. Comments refresh when the influencer syncs.
+                  Read-only. Comments refresh hourly via the cron.
                 </span>
+              </div>
+
+              {/* Time-window filter — keeps the panel useful once an
+                  influencer's cache grows past hundreds of comments.
+                  Defaults to past 24 hours since the cron auto-syncs
+                  hourly. */}
+              <div
+                className="d-flex flex-wrap align-items-center gap-2 mb-3"
+              >
+                <span
+                  className="small text-muted"
+                  style={{ fontWeight: 600 }}
+                >
+                  Show:
+                </span>
+                {[
+                  { key: "24h", label: "Past 24 hours" },
+                  { key: "7d", label: "Past 7 days" },
+                  { key: "all", label: "All" },
+                ].map((opt) => {
+                  const active = range === opt.key;
+                  return (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => setRange(opt.key)}
+                      disabled={loadingFeed}
+                      style={{
+                        padding: "4px 12px",
+                        borderRadius: 999,
+                        border: "1px solid",
+                        borderColor: active ? "#FCA5A5" : "#E5E7EB",
+                        background: active ? "#FEE2E2" : "#FFFFFF",
+                        color: active ? "#991B1B" : "#374151",
+                        fontWeight: 600,
+                        fontSize: 12,
+                        cursor: loadingFeed ? "default" : "pointer",
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
               </div>
 
               {loadingFeed ? (
@@ -3459,10 +3511,9 @@ const FollowersEngagementAdminPanel = () => {
                     style={{ fontSize: 36, color: "#9CA3AF" }}
                   />
                   <p className="m-0 mt-2">
-                    No YouTube comments cached yet. The influencer needs
-                    to link a YouTube video to a published awareness
-                    post (Profile → Connected accounts → connect, then
-                    Assigned Posts → Published → Link YouTube video).
+                    {range !== "all"
+                      ? "No new comments in this window. Try Past 7 days or All to see older comments."
+                      : "No YouTube comments cached yet. The influencer needs to link a YouTube video to a published awareness post (Profile → Connected accounts → connect, then Assigned Posts → Published → Link YouTube video)."}
                   </p>
                 </div>
               ) : (
@@ -4427,6 +4478,198 @@ const SOCIAL_META_ADMIN = {
   other: { label: "Other", icon: "ti ti-link", color: "#6B7280" },
 };
 
+// YouTube uploads card for the admin Media Kit. Lazy-loads the
+// connected channel's most recent 5 long-form videos + 5 Shorts via
+// the admin endpoint and lets the admin flip between the two buckets
+// with a Videos / Shorts toggle. Mirrors the influencer-side widget
+// so what admin sees matches what the influencer sees.
+const YoutubeUploadsAdminCard = ({ influencerId }) => {
+  const [videos, setVideos] = useState(null);
+  const [shorts, setShorts] = useState(null);
+  const [type, setType] = useState("videos");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Reset cached state whenever the admin switches to a different
+  // influencer so the previous channel's uploads don't bleed across.
+  useEffect(() => {
+    setVideos(null);
+    setShorts(null);
+    setType("videos");
+    setError("");
+  }, [influencerId]);
+
+  const load = async () => {
+    if (!influencerId) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/influencers/${influencerId}/youtube-uploads?perType=5`,
+        { headers: { Authorization: sessionStorage.getItem("auth") } }
+      );
+      setVideos(res?.data?.data?.videos || []);
+      setShorts(res?.data?.data?.shorts || []);
+    } catch (err) {
+      setError(
+        err?.response?.data?.error ||
+          "Could not load YouTube uploads (is YouTube connected for this influencer?)"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loaded = Array.isArray(videos) && Array.isArray(shorts);
+  const list = type === "shorts" ? shorts : videos;
+
+  return (
+    <div className="card mb-3">
+      <div className="card-body">
+        <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+          <h5 className="m-0">
+            <i
+              className="ti ti-brand-youtube me-1"
+              style={{ color: "#FF0000" }}
+            />
+            YouTube uploads
+          </h5>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-secondary"
+            onClick={load}
+            disabled={loading}
+          >
+            {loading
+              ? "Loading…"
+              : loaded
+              ? "Refresh"
+              : "Show recent uploads"}
+          </button>
+        </div>
+
+        {error && (
+          <div className="small text-danger m-0">{error}</div>
+        )}
+
+        {loaded && videos.length + shorts.length === 0 && !error && (
+          <p className="text-muted small m-0">
+            No uploads on the connected channel yet.
+          </p>
+        )}
+
+        {loaded && videos.length + shorts.length > 0 && (
+          <>
+            <div className="d-flex gap-2 mb-3">
+              {[
+                { key: "videos", label: "Videos", count: videos.length },
+                { key: "shorts", label: "Shorts", count: shorts.length },
+              ].map((tab) => {
+                const active = type === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setType(tab.key)}
+                    style={{
+                      padding: "4px 12px",
+                      borderRadius: 999,
+                      border: "1px solid",
+                      borderColor: active ? "#FCA5A5" : "#E5E7EB",
+                      background: active ? "#FEE2E2" : "#FFFFFF",
+                      color: active ? "#991B1B" : "#374151",
+                      fontWeight: 600,
+                      fontSize: 12,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {tab.label} ({tab.count})
+                  </button>
+                );
+              })}
+            </div>
+
+            {list.length === 0 ? (
+              <p className="text-muted small m-0">
+                {type === "shorts"
+                  ? "No Shorts in the recent uploads."
+                  : "No regular videos in the recent uploads."}
+              </p>
+            ) : (
+              <div className="d-flex flex-column gap-2">
+                {list.map((v) => (
+                  <a
+                    key={v.videoId}
+                    href={v.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      padding: 8,
+                      borderRadius: 8,
+                      background: "#FFFFFF",
+                      border: "1px solid #E5E7EB",
+                      textDecoration: "none",
+                      color: "#111827",
+                      alignItems: "center",
+                    }}
+                  >
+                    {v.thumbnailUrl && (
+                      <img
+                        src={v.thumbnailUrl}
+                        alt=""
+                        style={{
+                          width: 96,
+                          height: 54,
+                          objectFit: "cover",
+                          borderRadius: 4,
+                          flexShrink: 0,
+                          background: "#F3F4F6",
+                        }}
+                      />
+                    )}
+                    <div
+                      className="flex-grow-1"
+                      style={{ minWidth: 0 }}
+                    >
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          fontSize: 13,
+                          lineHeight: 1.3,
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {v.title}
+                      </div>
+                      <div
+                        className="small text-muted"
+                        style={{ fontSize: 11, marginTop: 2 }}
+                      >
+                        {v.publishedAt
+                          ? new Date(v.publishedAt).toLocaleDateString()
+                          : ""}
+                        {" · "}
+                        👁 {v.views.toLocaleString()} · ♥{" "}
+                        {v.likes.toLocaleString()} · 💬{" "}
+                        {v.comments.toLocaleString()}
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const MediaKitAdminPanel = () => {
   const { setLoading } = useContext(GlobalContext);
   const [list, setList] = useState([]);
@@ -4820,97 +5063,12 @@ const MediaKitAdminPanel = () => {
               </div>
             </div>
 
-            {/* Published-post portfolio */}
-            <div className="card">
-              <div className="card-body">
-                <h5 className="mb-3">
-                  Published posts ({(kit.portfolio || []).length})
-                </h5>
-                {(kit.portfolio || []).length === 0 ? (
-                  <p className="text-muted small m-0">
-                    No awareness posts published yet.
-                  </p>
-                ) : (
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "repeat(auto-fit, minmax(220px, 1fr))",
-                      gap: 12,
-                    }}
-                  >
-                    {kit.portfolio.map((p) => {
-                      const firstImg = (p.attachments || []).find(
-                        (a) => a.kind === "image" && a.file
-                      );
-                      return (
-                        <div
-                          key={p._id}
-                          style={{
-                            border: "1px solid #F3F4F6",
-                            borderRadius: 10,
-                            overflow: "hidden",
-                            background: "#FFFFFF",
-                          }}
-                        >
-                          {firstImg ? (
-                            <img
-                              src={firstImg.file.url}
-                              alt={p.title}
-                              style={{
-                                width: "100%",
-                                height: 120,
-                                objectFit: "cover",
-                                display: "block",
-                              }}
-                            />
-                          ) : (
-                            <div
-                              style={{
-                                height: 120,
-                                background:
-                                  "linear-gradient(135deg, #FEE2E2, #F5F3FF)",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: "#7C3AED",
-                                fontSize: 32,
-                              }}
-                            >
-                              <i className="ti ti-news" />
-                            </div>
-                          )}
-                          <div style={{ padding: 10 }}>
-                            <div
-                              className="fw-bold"
-                              style={{
-                                fontSize: 13,
-                                lineHeight: 1.3,
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                              }}
-                            >
-                              {p.title}
-                            </div>
-                            <div className="small text-muted">
-                              {p.reach > 0
-                                ? `${p.reach.toLocaleString()} reach`
-                                : "Reach pending"}
-                              {p.publishedAt
-                                ? ` · ${new Date(
-                                    p.publishedAt
-                                  ).toLocaleDateString()}`
-                                : ""}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* YouTube uploads (Videos / Shorts toggle) — admin can browse
+                the influencer's most recent 5 of each type without leaving
+                the panel. Same data + same shape the influencer sees on
+                their profile widget. */}
+            <YoutubeUploadsAdminCard influencerId={selectedId} />
+
           </>
         )}
       </div>
