@@ -34,15 +34,12 @@ const TOP_TABS = [
 const PLATFORM_META = {
   instagram: { label: "Instagram", icon: "ti ti-brand-instagram", color: "#E1306C" },
   youtube: { label: "YouTube", icon: "ti ti-brand-youtube", color: "#FF0000" },
-  twitter: { label: "Twitter / X", icon: "ti ti-brand-twitter", color: "#1DA1F2" },
   facebook: { label: "Facebook", icon: "ti ti-brand-facebook", color: "#1877F2" },
-  linkedin: { label: "LinkedIn", icon: "ti ti-brand-linkedin", color: "#0A66C2" },
-  tiktok: { label: "TikTok", icon: "ti ti-brand-tiktok", color: "#000000" },
+  twitter: { label: "Twitter / X", icon: "ti ti-brand-twitter", color: "#1DA1F2" },
   threads: { label: "Threads", icon: "ti ti-brand-threads", color: "#000000" },
-  snapchat: { label: "Snapchat", icon: "ti ti-brand-snapchat", color: "#FFFC00" },
   pinterest: { label: "Pinterest", icon: "ti ti-brand-pinterest", color: "#E60023" },
-  whatsapp: { label: "WhatsApp", icon: "ti ti-brand-whatsapp", color: "#25D366" },
-  telegram: { label: "Telegram", icon: "ti ti-brand-telegram", color: "#0088CC" },
+  medium: { label: "Medium", icon: "ti ti-article", color: "#000000" },
+  linkedin: { label: "LinkedIn", icon: "ti ti-brand-linkedin", color: "#0A66C2" },
   other: { label: "Other", icon: "ti ti-link", color: "#6B7280" },
 };
 
@@ -806,13 +803,12 @@ const POST_PLATFORMS = [
   { name: "YouTube", icon: "ti ti-brand-youtube", color: "#FF0000" },
   { name: "Facebook", icon: "ti ti-brand-facebook", color: "#1877F2" },
   { name: "Twitter / X", icon: "ti ti-brand-twitter", color: "#1DA1F2" },
-  { name: "LinkedIn", icon: "ti ti-brand-linkedin", color: "#0A66C2" },
-  { name: "TikTok", icon: "ti ti-brand-tiktok", color: "#000000" },
   { name: "Threads", icon: "ti ti-brand-threads", color: "#000000" },
-  { name: "Snapchat", icon: "ti ti-brand-snapchat", color: "#FFFC00" },
   { name: "Pinterest", icon: "ti ti-brand-pinterest", color: "#E60023" },
-  { name: "WhatsApp", icon: "ti ti-brand-whatsapp", color: "#25D366" },
-  { name: "Telegram", icon: "ti ti-brand-telegram", color: "#0088CC" },
+  // Medium has no dedicated Tabler brand icon in this build — `ti-article`
+  // is the closest contextual fallback (paper / article symbol).
+  { name: "Medium", icon: "ti ti-article", color: "#000000" },
+  { name: "LinkedIn", icon: "ti ti-brand-linkedin", color: "#0A66C2" },
 ];
 
 // Helper to render the initials avatar for an influencer.
@@ -4471,10 +4467,12 @@ const RewardsAdminPanel = () => {
 const SOCIAL_META_ADMIN = {
   instagram: { label: "Instagram", icon: "ti ti-brand-instagram", color: "#E1306C" },
   youtube: { label: "YouTube", icon: "ti ti-brand-youtube", color: "#FF0000" },
-  twitter: { label: "Twitter / X", icon: "ti ti-brand-twitter", color: "#1DA1F2" },
   facebook: { label: "Facebook", icon: "ti ti-brand-facebook", color: "#1877F2" },
-  linkedin: { label: "LinkedIn", icon: "ti ti-brand-linkedin", color: "#0A66C2" },
+  twitter: { label: "Twitter / X", icon: "ti ti-brand-twitter", color: "#1DA1F2" },
   threads: { label: "Threads", icon: "ti ti-brand-threads", color: "#000000" },
+  pinterest: { label: "Pinterest", icon: "ti ti-brand-pinterest", color: "#E60023" },
+  medium: { label: "Medium", icon: "ti ti-article", color: "#000000" },
+  linkedin: { label: "LinkedIn", icon: "ti ti-brand-linkedin", color: "#0A66C2" },
   other: { label: "Other", icon: "ti ti-link", color: "#6B7280" },
 };
 
