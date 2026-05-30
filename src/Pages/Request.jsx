@@ -323,6 +323,25 @@ const Request = () => {
                                     {request.ngoCreator.name || "—"}
                                   </span>
                                 </div>
+                              ) : request.orgCreator ? (
+                                <div style={{ fontSize: 10.5, marginTop: 2 }}>
+                                  <span
+                                    style={{
+                                      background: "rgba(14,165,233,0.14)",
+                                      color: "#0369a1",
+                                      padding: "1px 6px",
+                                      borderRadius: 4,
+                                      fontWeight: 700,
+                                      marginRight: 4,
+                                    }}
+                                    title={`Submitted by ${request.orgCreator.name} (${request.orgCreator.type || "Organisation"})`}
+                                  >
+                                    ORGANISATION
+                                  </span>
+                                  <span style={{ color: "#6b7280" }}>
+                                    {request.orgCreator.name || "—"}
+                                  </span>
+                                </div>
                               ) : request.recipient ? (
                                 <div
                                   style={{
