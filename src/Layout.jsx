@@ -56,6 +56,8 @@ import Organizations from "./Pages/Organizations";
 import OrganizationDetails from "./Pages/OrganizationDetails";
 import Ngos from "./Pages/Ngos";
 import NgoDetails from "./Pages/NgoDetails";
+import Colleges from "./Pages/Colleges";
+import CollegeDetails from "./Pages/CollegeDetails";
 import CampDetails from "./Pages/CampDetails";
 import DonationsReport from "./Pages/DonationsReport";
 import CertificateOrders from "./Pages/CertificateOrders";
@@ -110,6 +112,8 @@ const Layout = () => {
               <Route path="/organizations/:id" element={<OrganizationDetails />} />
               <Route path="/ngos" element={<Ngos />} />
               <Route path="/ngo/:id" element={<NgoDetails />} />
+              <Route path="/colleges" element={<Colleges />} />
+              <Route path="/colleges/:id" element={<CollegeDetails />} />
               <Route path="/camp/:id" element={<CampDetails />} />
               <Route path="/donations-report" element={<DonationsReport />} />
               <Route path="/certificate-orders" element={<CertificateOrders />} />
