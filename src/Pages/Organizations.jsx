@@ -78,7 +78,6 @@ const Organizations = () => {
   const [showModal, setShowModal] = useState(false);
   const [typeFilter, setTypeFilter] = useState("All");
   const [verifiedFilter, setVerifiedFilter] = useState("All");
-  const [activeFilter, setActiveFilter] = useState("All");
   const [searchText, setSearchText] = useState("");
 
   const load = async () => {
@@ -109,18 +108,15 @@ const Organizations = () => {
       if (verifiedFilter === "Verified" && !o.verified) return false;
       if (verifiedFilter === "Pending" && (o.verified || o.verificationRejected)) return false;
       if (verifiedFilter === "Rejected" && !o.verificationRejected) return false;
-      if (activeFilter === "Active" && !o.active) return false;
-      if (activeFilter === "Inactive" && o.active) return false;
       return true;
     });
-  }, [items, verifiedFilter, activeFilter]);
+  }, [items, verifiedFilter]);
 
   const stats = useMemo(() => {
     const total = items.length;
     const verified = items.filter((o) => o.verified).length;
     const pending = items.filter((o) => !o.verified && !o.verificationRejected).length;
-    const inactive = items.filter((o) => !o.active).length;
-    return { total, verified, pending, inactive };
+    return { total, verified, pending };
   }, [items]);
 
   const openCreate = () => {
@@ -213,22 +209,6 @@ const Organizations = () => {
     }
   };
 
-  const toggleActive = async (o) => {
-    try {
-      setLoading(true);
-      await axios.patch(
-        `${import.meta.env.VITE_API_URL}/organizations/${o._id}`,
-        { active: !o.active },
-        { headers: authHeaders() }
-      );
-      await load();
-    } catch (err) {
-      swal("Error", err?.response?.data?.error || "Failed to toggle", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const quickVerify = async (o) => {
     try {
       setLoading(true);
@@ -307,7 +287,6 @@ const Organizations = () => {
           <StatCard label="Total" value={stats.total} accent="#0EA5E9" icon="ti-building-community" />
           <StatCard label="Verified" value={stats.verified} accent="#16A34A" icon="ti-shield-check" />
           <StatCard label="Pending Verification" value={stats.pending} accent="#F59E0B" icon="ti-clock" />
-          <StatCard label="Inactive" value={stats.inactive} accent="#6B7280" icon="ti-circle-off" />
         </div>
 
         <div className="card">
@@ -335,16 +314,6 @@ const Organizations = () => {
                 <option value="Pending">Pending</option>
                 <option value="Rejected">Rejected</option>
               </select>
-              <select
-                className="form-control"
-                style={{ maxWidth: 170 }}
-                value={activeFilter}
-                onChange={(e) => setActiveFilter(e.target.value)}
-              >
-                <option value="All">All Status</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
               <input
                 className="form-control"
                 style={{ maxWidth: 260 }}
@@ -365,7 +334,6 @@ const Organizations = () => {
                     <th className="align-left">Name</th>
                     <th className="align-left">Type</th>
                     <th className="align-left">Verification</th>
-                    <th className="align-left">Status</th>
                     <th className="align-center">Members</th>
                     <th className="align-center">Drives</th>
                     <th className="align-center">Campaigns</th>
@@ -375,7 +343,7 @@ const Organizations = () => {
                 <tbody>
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="align-center">
+                      <td colSpan={7} className="align-center">
                         <p className="m-5 p-5 fs-4">
                           {items.length === 0
                             ? "No organizations yet — click ‘Add Organization’ to begin."
@@ -420,20 +388,6 @@ const Organizations = () => {
                               <i className={`ti ${vs.icon}`}></i> {vs.label}
                             </span>
                           </td>
-                          <td className="align-left">
-                            <span
-                              style={{
-                                padding: "3px 10px",
-                                borderRadius: 10,
-                                fontSize: 11,
-                                fontWeight: 700,
-                                color: "#FFFFFF",
-                                background: o.active ? "#22C55E" : "#6B7280",
-                              }}
-                            >
-                              {o.active ? "Active" : "Inactive"}
-                            </span>
-                          </td>
                           <td className="align-center">{o.membersCount ?? 0}</td>
                           <td className="align-center">{o.drivesCount ?? 0}</td>
                           <td className="align-center">{o.campaignsCount ?? 0}</td>
@@ -446,11 +400,11 @@ const Organizations = () => {
                               <i className="ti ti-eye"></i>
                             </Link>
                             <button
-                              className={`btn btn-sm me-1 ${o.verified ? "btn-outline-secondary" : "btn-outline-success"}`}
+                              className={`btn btn-sm me-1 ${o.verified ? "btn-outline-success" : "btn-outline-secondary"}`}
                               onClick={() => quickVerify(o)}
                               title={o.verified ? "Mark unverified" : "Mark verified"}
                             >
-                              <i className={`ti ${o.verified ? "ti-shield-off" : "ti-shield-check"}`}></i>
+                              <i className={`ti ${o.verified ? "ti-shield-check" : "ti-shield-off"}`}></i>
                             </button>
                             <button
                               className="btn btn-sm btn-outline-info me-1"
@@ -458,13 +412,6 @@ const Organizations = () => {
                               title="Edit"
                             >
                               <i className="ti ti-pencil"></i>
-                            </button>
-                            <button
-                              className={`btn btn-sm me-1 ${o.active ? "btn-outline-secondary" : "btn-outline-success"}`}
-                              onClick={() => toggleActive(o)}
-                              title={o.active ? "Disable" : "Enable"}
-                            >
-                              <i className={`ti ${o.active ? "ti-toggle-left" : "ti-toggle-right"}`}></i>
                             </button>
                             <button
                               className="btn btn-sm btn-outline-danger"

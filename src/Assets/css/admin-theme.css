@@ -991,27 +991,34 @@ input:focus, textarea:focus, select:focus {
 }
 
 /* ================================================================
-   KILL bg-primary BLUE IN ALL DETAIL PAGES — replace with red theme
+   CARD HEADERS — clean white surface with a red left-accent bar and
+   red icons. Neutralises Bootstrap's bg-primary/success/info too so
+   detail pages stay on-brand without the heavy solid-red bars.
    ================================================================ */
 .content-wrapper .card-header.bg-primary,
 .content-wrapper .card-header.bg-success,
 .content-wrapper .card-header.bg-info,
-.content-wrapper .card-header { 
-  background: var(--red) !important;
-  background-color: var(--red) !important;
-  color: white !important;
-  border-bottom: none !important;
+.content-wrapper .card-header {
+  background: var(--white) !important;
+  background-color: var(--white) !important;
+  color: var(--dark) !important;
+  border-bottom: 1px solid #eef0f3 !important;
+  border-left: 4px solid var(--red) !important;
   padding: 14px 20px !important;
 }
 .content-wrapper .card-header h5,
 .content-wrapper .card-header h4,
 .content-wrapper .card-header p,
 .content-wrapper .card-header .small {
-  color: white !important;
+  color: var(--dark) !important;
   font-family: var(--f-display) !important;
 }
 .content-wrapper .card-header h5 { font-size: 15px !important; font-weight: 700 !important; margin: 0 !important; }
-.content-wrapper .card-header .small { font-size: 12px !important; color: rgba(255,255,255,0.75) !important; margin: 2px 0 0 !important; }
+.content-wrapper .card-header .small,
+.content-wrapper .card-header .text-muted { font-size: 12px !important; color: #6b7280 !important; margin: 2px 0 0 !important; }
+/* Header icons carry the brand red so headers still read as on-brand. */
+.content-wrapper .card-header h5 > i,
+.content-wrapper .card-header h4 > i { color: var(--red) !important; }
 
 /* Card body padding fix */
 .content-wrapper .card .card-body {
