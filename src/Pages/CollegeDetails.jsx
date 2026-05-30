@@ -295,39 +295,119 @@ const OverviewTab = ({ college, refresh }) => {
             {verificationBadge(college)}
           </div>
           <div className="card-body">
-            <div className="mb-3 small text-muted">
-              {college.verified ? (
-                <>
-                  Verified{college.verifiedAt && ` on ${moment(college.verifiedAt).format("DD MMM YYYY")}`}
-                  {college.verifiedBy && <> by <strong>{college.verifiedBy?.name || college.verifiedBy}</strong></>}.
-                </>
-              ) : college.verificationRejected ? (
-                "Verification was rejected. Review the notes and re-evaluate when ready."
-              ) : (
-                "Awaiting verification. Review affiliation documents and decide."
-              )}
-            </div>
+            {college.verified ? (
+              // Verified is a TERMINAL state in the admin's day-to-day view.
+              // Show a clean confirmation panel + a single "Revoke" escape
+              // hatch (confirm-gated) so the admin can't accidentally flip
+              // the state by clicking through stale buttons.
+              <>
+                <div
+                  className="d-flex align-items-center gap-2 mb-3 px-3 py-3"
+                  style={{
+                    background: "#DCFCE7",
+                    border: "1px solid #86EFAC",
+                    borderRadius: 8,
+                    color: "#166534",
+                  }}
+                >
+                  <i className="ti ti-shield-check" style={{ fontSize: 24 }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700 }}>Verified</div>
+                    <div style={{ fontSize: 12 }}>
+                      {college.verifiedAt &&
+                        `On ${moment(college.verifiedAt).format(
+                          "DD MMM YYYY"
+                        )}`}
+                      {college.verifiedBy && (
+                        <>
+                          {" by "}
+                          <strong>
+                            {college.verifiedBy?.name || college.verifiedBy}
+                          </strong>
+                        </>
+                      )}
+                      .
+                    </div>
+                  </div>
+                </div>
+                {verifyNotes && (
+                  <div className="mb-3">
+                    <label className="form-label small text-muted">
+                      Verification Notes
+                    </label>
+                    <div
+                      className="px-3 py-2"
+                      style={{
+                        background: "#F9FAFB",
+                        border: "1px solid #E5E7EB",
+                        borderRadius: 6,
+                        fontSize: 13,
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {verifyNotes}
+                    </div>
+                  </div>
+                )}
+                <button
+                  className="btn btn-sm btn-outline-secondary w-100"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "Revoke verification and move this college back to Pending?"
+                      )
+                    ) {
+                      setVerification("pending");
+                    }
+                  }}
+                  title="Move the college back to Pending so it can be re-reviewed"
+                >
+                  <i className="ti ti-arrow-back-up me-1"></i> Revoke verification
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="mb-3 small text-muted">
+                  {college.verificationRejected
+                    ? "Verification was rejected. Review the notes and re-evaluate when ready."
+                    : "Awaiting verification. Review affiliation documents and decide."}
+                </div>
 
-            <label className="form-label">Verification Notes</label>
-            <textarea
-              className="form-control"
-              rows={4}
-              value={verifyNotes}
-              onChange={(e) => setVerifyNotes(e.target.value)}
-              placeholder="Affiliation proof, AISHE code, NSS unit confirmation…"
-            />
+                <label className="form-label">Verification Notes</label>
+                <textarea
+                  className="form-control"
+                  rows={4}
+                  value={verifyNotes}
+                  onChange={(e) => setVerifyNotes(e.target.value)}
+                  placeholder="Affiliation proof, AISHE code, NSS unit confirmation…"
+                />
 
-            <div className="d-grid gap-2 mt-3">
-              <button className="btn btn-success" onClick={() => setVerification("verified")}>
-                <i className="ti ti-shield-check me-1"></i> Mark Verified
-              </button>
-              <button className="btn btn-outline-warning" onClick={() => setVerification("pending")}>
-                <i className="ti ti-clock me-1"></i> Mark Pending
-              </button>
-              <button className="btn btn-outline-danger" onClick={() => setVerification("rejected")}>
-                <i className="ti ti-circle-x me-1"></i> Reject
-              </button>
-            </div>
+                <div className="d-grid gap-2 mt-3">
+                  <button
+                    className="btn btn-success"
+                    onClick={() => setVerification("verified")}
+                  >
+                    <i className="ti ti-shield-check me-1"></i> Mark Verified
+                  </button>
+                  {!college.verificationRejected && (
+                    <button
+                      className="btn btn-outline-warning"
+                      onClick={() => setVerification("pending")}
+                      disabled
+                      title="Already pending"
+                    >
+                      <i className="ti ti-clock me-1"></i> Mark Pending
+                    </button>
+                  )}
+                  <button
+                    className="btn btn-outline-danger"
+                    onClick={() => setVerification("rejected")}
+                  >
+                    <i className="ti ti-circle-x me-1"></i> Reject
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -996,6 +1076,211 @@ const CampaignsTab = ({ college }) => {
   );
 };
 
+// ─── Verification Documents tab ────────────────────────────────────────────
+// Renders each uploaded document with its file link + status badge and lets
+// the admin approve / reject each one independently. Mirrors the per-document
+// review pattern already in use on the NGO admin page.
+const DOC_TYPE_LABELS = {
+  registration_certificate: "College Registration Certificate",
+  principal_letter: "Principal's Authorization Letter",
+  affiliation_letter: "University Affiliation Letter",
+  other: "Other Document",
+};
+
+const docStatusBadge = (status) => {
+  if (status === "approved")
+    return <Badge color="#16A34A" icon="ti-circle-check">Approved</Badge>;
+  if (status === "rejected")
+    return <Badge color="#DC2626" icon="ti-circle-x">Rejected</Badge>;
+  return <Badge color="#F59E0B" icon="ti-clock">Pending</Badge>;
+};
+
+const DocumentsTab = ({ college, refresh }) => {
+  const [busyId, setBusyId] = useState("");
+  const [rejecting, setRejecting] = useState(null); // { docId, currentNote }
+  const [note, setNote] = useState("");
+
+  const docs = college.documents || [];
+
+  const review = async (docId, status, reviewNote = "") => {
+    try {
+      setBusyId(docId);
+      await axios.post(
+        apiUrl(`/colleges/${college._id}/documents/${docId}/review`),
+        { status, reviewNote },
+        { headers: authHeaders() }
+      );
+      await refresh();
+      swal("Done", `Document ${status}.`, "success");
+    } catch (err) {
+      console.error("review doc:", err);
+      swal(
+        "Error",
+        err?.response?.data?.error || "Could not review document",
+        "error"
+      );
+    } finally {
+      setBusyId("");
+    }
+  };
+
+  const openReject = (doc) => {
+    setRejecting({ docId: doc._id });
+    setNote(doc.reviewNote || "");
+  };
+  const submitReject = () => {
+    if (!rejecting) return;
+    review(rejecting.docId, "rejected", note);
+    setRejecting(null);
+    setNote("");
+  };
+
+  if (docs.length === 0) {
+    return (
+      <div className="card">
+        <div className="card-body text-center text-muted py-5">
+          <i className="ti ti-file-off" style={{ fontSize: 40, opacity: 0.4 }} />
+          <div className="mt-2">
+            This college hasn't uploaded any verification documents yet.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="d-flex flex-column gap-3">
+        {docs.map((d) => {
+          const file = d.fileId || {};
+          const label = DOC_TYPE_LABELS[d.type] || d.type || "Document";
+          const isBusy = busyId === String(d._id);
+          return (
+            <div className="card" key={d._id}>
+              <div className="card-body">
+                <div className="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                      <h5 className="m-0">{label}</h5>
+                      {docStatusBadge(d.status)}
+                    </div>
+                    <div className="text-muted small">
+                      <i className="ti ti-paperclip me-1"></i>
+                      {d.name || file.name || "(unnamed)"}
+                      {file.size && (
+                        <span className="ms-2">
+                          · {Math.round(file.size / 1024)} KB
+                        </span>
+                      )}
+                      {d.submittedAt && (
+                        <span className="ms-2">
+                          · Submitted{" "}
+                          {moment(d.submittedAt).format("DD MMM YYYY, HH:mm")}
+                        </span>
+                      )}
+                    </div>
+                    {d.status === "rejected" && d.reviewNote && (
+                      <div
+                        className="small mt-2 px-3 py-2"
+                        style={{
+                          background: "#FEF2F2",
+                          color: "#991B1B",
+                          borderRadius: 6,
+                          borderLeft: "3px solid #DC2626",
+                        }}
+                      >
+                        <strong>Reason:</strong> {d.reviewNote}
+                      </div>
+                    )}
+                    {d.reviewedAt && d.status !== "pending" && (
+                      <div className="text-muted small mt-1">
+                        Reviewed by{" "}
+                        {d.reviewedBy?.name || d.reviewedBy?.email || "Admin"} ·{" "}
+                        {moment(d.reviewedAt).format("DD MMM YYYY, HH:mm")}
+                      </div>
+                    )}
+                  </div>
+                  <div className="d-flex flex-column gap-2" style={{ minWidth: 220 }}>
+                    {file.url ? (
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn btn-outline-secondary btn-sm"
+                      >
+                        <i className="ti ti-external-link me-1"></i> View File
+                      </a>
+                    ) : (
+                      <button className="btn btn-outline-secondary btn-sm" disabled>
+                        <i className="ti ti-file-off me-1"></i> No file
+                      </button>
+                    )}
+                    {d.status !== "approved" && (
+                      <button
+                        className="btn btn-success btn-sm"
+                        disabled={isBusy}
+                        onClick={() => review(d._id, "approved")}
+                      >
+                        <i className="ti ti-check me-1"></i>
+                        {isBusy ? "Working…" : "Approve"}
+                      </button>
+                    )}
+                    {d.status !== "rejected" && (
+                      <button
+                        className="btn btn-outline-danger btn-sm"
+                        disabled={isBusy}
+                        onClick={() => openReject(d)}
+                      >
+                        <i className="ti ti-x me-1"></i>
+                        Reject
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {rejecting && (
+        <ModalShell title="Reject document" onClose={() => setRejecting(null)}>
+          <div className="p-3">
+            <label className="form-label">
+              Reason for rejection
+              <span className="text-muted small ms-1">
+                (visible to the college)
+              </span>
+            </label>
+            <textarea
+              className="form-control"
+              rows={4}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="e.g. Document is illegible — please re-upload a clearer scan."
+            />
+            <div className="d-flex justify-content-end gap-2 mt-3">
+              <button
+                className="btn btn-outline-secondary"
+                onClick={() => setRejecting(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={submitReject}
+                disabled={!note.trim()}
+              >
+                <i className="ti ti-x me-1"></i> Reject Document
+              </button>
+            </div>
+          </div>
+        </ModalShell>
+      )}
+    </>
+  );
+};
+
 // ─── Main page ─────────────────────────────────────────────────────────────
 const CollegeDetails = () => {
   const { id } = useParams();
@@ -1023,11 +1308,39 @@ const CollegeDetails = () => {
 
   const tabs = useMemo(() => {
     if (!college) return null;
+    const docsCount = (college.documents || []).length;
+    const pendingCount = (college.documents || []).filter(
+      (d) => d.status === "pending"
+    ).length;
     return {
       overview: {
         label: (<><i className="ti ti-shield-check me-1"></i>Overview &amp; Verification</>),
         onClick: () => {},
         render: <OverviewTab college={college} refresh={load} />,
+      },
+      documents: {
+        label: (
+          <>
+            <i className="ti ti-file-certificate me-1"></i>Documents
+            {docsCount > 0 && (
+              <span
+                style={{
+                  marginLeft: 6,
+                  padding: "1px 7px",
+                  borderRadius: 999,
+                  background: pendingCount > 0 ? "#F59E0B" : "#22C55E",
+                  color: "#fff",
+                  fontSize: 11,
+                  fontWeight: 700,
+                }}
+              >
+                {pendingCount > 0 ? `${pendingCount} pending` : docsCount}
+              </span>
+            )}
+          </>
+        ),
+        onClick: () => {},
+        render: <DocumentsTab college={college} refresh={load} />,
       },
       coordinators: {
         label: (<><i className="ti ti-users me-1"></i>Coordinators</>),
