@@ -80,7 +80,11 @@ const BADGE_COLOR = {
 const Sidebar = ({ sidebar, setSidebar }) => {
   const { pathname } = useLocation();
   const { auth } = useContext(GlobalContext);
-  const lastPart = pathname.split("/").filter(Boolean).pop() || "";
+  // Match on the FIRST path segment (the top-level section), not the last,
+  // so detail routes like /organizations/:id keep their parent nav item
+  // ("Organizations") highlighted. Every nav item routes to `/${key}`, so
+  // the first segment equals the item key for all sections.
+  const topSegment = pathname.split("/").filter(Boolean)[0] || "";
 
   const [counts, setCounts] = useState({ requests: 0, tasks: 0, volunteers: 0 });
 
@@ -142,7 +146,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
                 {visibleItems.map((item) => {
                   const path = item.path || `/${item.key}`;
                   const isActive =
-                    item.key === "dashboard" ? pathname === "/" : lastPart === item.key;
+                    item.key === "dashboard" ? pathname === "/" : topSegment === item.key;
                   const badgeCount = item.badgeKey ? counts[item.badgeKey] : null;
                   const badgeStyle = item.badgeKey ? BADGE_COLOR[item.badgeKey] : null;
 
