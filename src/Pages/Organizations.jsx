@@ -6,20 +6,16 @@ import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 import { DEMO_MODE, resetOrganizationsDemoData } from "./organizationsDemo";
 
-const ORG_TYPES = ["NGO", "Company", "University", "School", "Hospital", "Government", "Other"];
-
 const emptyForm = {
   _id: null,
   name: "",
-  type: "NGO",
   description: "",
   contactName: "",
   contactEmail: "",
   contactPhone: "",
   address: "",
   website: "",
-  partnershipSince: "",
-  partnershipNotes: "",
+  password: "",
   active: true,
 };
 
@@ -136,17 +132,13 @@ const Organizations = () => {
     setForm({
       _id: o._id,
       name: o.name || "",
-      type: o.type || "NGO",
       description: o.description || "",
       contactName: o.contactName || "",
       contactEmail: o.contactEmail || "",
       contactPhone: o.contactPhone || "",
       address: o.address || "",
       website: o.website || "",
-      partnershipSince: o.partnershipSince
-        ? new Date(o.partnershipSince).toISOString().slice(0, 10)
-        : "",
-      partnershipNotes: o.partnershipNotes || "",
+      password: "", // never prefilled — leave blank to keep the existing one
       active: !!o.active,
     });
     setShowModal(true);
@@ -161,17 +153,22 @@ const Organizations = () => {
     if (!form.name.trim()) return swal("Error", "Name is required", "error");
     const payload = {
       name: form.name.trim(),
-      type: form.type,
+      // Org accounts created here log into the organisation portal, which
+      // only recognises the "Company" type — so we fix the type rather than
+      // exposing a picker.
+      type: "Company",
       description: form.description.trim(),
       contactName: form.contactName.trim(),
       contactEmail: form.contactEmail.trim(),
       contactPhone: form.contactPhone.trim(),
       address: form.address.trim(),
       website: form.website.trim(),
-      partnershipSince: form.partnershipSince || null,
-      partnershipNotes: form.partnershipNotes.trim(),
       active: !!form.active,
     };
+    // Password is optional on edit (blank = keep existing); send only when set.
+    if (form.password && form.password.trim()) {
+      payload.password = form.password.trim();
+    }
     try {
       setLoading(true);
       if (form._id) {
@@ -528,16 +525,17 @@ const Organizations = () => {
                   />
                 </div>
                 <div className="col-md-3">
-                  <label className="form-label">Type *</label>
-                  <select
+                  <label className="form-label">
+                    Password {form._id && <span className="text-muted small">(leave blank to keep)</span>}
+                  </label>
+                  <input
+                    type="password"
                     className="form-control"
-                    value={form.type}
-                    onChange={(e) => setForm({ ...form, type: e.target.value })}
-                  >
-                    {ORG_TYPES.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
+                    autoComplete="new-password"
+                    placeholder={form._id ? "••••••••" : "Set a login password"}
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  />
                 </div>
                 <div className="col-md-3 d-flex align-items-end">
                   <div className="form-check">
@@ -598,23 +596,6 @@ const Organizations = () => {
                     className="form-control"
                     value={form.website}
                     onChange={(e) => setForm({ ...form, website: e.target.value })}
-                  />
-                </div>
-                <div className="col-md-4">
-                  <label className="form-label">Partnership Since</label>
-                  <input
-                    type="date"
-                    className="form-control"
-                    value={form.partnershipSince}
-                    onChange={(e) => setForm({ ...form, partnershipSince: e.target.value })}
-                  />
-                </div>
-                <div className="col-md-8">
-                  <label className="form-label">Partnership Notes</label>
-                  <input
-                    className="form-control"
-                    value={form.partnershipNotes}
-                    onChange={(e) => setForm({ ...form, partnershipNotes: e.target.value })}
                   />
                 </div>
               </div>
