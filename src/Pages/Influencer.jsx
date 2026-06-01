@@ -15,6 +15,7 @@ import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 
 const TABS = [
+  { key: "all", label: "All Influencers", color: "#6366F1" },
   { key: "pending", label: "Pending review", color: "#F59E0B" },
   { key: "approved", label: "Approved", color: "#22C55E" },
   { key: "rejected", label: "Rejected", color: "#EF4444" },
@@ -48,9 +49,9 @@ const fmtDate = (d) => (d ? new Date(d).toLocaleString() : "—");
 const Influencer = () => {
   const { setLoading } = useContext(GlobalContext);
   const [topTab, setTopTab] = useState("profiles");
-  const [activeTab, setActiveTab] = useState("pending");
+  const [activeTab, setActiveTab] = useState("all");
   const [rows, setRows] = useState([]);
-  const [counts, setCounts] = useState({ pending: 0, approved: 0, rejected: 0 });
+  const [counts, setCounts] = useState({ all: 0, pending: 0, approved: 0, rejected: 0 });
   const [expanded, setExpanded] = useState({}); // influencerId -> bool
   // Joined-members + contributions live in the standalone Community
   // tab (CommunityAdminPanel) — Profile expand only handles profile
@@ -62,16 +63,28 @@ const Influencer = () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      params.append("status", activeTab);
+      // The "all" pseudo-status isn't a real value on the backend — omit
+      // the param entirely so listInfluencers returns every row regardless
+      // of status. Otherwise (`pending` / `approved` / `rejected`) the
+      // backend filters as before.
+      if (activeTab && activeTab !== "all") params.append("status", activeTab);
       if (search.trim()) params.append("search", search.trim());
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/influencers?${params.toString()}`,
         { headers: { Authorization: sessionStorage.getItem("auth") } }
       );
       setRows(res?.data?.data?.influencers || []);
-      setCounts(
-        res?.data?.data?.counts || { pending: 0, approved: 0, rejected: 0 }
-      );
+      const base =
+        res?.data?.data?.counts || { pending: 0, approved: 0, rejected: 0 };
+      // Total = pending + approved + rejected. Computed client-side so the
+      // backend list endpoint doesn't need a new field.
+      setCounts({
+        ...base,
+        all:
+          (Number(base.pending) || 0) +
+          (Number(base.approved) || 0) +
+          (Number(base.rejected) || 0),
+      });
     } catch (err) {
       console.error(err);
     } finally {
@@ -259,6 +272,15 @@ const Influencer = () => {
               // Per-status palette: { bg/border for inactive,
               // gradient + shadow for active }.
               const palette = {
+                all: {
+                  text: "#3730A3",
+                  bgIdle: "#FFFFFF",
+                  borderIdle: "#C7D2FE",
+                  bgActive:
+                    "linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 100%)",
+                  borderActive: "#A5B4FC",
+                  shadow: "rgba(165, 180, 252, .35)",
+                },
                 pending: {
                   text: "#92400E",
                   bgIdle: "#FFFFFF",
@@ -360,7 +382,9 @@ const Influencer = () => {
           <div className="card-body">
             {rows.length === 0 ? (
               <p className="m-5 p-5 fs-4 text-center text-muted">
-                No {activeTab} influencers.
+                {activeTab === "all"
+                  ? "No influencers yet."
+                  : `No ${activeTab} influencers.`}
               </p>
             ) : (
               rows.map((inf) => {
@@ -409,8 +433,71 @@ const Influencer = () => {
                           .join("") || "?"}
                       </div>
                       <div className="flex-grow-1">
-                        <div className="fw-bold">
-                          {inf.user?.name || "Unknown"}
+                        <div
+                          className="d-flex align-items-center gap-2 flex-wrap"
+                          style={{ minWidth: 0 }}
+                        >
+                          <div className="fw-bold">
+                            {inf.user?.name || "Unknown"}
+                          </div>
+                          {(() => {
+                            // Status pill — colour matches the tab palette so
+                            // the row's state is unmistakable on the All tab.
+                            // "blocked" is rolled into "rejected" the same way
+                            // the backend counts do.
+                            const raw = (inf.status || "pending").toLowerCase();
+                            const status =
+                              raw === "blocked" ? "rejected" : raw;
+                            const meta = {
+                              pending: {
+                                label: "Pending",
+                                bg: "#FEF3C7",
+                                color: "#92400E",
+                                border: "#FCD34D",
+                                icon: "ti-clock",
+                              },
+                              approved: {
+                                label: "Approved",
+                                bg: "#DCFCE7",
+                                color: "#14532D",
+                                border: "#86EFAC",
+                                icon: "ti-circle-check",
+                              },
+                              rejected: {
+                                label: "Rejected",
+                                bg: "#FEE2E2",
+                                color: "#991B1B",
+                                border: "#FCA5A5",
+                                icon: "ti-circle-x",
+                              },
+                            }[status] || {
+                              label: status || "Unknown",
+                              bg: "#F3F4F6",
+                              color: "#374151",
+                              border: "#D1D5DB",
+                              icon: "ti-help",
+                            };
+                            return (
+                              <span
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                  padding: "2px 9px",
+                                  borderRadius: 999,
+                                  background: meta.bg,
+                                  color: meta.color,
+                                  border: `1px solid ${meta.border}`,
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                <i className={`ti ${meta.icon}`} />
+                                {meta.label}
+                              </span>
+                            );
+                          })()}
                         </div>
                         <div className="small text-muted">
                           {inf.user?.email}
