@@ -5,23 +5,6 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 
-// Friendly labels for the permission keys defined by the backend Ngo model.
-// If the backend adds a new key, list returns it via /admin/ngos and the
-// matrix renders a fallback row for it.
-const PERM_LABELS = {
-  "blood-requests":   { label: "Blood Requests",     icon: "ti ti-droplet-filled",  hint: "Post requests, match donors, close out fulfilled cases." },
-  "donors":           { label: "Donors",             icon: "ti ti-users",            hint: "Browse, invite and manage the donor network." },
-  "camps":            { label: "Donation Camps",     icon: "ti ti-calendar-event",   hint: "Publish camps and track attendance / registrations." },
-  "volunteers":       { label: "Volunteers",         icon: "ti ti-heart-handshake",  hint: "Onboard volunteers and assign tasks." },
-  "hospitals":        { label: "Hospitals & Orgs",   icon: "ti ti-building-hospital", hint: "Connect hospitals, partner organisations and blood banks." },
-  "emergency-alerts": { label: "Emergency Alerts",   icon: "ti ti-alert-triangle",    hint: "Broadcast urgent requests to nearby donors." },
-  "notifications":    { label: "Notifications",      icon: "ti ti-bell-ringing",      hint: "Send email / SMS / WhatsApp campaigns." },
-  "reports":          { label: "Reports & Analytics", icon: "ti ti-chart-pie",        hint: "View dashboards and export reports." },
-  "documents":        { label: "Documents",          icon: "ti ti-file-certificate",  hint: "Upload + manage NGO documents (always granted)." },
-  "support":          { label: "Support",            icon: "ti ti-lifebuoy",          hint: "Raise tickets and view complaints." },
-  "donation-drives":  { label: "Donation Drives",    icon: "ti ti-flame",             hint: "Create and run blood-donation drives; submissions go to admin for approval." },
-};
-
 const statusBadge = (status) => {
   const cfg = {
     pending:  { bg: "rgba(245,158,11,0.12)", color: "#b45309", label: "Pending" },
@@ -52,8 +35,8 @@ const NgoDetails = () => {
   const { setLoading, alert } = useContext(GlobalContext);
 
   const [ngo, setNgo] = useState(null);
-  const [permList, setPermList] = useState([]);
-  const [selected, setSelected] = useState([]);
+  // Document currently open in the preview modal (null = closed).
+  const [preview, setPreview] = useState(null);
 
   const load = async () => {
     try {
@@ -64,8 +47,6 @@ const NgoDetails = () => {
       );
       const data = res.data?.data || {};
       setNgo(data.ngo || null);
-      setPermList(data.permissions || []);
-      setSelected(data.ngo?.permissions || []);
     } catch (err) {
       console.error("load ngo failed:", err);
     } finally {
@@ -78,90 +59,7 @@ const NgoDetails = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const togglePerm = (key) => {
-    setSelected((s) =>
-      s.includes(key) ? s.filter((k) => k !== key) : [...s, key]
-    );
-  };
-
-  const toggleAll = () => {
-    if (selected.length === permList.length) setSelected([]);
-    else setSelected([...permList]);
-  };
-
   const headers = () => ({ Authorization: sessionStorage.getItem("auth") });
-
-  const handleApprove = async () => {
-    if (selected.length === 0) {
-      const ok = await swal({
-        title: "Approve with no permissions?",
-        text: "You haven't selected any modules. The NGO will be approved but won't see any operations modules in their panel.",
-        icon: "warning",
-        buttons: ["Cancel", "Approve anyway"],
-        dangerMode: true,
-      });
-      if (!ok) return;
-    }
-    try {
-      setLoading(true);
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/ngos/${id}/approve`,
-        { permissions: selected },
-        { headers: headers() }
-      );
-      setNgo(res.data?.data?.ngo);
-      if (alert) alert({ type: "success", title: "Approved", text: "NGO approved with the selected permissions." });
-    } catch (err) {
-      console.error("approve failed:", err);
-      if (alert) alert({ type: "error", title: "Failed", text: err?.response?.data?.error || err.message });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSavePerms = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.put(
-        `${import.meta.env.VITE_API_URL}/ngos/${id}/permissions`,
-        { permissions: selected },
-        { headers: headers() }
-      );
-      setNgo(res.data?.data?.ngo);
-      if (alert) alert({ type: "success", title: "Saved", text: "Permissions updated." });
-    } catch (err) {
-      console.error("save perms failed:", err);
-      if (alert) alert({ type: "error", title: "Failed", text: err?.response?.data?.error || err.message });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleReject = async () => {
-    const reason = await swal({
-      title: "Reject this NGO?",
-      text: "They won't be able to sign in. Provide a reason — the NGO will see this on the login screen.",
-      icon: "warning",
-      content: { element: "input", attributes: { placeholder: "Reason for rejection" } },
-      buttons: ["Cancel", "Reject"],
-      dangerMode: true,
-    });
-    if (!reason) return;
-    try {
-      setLoading(true);
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/ngos/${id}/reject`,
-        { reason },
-        { headers: headers() }
-      );
-      setNgo(res.data?.data?.ngo);
-      if (alert) alert({ type: "success", title: "Rejected", text: "NGO marked as rejected." });
-    } catch (err) {
-      if (alert) alert({ type: "error", title: "Failed", text: err?.response?.data?.error || err.message });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleBlock = async () => {
     const ok = await swal({
@@ -239,9 +137,7 @@ const NgoDetails = () => {
     );
   }
 
-  const isPending = ngo.status === "pending";
   const isApproved = ngo.status === "approved";
-  const isRejected = ngo.status === "rejected";
   const isBlocked = ngo.status === "blocked";
 
   return (
@@ -265,36 +161,6 @@ const NgoDetails = () => {
             </p>
           </div>
           <div className="d-flex gap-2 flex-wrap">
-            {(isPending || isRejected) && (
-              <button
-                type="button"
-                onClick={handleApprove}
-                className="btn btn-success"
-                style={{ borderRadius: 6 }}
-              >
-                <i className="ti ti-check me-1"></i> Approve
-              </button>
-            )}
-            {isApproved && (
-              <button
-                type="button"
-                onClick={handleSavePerms}
-                className="btn btn-primary"
-                style={{ borderRadius: 6 }}
-              >
-                <i className="ti ti-device-floppy me-1"></i> Save Permissions
-              </button>
-            )}
-            {(isPending || isApproved) && (
-              <button
-                type="button"
-                onClick={handleReject}
-                className="btn btn-outline-danger"
-                style={{ borderRadius: 6 }}
-              >
-                <i className="ti ti-x me-1"></i> Reject
-              </button>
-            )}
             {isApproved && (
               <button
                 type="button"
@@ -318,8 +184,8 @@ const NgoDetails = () => {
           </div>
         </div>
 
-        {/* Two-column: profile + permissions */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: 18 }}>
+        {/* Profile */}
+        <div>
           {/* Profile card */}
           <div
             style={{
@@ -387,6 +253,7 @@ const NgoDetails = () => {
                       key={d._id || `${d.type}-${d.submittedAt}`}
                       doc={d}
                       onReview={reviewDoc}
+                      onView={setPreview}
                     />
                   ))}
                 </>
@@ -397,82 +264,203 @@ const NgoDetails = () => {
               )}
             </div>
           </div>
-
-          {/* Permission matrix */}
-          <div
-            style={{
-              background: "white",
-              border: "1px solid #e5e7eb",
-              borderRadius: 10,
-              padding: 22,
-            }}
-          >
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <h6 style={{ fontWeight: 700, margin: 0 }}>
-                <i className="ti ti-shield-check me-2" style={{ color: "#c0392b" }}></i>
-                Module Permissions
-              </h6>
-              <button
-                type="button"
-                onClick={toggleAll}
-                className="btn btn-sm btn-outline-secondary"
-                style={{ fontSize: 11, borderRadius: 5 }}
-              >
-                {selected.length === permList.length ? "Clear all" : "Select all"}
-              </button>
-            </div>
-            <p className="text-muted" style={{ fontSize: 12, marginBottom: 14 }}>
-              Pick which modules this NGO can access in their panel. Documents
-              and Support are always available regardless of selection.
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              {permList.map((key) => {
-                const meta = PERM_LABELS[key] || { label: key, icon: "ti ti-square", hint: "" };
-                const checked = selected.includes(key);
-                return (
-                  <label
-                    key={key}
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: 10,
-                      padding: "10px 12px",
-                      border: `1px solid ${checked ? "#c0392b" : "#e5e7eb"}`,
-                      borderRadius: 8,
-                      background: checked ? "rgba(192,57,43,0.04)" : "white",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => togglePerm(key)}
-                      style={{ marginTop: 3 }}
-                    />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
-                        <i className={meta.icon} style={{ color: "#c0392b" }}></i>
-                        {meta.label}
-                      </div>
-                      <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>
-                        {meta.hint}
-                      </div>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
         </div>
       </div>
+
+      {preview && (
+        <DocumentPreview
+          doc={preview}
+          onClose={() => setPreview(null)}
+          onReview={(docId, status) => {
+            reviewDoc(docId, status);
+            setPreview(null);
+          }}
+        />
+      )}
     </>
+  );
+};
+
+// Full-screen modal that renders the uploaded file (image inline, PDF in an
+// iframe) so the admin can eyeball it before approving/rejecting. Falls back
+// to an "open in new tab" link for anything that can't be embedded.
+const DocumentPreview = ({ doc, onClose, onReview }) => {
+  const url = doc.url || "";
+  const lower = `${url} ${doc.name || ""}`.toLowerCase();
+  const isPdf = lower.includes(".pdf");
+  const isImage = /\.(png|jpe?g|gif|webp|bmp|svg)/.test(lower);
+  const status = doc.status || "pending";
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(17,24,39,0.6)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+        padding: 24,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "white",
+          borderRadius: 12,
+          width: "min(900px, 100%)",
+          maxHeight: "90vh",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "14px 18px",
+            borderBottom: "1px solid #e5e7eb",
+          }}
+        >
+          <i className="ti ti-file-text" style={{ color: "#c0392b", fontSize: 18 }}></i>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, textTransform: "capitalize" }}>{doc.type}</div>
+            <div
+              style={{
+                fontSize: 12,
+                color: "#6b7280",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {doc.name || "—"}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="lsa-icon-btn"
+            style={{
+              border: "none",
+              background: "#f3f4f6",
+              borderRadius: 8,
+              width: 32,
+              height: 32,
+              cursor: "pointer",
+              fontSize: 16,
+            }}
+            aria-label="Close"
+          >
+            <i className="ti ti-x"></i>
+          </button>
+        </div>
+
+        {/* File body */}
+        <div
+          style={{
+            flex: 1,
+            overflow: "auto",
+            background: "#f3f4f6",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: 320,
+          }}
+        >
+          {!url ? (
+            <div style={{ textAlign: "center", color: "#9ca3af", padding: 40 }}>
+              <i className="ti ti-file-off" style={{ fontSize: 40, display: "block", marginBottom: 8 }}></i>
+              No file was uploaded for this document.
+            </div>
+          ) : isImage ? (
+            <img
+              src={url}
+              alt={doc.name || doc.type}
+              style={{ maxWidth: "100%", maxHeight: "70vh", objectFit: "contain" }}
+            />
+          ) : isPdf ? (
+            <iframe
+              title={doc.name || doc.type}
+              src={url}
+              style={{ width: "100%", height: "70vh", border: "none" }}
+            />
+          ) : (
+            <div style={{ textAlign: "center", color: "#6b7280", padding: 40 }}>
+              <i className="ti ti-file-unknown" style={{ fontSize: 40, display: "block", marginBottom: 8 }}></i>
+              This file type can&apos;t be previewed here.
+              <div style={{ marginTop: 10 }}>
+                <a href={url} target="_blank" rel="noreferrer" style={{ color: "#1e3a8a", fontWeight: 700 }}>
+                  Open in a new tab
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer actions */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "12px 18px",
+            borderTop: "1px solid #e5e7eb",
+            flexWrap: "wrap",
+          }}
+        >
+          {url && (
+            <a
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="lsa-btn-outline"
+              style={{ fontSize: 12, padding: "6px 12px", borderRadius: 6 }}
+            >
+              <i className="ti ti-external-link"></i> Open in new tab
+            </a>
+          )}
+          <div style={{ flex: 1 }} />
+          {status === "pending" ? (
+            <>
+              <button
+                type="button"
+                onClick={() => onReview(doc._id, "rejected")}
+                className="btn btn-outline-danger"
+                style={{ borderRadius: 6 }}
+              >
+                <i className="ti ti-x me-1"></i> Reject
+              </button>
+              <button
+                type="button"
+                onClick={() => onReview(doc._id, "approved")}
+                className="btn btn-success"
+                style={{ borderRadius: 6 }}
+              >
+                <i className="ti ti-check me-1"></i> Approve
+              </button>
+            </>
+          ) : (
+            <span style={{ fontSize: 12, color: "#6b7280", textTransform: "capitalize" }}>
+              Already {status}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
 // One row per submitted document. Shows the doc type, filename, status pill,
 // and (when still pending) approve/reject buttons. Rejected docs additionally
 // surface the admin's note so the NGO can see what to fix on resubmission.
-const DocumentRow = ({ doc, onReview }) => {
+const DocumentRow = ({ doc, onReview, onView }) => {
   const status = doc.status || "pending";
   const statusCfg = {
     pending:  { bg: "rgba(245,158,11,0.14)", color: "#b45309", icon: "ti ti-clock-hour-4", label: "Pending" },
@@ -532,26 +520,38 @@ const DocumentRow = ({ doc, onReview }) => {
         </div>
       )}
 
-      {status === "pending" && (
-        <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
-          <button
-            type="button"
-            onClick={() => onReview(doc._id, "approved")}
-            className="btn btn-sm btn-success"
-            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
-          >
-            <i className="ti ti-check me-1"></i> Approve
-          </button>
-          <button
-            type="button"
-            onClick={() => onReview(doc._id, "rejected")}
-            className="btn btn-sm btn-outline-danger"
-            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
-          >
-            <i className="ti ti-x me-1"></i> Reject
-          </button>
+      <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
+        {/* Eye / view button is ALWAYS shown. If the document has no uploaded
+            file (legacy records), the preview modal explains that. */}
+        <button
+          type="button"
+          onClick={() => onView(doc)}
+          className="lsa-btn-primary"
+          style={{ fontSize: 11, padding: "4px 11px", borderRadius: 5, background: "#1e3a8a", border: "none", cursor: "pointer" }}
+        >
+          <i className="ti ti-eye"></i> View document
+        </button>
+        {status === "pending" && (
+            <>
+              <button
+                type="button"
+                onClick={() => onReview(doc._id, "approved")}
+                className="btn btn-sm btn-success"
+                style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+              >
+                <i className="ti ti-check me-1"></i> Approve
+              </button>
+              <button
+                type="button"
+                onClick={() => onReview(doc._id, "rejected")}
+                className="btn btn-sm btn-outline-danger"
+                style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+              >
+                <i className="ti ti-x me-1"></i> Reject
+              </button>
+            </>
+          )}
         </div>
-      )}
     </div>
   );
 };
