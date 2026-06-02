@@ -363,6 +363,12 @@ nav.sidebar {
   background: var(--bg) !important;
 }
 
+/* Detail pages that lead with a small "Back" control don't need the full
+   top padding — trim it so the back button sits closer to the top bar. */
+.content-wrapper.lsa-tight-top {
+  padding-top: 8px !important;
+}
+
 /* ================================================================
    PAGE HEAD
    ================================================================ */
