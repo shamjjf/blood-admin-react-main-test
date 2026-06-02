@@ -6,22 +6,34 @@ import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 
 // Admin workflow:
-//   1. Pending Review — a new NGO registered and needs its account approved
-//      with a permission set.
-//   2. Docs Pending   — an approved NGO uploaded verification docs that
-//      still need an admin yay/nay.
-//   3. Registered     — full history of every NGO that has ever signed up,
-//      whatever their current status. The row's status badge tells you
-//      whether each one is approved / rejected / blocked.
-// Tabs 1–3 filter the NGO list; tab "hospitalRequests" switches the page to
-// a different data source (NGO-submitted hospital connections awaiting
-// admin approval) using the same chrome.
+//   1. NGOs        — the full NGO account list. A sub-filter (Pending /
+//      Approved / All) narrows the rows, and each row can be approved or
+//      rejected inline without opening the detail page.
+//   2. Docs Pending — an NGO uploaded verification docs that still need an
+//      admin yay/nay (reviewed on the detail page).
+//   3. hospitalRequests / donationDrives — different data sources rendered in
+//      the same chrome.
 const STATUS_TABS = [
-  { key: "pending",          label: "Pending Review",    color: "#f59e0b", countKey: "pending"          },
-  { key: "docsPending",      label: "Docs Pending",      color: "#7c3aed", countKey: "docsPending"      },
-  { key: "all",              label: "Registered",        color: "#0ea5e9", countKey: "all"              },
+  { key: "ngos",             label: "NGOs",              color: "#0ea5e9", countKey: "all"              },
+  { key: "docsPending",      label: "Documents",         color: "#7c3aed", countKey: "docsPending"      },
   { key: "hospitalRequests", label: "Hospital Requests", color: "#0d9488", countKey: "hospitalRequests" },
   { key: "donationDrives",   label: "Donation Drives",   color: "#c0392b", countKey: "donationDrives"   },
+];
+
+// Sub-filter buttons shown above the table when the NGOs tab is active.
+// "All" leads, followed by the individual statuses.
+const NGO_SUBSTATUS_TABS = [
+  { key: "all",      label: "All",      color: "#0ea5e9", countKey: "all"      },
+  { key: "pending",  label: "Pending",  color: "#f59e0b", countKey: "pending"  },
+  { key: "approved", label: "Approved", color: "#16a34a", countKey: "approved" },
+  { key: "rejected", label: "Rejected", color: "#b91c1c", countKey: "rejected" },
+];
+
+// Sub-filter buttons for the Documents tab — narrows by document review state.
+const DOC_SUBSTATUS_TABS = [
+  { key: "pending",  label: "Pending",  color: "#f59e0b", countKey: "docsPending"  },
+  { key: "approved", label: "Approved", color: "#16a34a", countKey: "docsApproved" },
+  { key: "all",      label: "All",      color: "#0ea5e9", countKey: "docsAll"      },
 ];
 
 // Tag → accent color (for drive rows). Mirrors the NGO frontend.
@@ -33,12 +45,18 @@ const DRIVE_TAG_COLORS = {
 };
 
 // Sub-filter buttons shown above the table when the Donation Drives tab is
-// active. Mirrors the bucket selector on the NGO panel.
+// active. Pending / Approved / All — rejected drives still appear under "All".
 const DRIVE_SUBSTATUS_TABS = [
-  { key: "pending",  label: "Pending Review", color: "#f59e0b" },
-  { key: "approved", label: "Approved",       color: "#16a34a" },
-  { key: "rejected", label: "Rejected",       color: "#b91c1c" },
-  { key: "all",      label: "All",            color: "#475569" },
+  { key: "pending",  label: "Pending",  color: "#f59e0b" },
+  { key: "approved", label: "Approved", color: "#16a34a" },
+  { key: "all",      label: "All",      color: "#475569" },
+];
+
+// Sub-filter buttons for the Hospital Requests tab — narrows by review state.
+const HOSP_SUBSTATUS_TABS = [
+  { key: "pending",  label: "Pending",  color: "#f59e0b", countKey: "hospPending"  },
+  { key: "approved", label: "Approved", color: "#16a34a", countKey: "hospApproved" },
+  { key: "all",      label: "All",      color: "#0d9488", countKey: "hospAll"      },
 ];
 
 // Pill cluster that summarises a row's document review state. Hidden when
@@ -113,8 +131,14 @@ const Ngos = () => {
   const { setLoading } = useContext(GlobalContext);
   const [items, setItems] = useState([]);
   const [counts, setCounts] = useState({});
-  const [status, setStatus] = useState("pending");
+  const [status, setStatus] = useState("ngos");
   const [searchText, setSearchText] = useState("");
+  // Sub-filter for the NGOs tab (All / Pending / Approved / Rejected).
+  const [ngoStatus, setNgoStatus] = useState("all");
+  // Sub-filter for the Documents tab (Pending / Approved / All).
+  const [docStatus, setDocStatus] = useState("pending");
+  // Sub-filter for the Hospital Requests tab (Pending / Approved / All).
+  const [hospStatus, setHospStatus] = useState("pending");
   // Sub-filter for the Donation Drives tab.
   const [driveStatus, setDriveStatus] = useState("pending");
 
@@ -127,8 +151,10 @@ const Ngos = () => {
       const headers = { Authorization: sessionStorage.getItem("auth") };
 
       if (status === "hospitalRequests") {
-        // Pull pending hospital connections + counts in parallel.
-        const params = new URLSearchParams({ status: "pending" });
+        // Pull hospital connections for the chosen sub-status + counts. The
+        // backend aggregate returns full counts regardless of the filter.
+        const params = new URLSearchParams();
+        if (hospStatus && hospStatus !== "all") params.set("status", hospStatus);
         if (searchText) params.set("searchText", searchText);
         const [hospRes, ngosRes, drivesRes] = await Promise.all([
           axios.get(`${import.meta.env.VITE_API_URL}/ngo-hospitals?${params.toString()}`, { headers }),
@@ -143,6 +169,9 @@ const Ngos = () => {
         setCounts({
           ...ngoCounts,
           hospitalRequests: hospCounts.pending ?? 0,
+          hospPending: hospCounts.pending ?? 0,
+          hospApproved: hospCounts.approved ?? 0,
+          hospAll: hospCounts.all ?? 0,
           donationDrives: driveItems.length,
         });
         return;
@@ -173,7 +202,12 @@ const Ngos = () => {
       }
 
       const params = new URLSearchParams();
-      if (status) params.set("status", status);
+      // The NGOs tab filters by its own sub-status; other tabs (docsPending)
+      // pass their key straight through. "all" means no status filter.
+      const queryStatus = status === "ngos" ? ngoStatus : status;
+      if (queryStatus && queryStatus !== "all") params.set("status", queryStatus);
+      // Documents tab passes a doc-review sub-status alongside status=docsPending.
+      if (status === "docsPending") params.set("docStatus", docStatus);
       if (searchText) params.set("searchText", searchText);
       const [ngosRes, hospRes, drivesRes] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_URL}/ngos?${params.toString()}`, { headers }),
@@ -191,6 +225,47 @@ const Ngos = () => {
       });
     } catch (err) {
       console.error("load ngos failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Per-row NGO action: approve / reject straight from the list (no need to
+  // open the detail page). Approval grants full panel access; rejection needs
+  // a reason, which the NGO sees on its login screen.
+  const reviewNgo = async (ngo, action) => {
+    try {
+      if (action === "approve") {
+        const ok = await swal({
+          title: `Approve "${ngo.name}"?`,
+          text: "They'll get full access to their NGO panel.",
+          icon: "info",
+          buttons: ["Cancel", "Approve"],
+        });
+        if (!ok) return;
+      }
+      let reason = "";
+      if (action === "reject") {
+        reason = await swal({
+          title: `Reject "${ngo.name}"?`,
+          text: "Provide a reason — the NGO will see this on the login screen.",
+          icon: "warning",
+          content: { element: "input", attributes: { placeholder: "Reason for rejection" } },
+          buttons: ["Cancel", "Reject"],
+          dangerMode: true,
+        });
+        if (!reason) return;
+      }
+      setLoading(true);
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/ngos/${ngo._id}/${action}`,
+        action === "reject" ? { reason } : {},
+        { headers: { Authorization: sessionStorage.getItem("auth") } }
+      );
+      load();
+    } catch (err) {
+      console.error("ngo review failed:", err);
+      swal("Error", err?.response?.data?.error || "Action failed", "error");
     } finally {
       setLoading(false);
     }
@@ -287,7 +362,7 @@ const Ngos = () => {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, driveStatus]);
+  }, [status, ngoStatus, docStatus, hospStatus, driveStatus]);
 
   const onSearchSubmit = (e) => {
     e.preventDefault();
@@ -359,7 +434,151 @@ const Ngos = () => {
           })}
         </div>
 
-        {/* Sub-filter for donation drives (Pending / Approved / Rejected / All) */}
+        {/* Sub-filter for the NGOs tab (Pending / Approved / All) */}
+        {status === "ngos" && (
+          <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+            {NGO_SUBSTATUS_TABS.map((s) => {
+              const active = ngoStatus === s.key;
+              const count = counts[s.countKey] ?? 0;
+              return (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => setNgoStatus(s.key)}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: 6,
+                    border: "1px solid",
+                    borderColor: active ? s.color : "#e2e8f0",
+                    background: active ? s.color : "white",
+                    color: active ? "white" : "#475569",
+                    fontWeight: 700,
+                    fontSize: 12,
+                    cursor: "pointer",
+                    transition: "all 0.12s",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  {s.label}
+                  <span
+                    style={{
+                      background: active ? "rgba(255,255,255,0.25)" : "#e5e7eb",
+                      color: active ? "white" : "#6b7280",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: "1px 7px",
+                      borderRadius: 999,
+                      minWidth: 20,
+                      textAlign: "center",
+                    }}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Sub-filter for the Documents tab (Pending / Approved / All) */}
+        {status === "docsPending" && (
+          <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+            {DOC_SUBSTATUS_TABS.map((s) => {
+              const active = docStatus === s.key;
+              const count = counts[s.countKey] ?? 0;
+              return (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => setDocStatus(s.key)}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: 6,
+                    border: "1px solid",
+                    borderColor: active ? s.color : "#e2e8f0",
+                    background: active ? s.color : "white",
+                    color: active ? "white" : "#475569",
+                    fontWeight: 700,
+                    fontSize: 12,
+                    cursor: "pointer",
+                    transition: "all 0.12s",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  {s.label}
+                  <span
+                    style={{
+                      background: active ? "rgba(255,255,255,0.25)" : "#e5e7eb",
+                      color: active ? "white" : "#6b7280",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: "1px 7px",
+                      borderRadius: 999,
+                      minWidth: 20,
+                      textAlign: "center",
+                    }}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Sub-filter for the Hospital Requests tab (Pending / Approved / All) */}
+        {status === "hospitalRequests" && (
+          <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+            {HOSP_SUBSTATUS_TABS.map((s) => {
+              const active = hospStatus === s.key;
+              const count = counts[s.countKey] ?? 0;
+              return (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => setHospStatus(s.key)}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: 6,
+                    border: "1px solid",
+                    borderColor: active ? s.color : "#e2e8f0",
+                    background: active ? s.color : "white",
+                    color: active ? "white" : "#475569",
+                    fontWeight: 700,
+                    fontSize: 12,
+                    cursor: "pointer",
+                    transition: "all 0.12s",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  {s.label}
+                  <span
+                    style={{
+                      background: active ? "rgba(255,255,255,0.25)" : "#e5e7eb",
+                      color: active ? "white" : "#6b7280",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: "1px 7px",
+                      borderRadius: 999,
+                      minWidth: 20,
+                      textAlign: "center",
+                    }}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Sub-filter for donation drives (Pending / Approved / All) */}
         {status === "donationDrives" && (
           <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
             {DRIVE_SUBSTATUS_TABS.map((s) => {
@@ -453,9 +672,11 @@ const Ngos = () => {
                 <tr>
                   <td colSpan={7} style={{ padding: "40px 16px", textAlign: "center", color: "#6b7280" }}>
                     {status === "hospitalRequests"
-                      ? "No hospital connection requests pending."
+                      ? "No hospital requests in this view."
                       : status === "donationDrives"
                       ? "No drives in this bucket."
+                      : status === "docsPending"
+                      ? "No NGOs with documents in this view."
                       : "No NGOs in this view."}
                   </td>
                 </tr>
@@ -619,23 +840,43 @@ const Ngos = () => {
                       {h.createdAt ? new Date(h.createdAt).toLocaleDateString() : "—"}
                     </td>
                     <td style={{ padding: "12px 14px", borderBottom: "1px solid #f3f4f6" }}>
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <button
-                          type="button"
-                          onClick={() => reviewHospital(h._id, "approved")}
-                          className="btn btn-sm btn-success"
-                          style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
-                        >
-                          <i className="ti ti-check me-1"></i> Approve
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => reviewHospital(h._id, "rejected")}
-                          className="btn btn-sm btn-outline-danger"
-                          style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
-                        >
-                          <i className="ti ti-x me-1"></i> Reject
-                        </button>
+                      <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                        {h.status && h.status !== "pending" && (
+                          <span
+                            style={{
+                              fontSize: 10.5,
+                              fontWeight: 800,
+                              letterSpacing: 0.4,
+                              padding: "2px 9px",
+                              borderRadius: 999,
+                              textTransform: "capitalize",
+                              background: h.status === "approved" ? "#dcfce7" : "#fee2e2",
+                              color: h.status === "approved" ? "#15803d" : "#991b1b",
+                            }}
+                          >
+                            {h.status}
+                          </span>
+                        )}
+                        {h.status !== "approved" && (
+                          <button
+                            type="button"
+                            onClick={() => reviewHospital(h._id, "approved")}
+                            className="btn btn-sm btn-success"
+                            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+                          >
+                            <i className="ti ti-check me-1"></i> Approve
+                          </button>
+                        )}
+                        {h.status !== "rejected" && (
+                          <button
+                            type="button"
+                            onClick={() => reviewHospital(h._id, "rejected")}
+                            className="btn btn-sm btn-outline-danger"
+                            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+                          >
+                            <i className="ti ti-x me-1"></i> Reject
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -667,38 +908,58 @@ const Ngos = () => {
                     <td style={{ padding: "12px 14px", borderBottom: "1px solid #f3f4f6" }}>
                       {statusBadge(n.status)}
                     </td>
-                    <td style={{ padding: "12px 14px", borderBottom: "1px solid #f3f4f6" }}>
-                      <Link
-                        to={`/ngo/${n._id}`}
-                        className={
-                          status === "docsPending"
-                            ? "btn btn-sm btn-primary"
-                            : "btn btn-sm btn-outline-primary"
-                        }
-                        style={{
-                          fontSize: 11,
-                          padding: "4px 10px",
-                          borderRadius: 5,
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {status === "docsPending" ? (
-                          <>
-                            <i className="ti ti-file-search me-1"></i>
-                            Review Documents
-                          </>
-                        ) : status === "pending" ? (
-                          <>
-                            <i className="ti ti-shield-check me-1"></i>
-                            Set Permissions
-                          </>
-                        ) : (
-                          <>
-                            <i className="ti ti-eye me-1"></i>
-                            View
-                          </>
-                        )}
-                      </Link>
+                    <td style={{ padding: "12px 14px", borderBottom: "1px solid #f3f4f6", whiteSpace: "nowrap" }}>
+                      {status === "docsPending" ? (
+                        // Uses lsa-btn-primary so the global ".content-wrapper a"
+                        // red-text !important rule is excluded; we just override
+                        // the background to a dark blue. White text comes from
+                        // the class (also !important).
+                        <Link
+                          to={`/ngo/${n._id}`}
+                          className="lsa-btn-primary"
+                          style={{
+                            fontSize: 11,
+                            padding: "5px 12px",
+                            borderRadius: 5,
+                            whiteSpace: "nowrap",
+                            background: "#1e3a8a",
+                          }}
+                        >
+                          <i className="ti ti-file-search"></i>
+                          Review Documents
+                        </Link>
+                      ) : (
+                        <div style={{ display: "inline-flex", gap: 6, flexWrap: "wrap" }}>
+                          {n.status !== "approved" && (
+                            <button
+                              type="button"
+                              onClick={() => reviewNgo(n, "approve")}
+                              className="btn btn-sm btn-success"
+                              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+                            >
+                              <i className="ti ti-check me-1"></i>Approve
+                            </button>
+                          )}
+                          {n.status !== "rejected" && (
+                            <button
+                              type="button"
+                              onClick={() => reviewNgo(n, "reject")}
+                              className="btn btn-sm btn-outline-danger"
+                              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+                            >
+                              <i className="ti ti-x me-1"></i>Reject
+                            </button>
+                          )}
+                          <Link
+                            to={`/ngo/${n._id}`}
+                            className="btn btn-sm btn-outline-secondary"
+                            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+                            title="View details"
+                          >
+                            <i className="ti ti-eye me-1"></i>View
+                          </Link>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))
