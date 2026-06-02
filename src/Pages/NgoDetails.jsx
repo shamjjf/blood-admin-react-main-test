@@ -7,10 +7,10 @@ import { GlobalContext } from "../GlobalContext";
 
 const statusBadge = (status) => {
   const cfg = {
-    pending:  { bg: "rgba(245,158,11,0.12)", color: "#b45309", label: "Pending" },
-    approved: { bg: "rgba(22,163,74,0.12)",  color: "#15803d", label: "Approved" },
-    rejected: { bg: "rgba(220,38,38,0.12)",  color: "#b91c1c", label: "Rejected" },
-    blocked:  { bg: "rgba(107,114,128,0.14)", color: "#374151", label: "Blocked" },
+    pending:  { bg: "#f3f4f6", color: "#6b7280", label: "Pending" },
+    approved: { bg: "rgba(192,57,43,0.12)", color: "#c0392b", label: "Approved" },
+    rejected: { bg: "#f3f4f6", color: "#374151", label: "Rejected" },
+    blocked:  { bg: "#f3f4f6", color: "#374151", label: "Blocked" },
   }[status] || { bg: "#f3f4f6", color: "#374151", label: status };
   return (
     <span
@@ -175,8 +175,8 @@ const NgoDetails = () => {
               <button
                 type="button"
                 onClick={handleUnblock}
-                className="btn btn-success"
-                style={{ borderRadius: 6 }}
+                className="btn"
+                style={{ borderRadius: 6, background: "#c0392b", color: "#fff", border: "none" }}
               >
                 <i className="ti ti-rotate-clockwise me-1"></i> Unblock
               </button>
@@ -396,7 +396,7 @@ const DocumentPreview = ({ doc, onClose, onReview }) => {
               <i className="ti ti-file-unknown" style={{ fontSize: 40, display: "block", marginBottom: 8 }}></i>
               This file type can&apos;t be previewed here.
               <div style={{ marginTop: 10 }}>
-                <a href={url} target="_blank" rel="noreferrer" style={{ color: "#1e3a8a", fontWeight: 700 }}>
+                <a href={url} target="_blank" rel="noreferrer" style={{ color: "#c0392b", fontWeight: 700 }}>
                   Open in a new tab
                 </a>
               </div>
@@ -440,8 +440,8 @@ const DocumentPreview = ({ doc, onClose, onReview }) => {
               <button
                 type="button"
                 onClick={() => onReview(doc._id, "approved")}
-                className="btn btn-success"
-                style={{ borderRadius: 6 }}
+                className="btn"
+                style={{ borderRadius: 6, background: "#c0392b", color: "#fff", border: "none" }}
               >
                 <i className="ti ti-check me-1"></i> Approve
               </button>
@@ -463,9 +463,9 @@ const DocumentPreview = ({ doc, onClose, onReview }) => {
 const DocumentRow = ({ doc, onReview, onView }) => {
   const status = doc.status || "pending";
   const statusCfg = {
-    pending:  { bg: "rgba(245,158,11,0.14)", color: "#b45309", icon: "ti ti-clock-hour-4", label: "Pending" },
-    approved: { bg: "rgba(22,163,74,0.14)",  color: "#15803d", icon: "ti ti-circle-check", label: "Approved" },
-    rejected: { bg: "rgba(220,38,38,0.14)",  color: "#b91c1c", icon: "ti ti-x",            label: "Rejected" },
+    pending:  { bg: "#f3f4f6", color: "#6b7280", icon: "ti ti-clock-hour-4", label: "Pending" },
+    approved: { bg: "rgba(192,57,43,0.12)", color: "#c0392b", icon: "ti ti-circle-check", label: "Approved" },
+    rejected: { bg: "#f3f4f6", color: "#374151", icon: "ti ti-x",            label: "Rejected" },
   }[status];
   return (
     <div
@@ -527,7 +527,7 @@ const DocumentRow = ({ doc, onReview, onView }) => {
           type="button"
           onClick={() => onView(doc)}
           className="lsa-btn-primary"
-          style={{ fontSize: 11, padding: "4px 11px", borderRadius: 5, background: "#1e3a8a", border: "none", cursor: "pointer" }}
+          style={{ fontSize: 11, padding: "4px 11px", borderRadius: 5, border: "none", cursor: "pointer" }}
         >
           <i className="ti ti-eye"></i> View document
         </button>
@@ -536,8 +536,8 @@ const DocumentRow = ({ doc, onReview, onView }) => {
               <button
                 type="button"
                 onClick={() => onReview(doc._id, "approved")}
-                className="btn btn-sm btn-success"
-                style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+                className="btn btn-sm"
+                style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5, background: "#c0392b", color: "#fff", border: "none" }}
               >
                 <i className="ti ti-check me-1"></i> Approve
               </button>
