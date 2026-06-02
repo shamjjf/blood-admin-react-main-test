@@ -13,27 +13,31 @@ import { GlobalContext } from "../GlobalContext";
 //      admin yay/nay (reviewed on the detail page).
 //   3. hospitalRequests / donationDrives — different data sources rendered in
 //      the same chrome.
+// NGO Partners follows the app's red/white theme — every tab accent is the
+// brand red (no green/blue/amber/teal/purple).
+const BRAND_RED = "#c0392b";
+
 const STATUS_TABS = [
-  { key: "ngos",             label: "NGOs",              color: "#0ea5e9", countKey: "all"              },
-  { key: "docsPending",      label: "Documents",         color: "#7c3aed", countKey: "docsPending"      },
-  { key: "hospitalRequests", label: "Hospital Requests", color: "#0d9488", countKey: "hospitalRequests" },
-  { key: "donationDrives",   label: "Donation Drives",   color: "#c0392b", countKey: "donationDrives"   },
+  { key: "ngos",             label: "NGOs",              color: BRAND_RED, countKey: "all"              },
+  { key: "docsPending",      label: "Documents",         color: BRAND_RED, countKey: "docsPending"      },
+  { key: "hospitalRequests", label: "Hospital Requests", color: BRAND_RED, countKey: "hospitalRequests" },
+  { key: "donationDrives",   label: "Donation Drives",   color: BRAND_RED, countKey: "donationDrives"   },
 ];
 
 // Sub-filter buttons shown above the table when the NGOs tab is active.
 // "All" leads, followed by the individual statuses.
 const NGO_SUBSTATUS_TABS = [
-  { key: "all",      label: "All",      color: "#0ea5e9", countKey: "all"      },
-  { key: "pending",  label: "Pending",  color: "#f59e0b", countKey: "pending"  },
-  { key: "approved", label: "Approved", color: "#16a34a", countKey: "approved" },
-  { key: "rejected", label: "Rejected", color: "#b91c1c", countKey: "rejected" },
+  { key: "all",      label: "All",      color: BRAND_RED, countKey: "all"      },
+  { key: "pending",  label: "Pending",  color: BRAND_RED, countKey: "pending"  },
+  { key: "approved", label: "Approved", color: BRAND_RED, countKey: "approved" },
+  { key: "rejected", label: "Rejected", color: BRAND_RED, countKey: "rejected" },
 ];
 
 // Sub-filter buttons for the Documents tab — narrows by document review state.
 const DOC_SUBSTATUS_TABS = [
-  { key: "pending",  label: "Pending",  color: "#f59e0b", countKey: "docsPending"  },
-  { key: "approved", label: "Approved", color: "#16a34a", countKey: "docsApproved" },
-  { key: "all",      label: "All",      color: "#0ea5e9", countKey: "docsAll"      },
+  { key: "pending",  label: "Pending",  color: BRAND_RED, countKey: "docsPending"  },
+  { key: "approved", label: "Approved", color: BRAND_RED, countKey: "docsApproved" },
+  { key: "all",      label: "All",      color: BRAND_RED, countKey: "docsAll"      },
 ];
 
 // Tag → accent color (for drive rows). Mirrors the NGO frontend.
@@ -47,16 +51,16 @@ const DRIVE_TAG_COLORS = {
 // Sub-filter buttons shown above the table when the Donation Drives tab is
 // active. Pending / Approved / All — rejected drives still appear under "All".
 const DRIVE_SUBSTATUS_TABS = [
-  { key: "pending",  label: "Pending",  color: "#f59e0b" },
-  { key: "approved", label: "Approved", color: "#16a34a" },
-  { key: "all",      label: "All",      color: "#475569" },
+  { key: "pending",  label: "Pending",  color: "#c0392b" },
+  { key: "approved", label: "Approved", color: "#c0392b" },
+  { key: "all",      label: "All",      color: "#c0392b" },
 ];
 
 // Sub-filter buttons for the Hospital Requests tab — narrows by review state.
 const HOSP_SUBSTATUS_TABS = [
-  { key: "pending",  label: "Pending",  color: "#f59e0b", countKey: "hospPending"  },
-  { key: "approved", label: "Approved", color: "#16a34a", countKey: "hospApproved" },
-  { key: "all",      label: "All",      color: "#0d9488", countKey: "hospAll"      },
+  { key: "pending",  label: "Pending",  color: BRAND_RED, countKey: "hospPending"  },
+  { key: "approved", label: "Approved", color: BRAND_RED, countKey: "hospApproved" },
+  { key: "all",      label: "All",      color: BRAND_RED, countKey: "hospAll"      },
 ];
 
 // Pill cluster that summarises a row's document review state. Hidden when
@@ -87,9 +91,9 @@ const DocSummary = ({ counts }) => {
     );
   return (
     <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-      {pill(counts.pending,  "rgba(245,158,11,0.14)", "#b45309", "Pending review")}
-      {pill(counts.approved, "rgba(22,163,74,0.14)",  "#15803d", "Approved")}
-      {pill(counts.rejected, "rgba(220,38,38,0.14)",  "#b91c1c", "Rejected")}
+      {pill(counts.pending,  "#f3f4f6", "#6b7280", "Pending review")}
+      {pill(counts.approved, "rgba(192,57,43,0.12)", "#c0392b", "Approved")}
+      {pill(counts.rejected, "#f3f4f6", "#374151", "Rejected")}
       <span style={{ fontSize: 11, color: "#6b7280", marginLeft: 2 }}>
         / {counts.total}
       </span>
@@ -99,10 +103,10 @@ const DocSummary = ({ counts }) => {
 
 const statusBadge = (status) => {
   const cfg = {
-    pending:  { bg: "rgba(245,158,11,0.12)", color: "#b45309", label: "Pending" },
-    approved: { bg: "rgba(22,163,74,0.12)",  color: "#15803d", label: "Approved" },
-    rejected: { bg: "rgba(220,38,38,0.12)",  color: "#b91c1c", label: "Rejected" },
-    blocked:  { bg: "rgba(107,114,128,0.14)", color: "#374151", label: "Blocked" },
+    pending:  { bg: "#f3f4f6", color: "#6b7280", label: "Pending" },
+    approved: { bg: "rgba(192,57,43,0.12)", color: "#c0392b", label: "Approved" },
+    rejected: { bg: "#f3f4f6", color: "#374151", label: "Rejected" },
+    blocked:  { bg: "#f3f4f6", color: "#374151", label: "Blocked" },
   }[status] || {
     bg: "#f3f4f6",
     color: "#374151",
@@ -743,9 +747,9 @@ const Ngos = () => {
                       <td style={{ padding: "12px 14px", borderBottom: "1px solid #f3f4f6" }}>
                         {(() => {
                           const map = {
-                            pending:  { bg: "#fef3c7", color: "#92400e", label: "Pending" },
-                            approved: { bg: "#dcfce7", color: "#15803d", label: "Approved" },
-                            rejected: { bg: "#fee2e2", color: "#991b1b", label: "Rejected" },
+                            pending:  { bg: "#f3f4f6", color: "#6b7280", label: "Pending" },
+                            approved: { bg: "rgba(192,57,43,0.12)", color: "#c0392b", label: "Approved" },
+                            rejected: { bg: "#f3f4f6", color: "#374151", label: "Rejected" },
                           };
                           const s = map[d.status] || map.pending;
                           return (
@@ -773,8 +777,8 @@ const Ngos = () => {
                             <button
                               type="button"
                               onClick={() => reviewDrive(d, "approve")}
-                              className="btn btn-sm btn-success"
-                              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+                              className="btn btn-sm"
+                              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5, background: "#c0392b", color: "#fff", border: "none" }}
                             >
                               <i className="ti ti-check me-1"></i>Approve
                             </button>
@@ -850,8 +854,8 @@ const Ngos = () => {
                               padding: "2px 9px",
                               borderRadius: 999,
                               textTransform: "capitalize",
-                              background: h.status === "approved" ? "#dcfce7" : "#fee2e2",
-                              color: h.status === "approved" ? "#15803d" : "#991b1b",
+                              background: h.status === "approved" ? "rgba(192,57,43,0.12)" : "#f3f4f6",
+                              color: h.status === "approved" ? "#c0392b" : "#374151",
                             }}
                           >
                             {h.status}
@@ -861,8 +865,8 @@ const Ngos = () => {
                           <button
                             type="button"
                             onClick={() => reviewHospital(h._id, "approved")}
-                            className="btn btn-sm btn-success"
-                            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+                            className="btn btn-sm"
+                            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5, background: "#c0392b", color: "#fff", border: "none" }}
                           >
                             <i className="ti ti-check me-1"></i> Approve
                           </button>
@@ -922,7 +926,6 @@ const Ngos = () => {
                             padding: "5px 12px",
                             borderRadius: 5,
                             whiteSpace: "nowrap",
-                            background: "#1e3a8a",
                           }}
                         >
                           <i className="ti ti-file-search"></i>
@@ -934,8 +937,8 @@ const Ngos = () => {
                             <button
                               type="button"
                               onClick={() => reviewNgo(n, "approve")}
-                              className="btn btn-sm btn-success"
-                              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+                              className="btn btn-sm"
+                              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5, background: "#c0392b", color: "#fff", border: "none" }}
                             >
                               <i className="ti ti-check me-1"></i>Approve
                             </button>
