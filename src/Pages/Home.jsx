@@ -179,7 +179,14 @@ const Home = () => {
   const totalPlatelet = (s.plateletRequestCountCrit ?? 0) + (s.plateletRequestCountNoCrit ?? 0);
   const totalTasks = (s.openTasks ?? 0) + (s.closeTasks ?? 0);
   const totalUsers = s.userCount || 0;
-  const totalSpecial = s.specialUserCount || 0;
+  // Special Users total is the sum of the four widget categories so the
+  // badge always matches the bars (the legacy specialUserCount field only
+  // covered the SpecialUser collection — not the dedicated portal accounts).
+  const totalSpecial =
+    (s.collegeUniversityCount || 0) +
+    (s.ngoUserCount || 0) +
+    (s.influencerUserCount || 0) +
+    (s.organizationCount || 0);
 
   /* ── DONUT SEGMENTS ── */
   const bloodSegs = totalBlood === 0 ? [] : [
@@ -201,13 +208,14 @@ const Home = () => {
     { name: "Closed", color: "#FEF3C7", pct: ((s.closeTasks || 0) / totalTasks) * 100 },
   ];
 
-  /* ── SPECIAL USERS BAR ROWS ── */
+  /* ── SPECIAL USERS BAR ROWS ──
+     Four categories, each combining the dedicated portal account count
+     with the legacy SpecialUser rows of that flavour. */
   const specialBars = [
-    { label: "NGO",        val: s.ngoUser || 0,        color: "#6366f1" },
-    { label: "School",     val: s.schoolUser || 0,     color: "#ec4899" },
-    { label: "University", val: s.universityUser || 0, color: "#f59e0b" },
-    { label: "Company",    val: s.companyUser || 0,    color: "#10b981" },
-    { label: "Influencer", val: s.influencerUser || 0, color: "#3b82f6" },
+    { label: "College / University", val: s.collegeUniversityCount || 0, color: "#f59e0b" },
+    { label: "NGO",                  val: s.ngoUserCount           || 0, color: "#6366f1" },
+    { label: "Influencer",           val: s.influencerUserCount    || 0, color: "#3b82f6" },
+    { label: "Organization",         val: s.organizationCount      || 0, color: "#10b981" },
   ];
 
   /* ── SYSTEM ALERTS (dynamic) ── */

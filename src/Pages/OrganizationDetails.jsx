@@ -10,12 +10,6 @@ import { DEMO_MODE, demoSearchUsers } from "./organizationsDemo";
 
 const ORG_TYPES = ["NGO", "Company", "University", "School", "Hospital", "Government", "Other"];
 const MEMBER_ROLES = ["Lead", "Coordinator", "Member", "Volunteer"];
-const DRIVE_TYPES = ["Blood Donation", "CSR", "Awareness", "Fundraising", "Training", "Other"];
-const DRIVE_STATUS = ["planned", "active", "completed", "cancelled"];
-const COLLAB_STATUS = ["proposed", "active", "paused", "ended"];
-const CAMPAIGN_TYPES = ["Awareness", "Recruitment", "Fundraising", "Blood Drive", "Seasonal", "Other"];
-const CAMPAIGN_CHANNELS = ["Online", "Offline", "Mixed"];
-const CAMPAIGN_STATUS = ["draft", "scheduled", "running", "paused", "completed", "cancelled"];
 
 const authHeaders = () => ({
   Authorization: sessionStorage.getItem("auth"),
@@ -49,25 +43,25 @@ const verificationBadge = (o) => {
   return <Badge color="#F59E0B" icon="ti-clock">Pending</Badge>;
 };
 
-const driveStatusColor = (s) =>
-  s === "active" ? "#16A34A" :
-  s === "completed" ? "#6B7280" :
-  s === "cancelled" ? "#DC2626" :
-  "#0EA5E9";
 
-const collabStatusColor = (s) =>
-  s === "active" ? "#16A34A" :
-  s === "ended" ? "#6B7280" :
-  s === "paused" ? "#F59E0B" :
-  "#0EA5E9";
-
-const campaignStatusColor = (s) =>
-  s === "running" ? "#16A34A" :
-  s === "completed" ? "#6B7280" :
-  s === "cancelled" ? "#DC2626" :
-  s === "paused" ? "#F59E0B" :
-  s === "scheduled" ? "#0EA5E9" :
-  "#94A3B8";
+// Small section divider used inside form cards to group related fields.
+const FormSection = ({ icon, title, children, first }) => (
+  <div style={{ marginTop: first ? 0 : 22 }}>
+    <div
+      style={{
+        display: "flex", alignItems: "center", gap: 8,
+        fontSize: 12, fontWeight: 700, letterSpacing: 0.6,
+        textTransform: "uppercase", color: "#C0392B",
+        paddingBottom: 8, marginBottom: 14,
+        borderBottom: "1px solid #F1F5F9",
+      }}
+    >
+      <i className={`ti ${icon}`} style={{ fontSize: 15 }}></i>
+      {title}
+    </div>
+    <div className="row g-3">{children}</div>
+  </div>
+);
 
 // ─── Tab: Overview & Verification ──────────────────────────────────────────
 const OverviewTab = ({ org, refresh }) => {
@@ -85,7 +79,6 @@ const OverviewTab = ({ org, refresh }) => {
       ? new Date(org.partnershipSince).toISOString().slice(0, 10)
       : "",
     partnershipNotes: org.partnershipNotes || "",
-    active: !!org.active,
   });
   const [verifyNotes, setVerifyNotes] = useState(org.verificationNotes || "");
 
@@ -128,68 +121,63 @@ const OverviewTab = ({ org, refresh }) => {
       <div className="col-lg-8">
         <div className="card">
           <div className="card-header bg-white">
-            <h5 className="m-0">Basic Information</h5>
+            <h5 className="m-0"><i className="ti ti-building-community me-2"></i>Basic Information</h5>
             <small className="text-muted">Contact, address and partnership details.</small>
           </div>
           <div className="card-body">
-            <div className="row g-3">
-              <div className="col-md-6">
-                <label className="form-label">Name *</label>
+            <FormSection icon="ti-id-badge-2" title="Identity" first>
+              <div className="col-md-8">
+                <label className="form-label fw-semibold">Name *</label>
                 <input className="form-control" maxLength={120} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               </div>
-              <div className="col-md-3">
-                <label className="form-label">Type *</label>
+              <div className="col-md-4">
+                <label className="form-label fw-semibold">Type *</label>
                 <select className="form-control" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
                   {ORG_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
-              <div className="col-md-3 d-flex align-items-end">
-                <div className="form-check">
-                  <input
-                    type="checkbox"
-                    className="form-check-input"
-                    id="orgActiveDetail"
-                    checked={form.active}
-                    onChange={(e) => setForm({ ...form, active: e.target.checked })}
-                  />
-                  <label className="form-check-label" htmlFor="orgActiveDetail">Active</label>
-                </div>
-              </div>
               <div className="col-md-12">
-                <label className="form-label">Description</label>
-                <input className="form-control" maxLength={500} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                <label className="form-label fw-semibold">Description</label>
+                <input className="form-control" maxLength={500} placeholder="Short description of the organisation…" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
               </div>
+            </FormSection>
+
+            <FormSection icon="ti-address-book" title="Contact">
               <div className="col-md-4">
-                <label className="form-label">Contact Name</label>
+                <label className="form-label fw-semibold">Contact Name</label>
                 <input className="form-control" value={form.contactName} onChange={(e) => setForm({ ...form, contactName: e.target.value })} />
               </div>
               <div className="col-md-4">
-                <label className="form-label">Contact Email</label>
+                <label className="form-label fw-semibold">Contact Email</label>
                 <input className="form-control" value={form.contactEmail} onChange={(e) => setForm({ ...form, contactEmail: e.target.value })} />
               </div>
               <div className="col-md-4">
-                <label className="form-label">Contact Phone</label>
+                <label className="form-label fw-semibold">Contact Phone</label>
                 <input className="form-control" value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} />
               </div>
               <div className="col-md-8">
-                <label className="form-label">Address</label>
+                <label className="form-label fw-semibold">Address</label>
                 <input className="form-control" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
               </div>
               <div className="col-md-4">
-                <label className="form-label">Website</label>
-                <input className="form-control" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
+                <label className="form-label fw-semibold">Website</label>
+                <input className="form-control" placeholder="https://…" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
               </div>
+            </FormSection>
+
+            <FormSection icon="ti-heart-handshake" title="Partnership">
               <div className="col-md-4">
-                <label className="form-label">Partnership Since</label>
+                <label className="form-label fw-semibold">Partnership Since</label>
                 <input type="date" className="form-control" value={form.partnershipSince} onChange={(e) => setForm({ ...form, partnershipSince: e.target.value })} />
               </div>
               <div className="col-md-8">
-                <label className="form-label">Partnership Notes</label>
+                <label className="form-label fw-semibold">Partnership Notes</label>
                 <input className="form-control" value={form.partnershipNotes} onChange={(e) => setForm({ ...form, partnershipNotes: e.target.value })} />
               </div>
-            </div>
-            <div className="d-flex justify-content-end mt-3">
-              <button className="btn btn-primary" onClick={saveBasic}>
+            </FormSection>
+
+            <div className="d-flex justify-content-end mt-4 pt-3" style={{ borderTop: "1px solid #F1F5F9" }}>
+              <button className="btn btn-primary px-4" onClick={saveBasic}>
                 <i className="ti ti-device-floppy me-1"></i> Save Changes
               </button>
             </div>
@@ -201,26 +189,47 @@ const OverviewTab = ({ org, refresh }) => {
         <div className="card">
           <div className="card-header bg-white d-flex align-items-center justify-content-between">
             <div>
-              <h5 className="m-0">Verification</h5>
+              <h5 className="m-0"><i className="ti ti-shield-check me-2"></i>Verification</h5>
               <small className="text-muted">Approve, reject, or mark pending.</small>
             </div>
             {verificationBadge(org)}
           </div>
           <div className="card-body">
-            <div className="mb-3 small text-muted">
-              {org.verified ? (
-                <>
-                  Verified{org.verifiedAt && ` on ${moment(org.verifiedAt).format("DD MMM YYYY")}`}
-                  {org.verifiedBy && <> by <strong>{org.verifiedBy?.name || org.verifiedBy}</strong></>}.
-                </>
-              ) : org.verificationRejected ? (
-                "Verification was rejected. Review the notes and re-evaluate when ready."
-              ) : (
-                "Awaiting verification. Review documents and decide."
-              )}
-            </div>
+            {(() => {
+              const s = org.verified
+                ? { c: "#16A34A", bg: "#F0FDF4", bd: "#BBF7D0", icon: "ti-shield-check",
+                    t: "Verified", d: org.verifiedAt ? `on ${moment(org.verifiedAt).format("DD MMM YYYY")}` : "This organisation is verified." }
+                : org.verificationRejected
+                  ? { c: "#DC2626", bg: "#FEF2F2", bd: "#FECACA", icon: "ti-circle-x",
+                      t: "Rejected", d: "Review the notes and re-evaluate when ready." }
+                  : { c: "#D97706", bg: "#FFFBEB", bd: "#FDE68A", icon: "ti-clock",
+                      t: "Pending", d: "Awaiting verification. Review documents and decide." };
+              return (
+                <div
+                  style={{
+                    display: "flex", alignItems: "center", gap: 12,
+                    background: s.bg, border: `1px solid ${s.bd}`,
+                    borderRadius: 12, padding: "12px 14px", marginBottom: 16,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
+                      background: s.c, color: "#fff", fontSize: 20,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                  >
+                    <i className={`ti ${s.icon}`}></i>
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 700, color: s.c, fontSize: 15 }}>{s.t}</div>
+                    <div style={{ fontSize: 12.5, color: "#64748B" }}>{s.d}</div>
+                  </div>
+                </div>
+              );
+            })()}
 
-            <label className="form-label">Verification Notes</label>
+            <label className="form-label fw-semibold">Verification Notes</label>
             <textarea
               className="form-control"
               rows={4}
@@ -230,15 +239,25 @@ const OverviewTab = ({ org, refresh }) => {
             />
 
             <div className="d-grid gap-2 mt-3">
-              <button className="btn btn-success" onClick={() => setVerification("verified")}>
-                <i className="ti ti-shield-check me-1"></i> Mark Verified
+              <button
+                className="btn btn-success"
+                disabled={org.verified}
+                onClick={() => setVerification("verified")}
+              >
+                <i className="ti ti-shield-check me-1"></i>
+                {org.verified ? "Verified" : "Mark Verified"}
               </button>
-              <button className="btn btn-outline-warning" onClick={() => setVerification("pending")}>
-                <i className="ti ti-clock me-1"></i> Mark Pending
-              </button>
-              <button className="btn btn-outline-danger" onClick={() => setVerification("rejected")}>
+              <button
+                className="btn btn-outline-danger"
+                disabled={org.verificationRejected}
+                onClick={() => setVerification("rejected")}
+              >
                 <i className="ti ti-circle-x me-1"></i> Reject
               </button>
+            </div>
+            <div className="text-muted mt-3" style={{ fontSize: 12 }}>
+              <i className="ti ti-info-circle me-1"></i>
+              Review uploaded files in the <strong>Documents</strong> tab before deciding.
             </div>
           </div>
         </div>
@@ -248,73 +267,84 @@ const OverviewTab = ({ org, refresh }) => {
 };
 
 // ─── Tab: Members ──────────────────────────────────────────────────────────
-const MembersTab = ({ org, refresh }) => {
+// Surfaces this org's employees from the org-employee approval system. Orgs
+// submit employees via their own dashboard; admin moderates them here (or in
+// the cross-org /org-employees page in the sidebar — same data, different
+// view). Approve/Reject/Delete actions hit /api/admin/org-employees/:id/*.
+const STATUS_TABS = [
+  { key: "pending",  label: "Pending"  },
+  { key: "approved", label: "Approved" },
+  { key: "rejected", label: "Rejected" },
+  { key: "all",      label: "All"      },
+];
+
+const memberStatusBadge = (s) =>
+  s === "approved"
+    ? { label: "Approved", color: "#16A34A", icon: "ti-circle-check" }
+    : s === "rejected"
+      ? { label: "Rejected", color: "#DC2626", icon: "ti-circle-x" }
+      : { label: "Pending", color: "#F59E0B", icon: "ti-clock" };
+
+const MembersTab = ({ org }) => {
   const { setLoading } = useContext(GlobalContext);
   const [members, setMembers] = useState([]);
-  const [showAdd, setShowAdd] = useState(false);
-  const [search, setSearch] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [memberRole, setMemberRole] = useState("Member");
-  const [detailMember, setDetailMember] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("pending");
 
   const load = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(apiUrl(`/organizations/${org._id}/members`), {
-        headers: authGet(),
-      });
-      setMembers(res?.data?.data?.members || []);
+      const res = await axios.get(
+        apiUrl(`/org-employees?organization=${org._id}&status=${statusFilter}`),
+        { headers: authGet() }
+      );
+      setMembers(res?.data?.data?.items || []);
     } catch (err) {
       console.error(err);
+      swal("Error", err?.response?.data?.error || "Failed to load employees", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { load(); }, [org._id]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [org._id, statusFilter]);
 
-  const searchUsers = async () => {
-    if (!search.trim()) return;
-    try {
-      if (DEMO_MODE) {
-        const users = await demoSearchUsers(search);
-        setSearchResults(users);
-        return;
-      }
-      const res = await axios.get(apiUrl(`/users?searchText=${encodeURIComponent(search)}&n=10&p=1`), {
-        headers: authGet(),
-      });
-      setSearchResults(res?.data?.users || []);
-    } catch (err) {
-      console.error(err);
-      setSearchResults([]);
-    }
-  };
-
-  const addMember = async () => {
-    if (!selectedUser) return swal("Error", "Pick a user first", "error");
+  const approve = async (m) => {
     try {
       setLoading(true);
       await axios.post(
-        apiUrl(`/organizations/${org._id}/members`),
-        // In demo mode we also pass the full user object so the seed store
-        // can render the name/email without a separate lookup.
-        DEMO_MODE
-          ? { userId: selectedUser._id, role: memberRole, user: selectedUser }
-          : { userId: selectedUser._id, role: memberRole },
+        apiUrl(`/org-employees/${m._id}/approve`),
+        {},
         { headers: authHeaders() }
       );
-      swal("Added", "Member added to organization", "success");
-      setShowAdd(false);
-      setSelectedUser(null);
-      setSearch("");
-      setSearchResults([]);
-      setMemberRole("Member");
+      swal("Approved", `${m.name} is now visible in ${org.name}'s panel.`, "success");
       await load();
-      await refresh();
     } catch (err) {
-      swal("Error", err?.response?.data?.error || "Failed to add member", "error");
+      swal("Error", err?.response?.data?.error || "Failed to approve", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const reject = async (m) => {
+    const reason = await swal({
+      title: `Reject ${m.name}?`,
+      text: "Optional reason to share with the organisation:",
+      content: { element: "input", attributes: { placeholder: "e.g. duplicate / wrong details" } },
+      buttons: ["Cancel", "Reject"],
+      dangerMode: true,
+    });
+    if (reason === null) return;
+    try {
+      setLoading(true);
+      await axios.post(
+        apiUrl(`/org-employees/${m._id}/reject`),
+        { reason: typeof reason === "string" ? reason : "" },
+        { headers: authHeaders() }
+      );
+      swal("Rejected", `${m.name} has been rejected.`, "success");
+      await load();
+    } catch (err) {
+      swal("Error", err?.response?.data?.error || "Failed to reject", "error");
     } finally {
       setLoading(false);
     }
@@ -322,20 +352,18 @@ const MembersTab = ({ org, refresh }) => {
 
   const removeMember = async (m) => {
     const ok = await swal({
-      title: "Remove member?",
-      text: `${m.user?.name || "User"} will be removed from ${org.name}.`,
+      title: `Delete ${m.name}?`,
+      text: "This permanently removes the employee record.",
       icon: "warning",
-      buttons: ["Cancel", "Remove"],
+      buttons: ["Cancel", "Delete"],
       dangerMode: true,
     });
     if (!ok) return;
     try {
       setLoading(true);
-      await axios.delete(apiUrl(`/organizations/${org._id}/members/${m._id}`), {
-        headers: authGet(),
-      });
+      await axios.delete(apiUrl(`/org-employees/${m._id}`), { headers: authGet() });
+      swal("Deleted", "Employee removed.", "success");
       await load();
-      await refresh();
     } catch (err) {
       swal("Error", err?.response?.data?.error || "Failed to remove", "error");
     } finally {
@@ -343,32 +371,27 @@ const MembersTab = ({ org, refresh }) => {
     }
   };
 
-  const changeRole = async (m, role) => {
-    try {
-      setLoading(true);
-      await axios.patch(
-        apiUrl(`/organizations/${org._id}/members/${m._id}`),
-        { role },
-        { headers: authHeaders() }
-      );
-      await load();
-    } catch (err) {
-      swal("Error", err?.response?.data?.error || "Failed to update role", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="card">
-      <div className="card-header bg-white d-flex justify-content-between align-items-center">
+      <div className="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
-          <h5 className="m-0">Members</h5>
-          <small className="text-muted">People representing this organization.</small>
+          <h5 className="m-0"><i className="ti ti-users me-2"></i>Employees</h5>
+          <small className="text-muted">
+            Employees submitted by this organisation. Approve or reject to control what shows in their dashboard.
+          </small>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowAdd(true)}>
-          <i className="ti ti-user-plus me-1"></i> Add Member
-        </button>
+        <div className="d-flex gap-2 flex-wrap">
+          {STATUS_TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              className={`btn btn-sm ${statusFilter === t.key ? "btn-primary" : "btn-outline-secondary"}`}
+              onClick={() => setStatusFilter(t.key)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="card-body">
         <div className="table-responsive">
@@ -377,139 +400,99 @@ const MembersTab = ({ org, refresh }) => {
               <tr>
                 <th className="align-left">Name</th>
                 <th className="align-left">Email</th>
-                <th className="align-left">Role</th>
-                <th className="align-left">Joined</th>
+                <th className="align-left">Department / Role</th>
+                <th className="align-center">Group</th>
+                <th className="align-center">Donor</th>
+                <th className="align-center">Status</th>
+                <th className="align-center">Submitted</th>
                 <th className="align-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {members.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="align-center">
-                    <p className="m-5 p-5 fs-4">No members yet — add one above.</p>
+                  <td colSpan={8} className="align-center">
+                    <p className="m-5 p-5 fs-4">
+                      No employees in this view.
+                    </p>
                   </td>
                 </tr>
               ) : (
-                members.map((m) => (
-                  <tr key={m._id}>
-                    <td className="align-left fw-bold">
-                      <button
-                        type="button"
-                        onClick={() => setDetailMember(m)}
-                        className="btn btn-link p-0 fw-bold text-decoration-none"
-                        style={{ color: "#0EA5E9", verticalAlign: "baseline" }}
-                        title="View member details"
-                      >
-                        {m.user?.name || m.name || "—"}
-                      </button>
-                    </td>
-                    <td className="align-left">{m.user?.email || m.email || "—"}</td>
-                    <td className="align-left">
-                      <select
-                        className="form-control"
-                        style={{ maxWidth: 160 }}
-                        value={m.role || "Member"}
-                        onChange={(e) => changeRole(m, e.target.value)}
-                      >
-                        {MEMBER_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-                      </select>
-                    </td>
-                    <td className="align-left">{m.joinedAt ? moment(m.joinedAt).format("DD-MM-YYYY") : "—"}</td>
-                    <td className="align-center">
-                      <button
-                        className="btn btn-sm btn-outline-primary me-1"
-                        onClick={() => setDetailMember(m)}
-                        title="View details"
-                      >
-                        <i className="ti ti-eye"></i>
-                      </button>
-                      <button
-                        className="btn btn-sm btn-outline-danger"
-                        onClick={() => removeMember(m)}
-                        title="Remove"
-                      >
-                        <i className="ti ti-trash"></i>
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                members.map((m) => {
+                  const sb = memberStatusBadge(m.status);
+                  return (
+                    <tr key={m._id}>
+                      <td className="align-left">
+                        <div className="fw-bold" style={{ color: "#111827" }}>{m.name}</div>
+                        {m.phone && <div className="text-muted small">{m.phone}</div>}
+                      </td>
+                      <td className="align-left">{m.email}</td>
+                      <td className="align-left">
+                        <div>{m.dept || "—"}</div>
+                        <div className="text-muted small">{m.role || "—"}</div>
+                      </td>
+                      <td className="align-center">{m.blood || "—"}</td>
+                      <td className="align-center">{m.donor ? "Yes" : "No"}</td>
+                      <td className="align-center">
+                        <span
+                          style={{
+                            padding: "3px 10px",
+                            borderRadius: 10,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: "#fff",
+                            background: sb.color,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          <i className={`ti ${sb.icon}`}></i> {sb.label}
+                        </span>
+                        {m.status === "rejected" && m.rejectionNote && (
+                          <div className="text-muted small mt-1" style={{ maxWidth: 180 }}>
+                            {m.rejectionNote}
+                          </div>
+                        )}
+                      </td>
+                      <td className="align-center">
+                        {m.createdAt ? moment(m.createdAt).format("DD-MM-YYYY") : "—"}
+                      </td>
+                      <td className="align-center">
+                        {m.status !== "approved" && (
+                          <button
+                            className="btn btn-sm btn-outline-success me-1"
+                            onClick={() => approve(m)}
+                            title="Approve"
+                          >
+                            <i className="ti ti-check"></i>
+                          </button>
+                        )}
+                        {m.status !== "rejected" && (
+                          <button
+                            className="btn btn-sm btn-outline-warning me-1"
+                            onClick={() => reject(m)}
+                            title="Reject"
+                          >
+                            <i className="ti ti-x"></i>
+                          </button>
+                        )}
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() => removeMember(m)}
+                          title="Delete"
+                        >
+                          <i className="ti ti-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
-
-      {showAdd && (
-        <ModalShell title="Add Member" onClose={() => setShowAdd(false)}>
-          <label className="form-label">Search User</label>
-          <div className="d-flex gap-2 mb-2">
-            <input
-              className="form-control"
-              placeholder="Search by name or email…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") searchUsers(); }}
-            />
-            <button className="btn btn-outline-primary" onClick={searchUsers}>Search</button>
-          </div>
-          {searchResults.length > 0 && (
-            <div
-              className="border rounded mb-3"
-              style={{ maxHeight: 200, overflowY: "auto" }}
-            >
-              {searchResults.map((u) => (
-                <div
-                  key={u._id}
-                  onClick={() => setSelectedUser(u)}
-                  style={{
-                    padding: "8px 12px",
-                    cursor: "pointer",
-                    background: selectedUser?._id === u._id ? "#E0F2FE" : "transparent",
-                    borderBottom: "1px solid #F1F5F9",
-                  }}
-                >
-                  <div className="fw-bold">{u.name}</div>
-                  <div className="text-muted small">{u.email}</div>
-                </div>
-              ))}
-            </div>
-          )}
-          {selectedUser && (
-            <div className="alert alert-info py-2 mb-3">
-              Selected: <strong>{selectedUser.name}</strong> ({selectedUser.email})
-            </div>
-          )}
-          <label className="form-label">Role</label>
-          <select
-            className="form-control mb-3"
-            value={memberRole}
-            onChange={(e) => setMemberRole(e.target.value)}
-          >
-            {MEMBER_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
-          <div className="d-flex justify-content-end gap-2">
-            <button className="btn btn-outline-secondary" onClick={() => setShowAdd(false)}>Cancel</button>
-            <button className="btn btn-primary" onClick={addMember}>Add Member</button>
-          </div>
-        </ModalShell>
-      )}
-
-      {detailMember && (
-        <MemberDetailModal
-          member={detailMember}
-          org={org}
-          onClose={() => setDetailMember(null)}
-          onChanged={async () => {
-            await load();
-            await refresh();
-          }}
-          onRemoved={async () => {
-            setDetailMember(null);
-            await load();
-            await refresh();
-          }}
-        />
-      )}
     </div>
   );
 };
@@ -715,78 +698,90 @@ const MemberDetailModal = ({ member, org, onClose, onChanged, onRemoved }) => {
   );
 };
 
-// ─── Tab: CSR / Drives ─────────────────────────────────────────────────────
-const emptyDrive = {
-  _id: null,
-  title: "",
-  type: "CSR",
-  description: "",
-  startDate: "",
-  endDate: "",
-  target: "",
-  status: "planned",
-};
+// ─── Tab: Drives ─────────────────────────────────────────────────────────────
+// Real-backend Drives tab — surfaces blood donation drives submitted by the
+// org via their dashboard. Approve/Reject/Delete actions hit the admin
+// org-drive endpoints. Mirrors the MembersTab pattern.
+const DRIVE_APPROVAL_TABS = [
+  { key: "pending",  label: "Pending"  },
+  { key: "approved", label: "Approved" },
+  { key: "rejected", label: "Rejected" },
+  { key: "all",      label: "All"      },
+];
+
+const driveApprovalBadge = (s) =>
+  s === "approved"
+    ? { label: "Approved", color: "#16A34A", icon: "ti-circle-check" }
+    : s === "rejected"
+      ? { label: "Rejected", color: "#DC2626", icon: "ti-circle-x" }
+      : { label: "Pending", color: "#F59E0B", icon: "ti-clock" };
+
+const driveLifecycleColor = (s) =>
+  s === "scheduled" ? "#0EA5E9"
+  : s === "completed" ? "#16A34A"
+  : s === "cancelled" ? "#DC2626"
+  : "#6B7280";
 
 const DrivesTab = ({ org }) => {
   const { setLoading } = useContext(GlobalContext);
   const [drives, setDrives] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(emptyDrive);
+  const [approvalFilter, setApprovalFilter] = useState("pending");
 
   const load = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(apiUrl(`/organizations/${org._id}/drives`), {
-        headers: authGet(),
-      });
-      setDrives(res?.data?.data?.drives || []);
+      const res = await axios.get(
+        apiUrl(`/org-drives?organization=${org._id}&approvalStatus=${approvalFilter}`),
+        { headers: authGet() }
+      );
+      setDrives(res?.data?.data?.items || []);
     } catch (err) {
       console.error(err);
+      swal("Error", err?.response?.data?.error || "Failed to load drives", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { load(); }, [org._id]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [org._id, approvalFilter]);
 
-  const openCreate = () => { setForm(emptyDrive); setShowForm(true); };
-  const openEdit = (d) => {
-    setForm({
-      _id: d._id,
-      title: d.title || "",
-      type: d.type || "CSR",
-      description: d.description || "",
-      startDate: d.startDate ? new Date(d.startDate).toISOString().slice(0, 10) : "",
-      endDate: d.endDate ? new Date(d.endDate).toISOString().slice(0, 10) : "",
-      target: d.target ?? "",
-      status: d.status || "planned",
-    });
-    setShowForm(true);
-  };
-
-  const save = async () => {
-    if (!form.title.trim()) return swal("Error", "Title is required", "error");
-    const payload = {
-      title: form.title.trim(),
-      type: form.type,
-      description: form.description.trim(),
-      startDate: form.startDate || null,
-      endDate: form.endDate || null,
-      target: form.target === "" ? null : Number(form.target),
-      status: form.status,
-    };
+  const approve = async (d) => {
     try {
       setLoading(true);
-      if (form._id) {
-        await axios.patch(apiUrl(`/organizations/${org._id}/drives/${form._id}`), payload, { headers: authHeaders() });
-      } else {
-        await axios.post(apiUrl(`/organizations/${org._id}/drives`), payload, { headers: authHeaders() });
-      }
-      setShowForm(false);
-      setForm(emptyDrive);
+      await axios.post(
+        apiUrl(`/org-drives/${d._id}/approve`),
+        {},
+        { headers: authHeaders() }
+      );
+      swal("Approved", `${d.name} is now visible to ${org.name}'s employees.`, "success");
       await load();
     } catch (err) {
-      swal("Error", err?.response?.data?.error || "Failed to save drive", "error");
+      swal("Error", err?.response?.data?.error || "Failed to approve", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const reject = async (d) => {
+    const reason = await swal({
+      title: `Reject ${d.name}?`,
+      text: "Optional reason to share with the organisation:",
+      content: { element: "input", attributes: { placeholder: "e.g. needs more details" } },
+      buttons: ["Cancel", "Reject"],
+      dangerMode: true,
+    });
+    if (reason === null) return;
+    try {
+      setLoading(true);
+      await axios.post(
+        apiUrl(`/org-drives/${d._id}/reject`),
+        { reason: typeof reason === "string" ? reason : "" },
+        { headers: authHeaders() }
+      );
+      swal("Rejected", `${d.name} has been rejected.`, "success");
+      await load();
+    } catch (err) {
+      swal("Error", err?.response?.data?.error || "Failed to reject", "error");
     } finally {
       setLoading(false);
     }
@@ -794,8 +789,8 @@ const DrivesTab = ({ org }) => {
 
   const remove = async (d) => {
     const ok = await swal({
-      title: "Delete drive?",
-      text: `${d.title} will be removed.`,
+      title: `Delete ${d.name}?`,
+      text: "This permanently removes the drive and its registrations.",
       icon: "warning",
       buttons: ["Cancel", "Delete"],
       dangerMode: true,
@@ -803,7 +798,8 @@ const DrivesTab = ({ org }) => {
     if (!ok) return;
     try {
       setLoading(true);
-      await axios.delete(apiUrl(`/organizations/${org._id}/drives/${d._id}`), { headers: authGet() });
+      await axios.delete(apiUrl(`/org-drives/${d._id}`), { headers: authGet() });
+      swal("Deleted", "Drive removed.", "success");
       await load();
     } catch (err) {
       swal("Error", err?.response?.data?.error || "Failed to delete", "error");
@@ -814,218 +810,217 @@ const DrivesTab = ({ org }) => {
 
   return (
     <div className="card">
-      <div className="card-header bg-white d-flex justify-content-between align-items-center">
+      <div className="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
-          <h5 className="m-0">CSR &amp; Drives</h5>
-          <small className="text-muted">Donation drives, CSR campaigns and awareness programs run by this organization.</small>
+          <h5 className="m-0"><i className="ti ti-heart me-2"></i>Blood Donation Drives</h5>
+          <small className="text-muted">
+            Drives submitted by this organisation. Approve to unlock employee registrations.
+          </small>
         </div>
-        <button className="btn btn-primary" onClick={openCreate}>
-          <i className="ti ti-plus me-1"></i> Add Drive
-        </button>
+        <div className="d-flex gap-2 flex-wrap">
+          {DRIVE_APPROVAL_TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              className={`btn btn-sm ${approvalFilter === t.key ? "btn-primary" : "btn-outline-secondary"}`}
+              onClick={() => setApprovalFilter(t.key)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="card-body">
         <div className="table-responsive">
           <table className="table table-hover-removed my-table">
             <thead id="request-heading">
               <tr>
-                <th className="align-left">Title</th>
-                <th className="align-left">Type</th>
-                <th className="align-left">Dates</th>
+                <th className="align-left">Drive</th>
+                <th className="align-left">Partner</th>
+                <th className="align-left">Date / Location</th>
                 <th className="align-center">Target</th>
-                <th className="align-left">Status</th>
+                <th className="align-center">Registered</th>
+                <th className="align-center">Lifecycle</th>
+                <th className="align-center">Approval</th>
                 <th className="align-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {drives.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="align-center">
-                    <p className="m-5 p-5 fs-4">No drives yet — click ‘Add Drive’ to begin.</p>
+                  <td colSpan={8} className="align-center">
+                    <p className="m-5 p-5 fs-4">No drives in this view.</p>
                   </td>
                 </tr>
               ) : (
-                drives.map((d) => (
-                  <tr key={d._id}>
-                    <td className="align-left">
-                      <div className="fw-bold">{d.title}</div>
-                      {d.description && <div className="text-muted small" style={{ maxWidth: 320 }}>{d.description}</div>}
-                    </td>
-                    <td className="align-left">{d.type}</td>
-                    <td className="align-left small">
-                      {d.startDate ? moment(d.startDate).format("DD MMM YYYY") : "—"}
-                      {d.endDate && <> → {moment(d.endDate).format("DD MMM YYYY")}</>}
-                    </td>
-                    <td className="align-center">{d.target ?? "—"}</td>
-                    <td className="align-left">
-                      <Badge color={driveStatusColor(d.status)}>{d.status || "planned"}</Badge>
-                    </td>
-                    <td className="align-center">
-                      <button className="btn btn-sm btn-outline-info me-1" onClick={() => openEdit(d)} title="Edit">
-                        <i className="ti ti-pencil"></i>
-                      </button>
-                      <button className="btn btn-sm btn-outline-danger" onClick={() => remove(d)} title="Delete">
-                        <i className="ti ti-trash"></i>
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                drives.map((d) => {
+                  const ab = driveApprovalBadge(d.approvalStatus);
+                  return (
+                    <tr key={d._id}>
+                      <td className="align-left">
+                        <div className="fw-bold" style={{ color: "#111827" }}>{d.name}</div>
+                        {d.description && (
+                          <div className="text-muted small" style={{ maxWidth: 280 }}>
+                            {d.description}
+                          </div>
+                        )}
+                      </td>
+                      <td className="align-left">{d.partner || "—"}</td>
+                      <td className="align-left small">
+                        {d.date ? moment(d.date).format("DD MMM YYYY") : "—"}
+                        {d.time && <> · {d.time}</>}
+                        <div className="text-muted">{d.location}</div>
+                      </td>
+                      <td className="align-center">{d.target}</td>
+                      <td className="align-center">{d.registeredCount || 0}</td>
+                      <td className="align-center">
+                        <Badge color={driveLifecycleColor(d.status)}>{d.status}</Badge>
+                      </td>
+                      <td className="align-center">
+                        <span
+                          style={{
+                            padding: "3px 10px",
+                            borderRadius: 10,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: "#fff",
+                            background: ab.color,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          <i className={`ti ${ab.icon}`}></i> {ab.label}
+                        </span>
+                        {d.approvalStatus === "rejected" && d.rejectionNote && (
+                          <div className="text-muted small mt-1" style={{ maxWidth: 180 }}>
+                            {d.rejectionNote}
+                          </div>
+                        )}
+                      </td>
+                      <td className="align-center">
+                        {d.approvalStatus !== "approved" && (
+                          <button
+                            className="btn btn-sm btn-outline-success me-1"
+                            onClick={() => approve(d)}
+                            title="Approve"
+                          >
+                            <i className="ti ti-check"></i>
+                          </button>
+                        )}
+                        {d.approvalStatus !== "rejected" && (
+                          <button
+                            className="btn btn-sm btn-outline-warning me-1"
+                            onClick={() => reject(d)}
+                            title="Reject"
+                          >
+                            <i className="ti ti-x"></i>
+                          </button>
+                        )}
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() => remove(d)}
+                          title="Delete"
+                        >
+                          <i className="ti ti-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
-
-      {showForm && (
-        <ModalShell title={form._id ? "Edit Drive" : "Add Drive"} onClose={() => setShowForm(false)}>
-          <div className="row g-3">
-            <div className="col-md-8">
-              <label className="form-label">Title *</label>
-              <input className="form-control" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">Type</label>
-              <select className="form-control" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                {DRIVE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-            <div className="col-md-12">
-              <label className="form-label">Description</label>
-              <input className="form-control" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">Start Date</label>
-              <input type="date" className="form-control" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">End Date</label>
-              <input type="date" className="form-control" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">Target</label>
-              <input
-                type="number"
-                min={0}
-                className="form-control"
-                placeholder="e.g. 500 donors"
-                value={form.target}
-                onChange={(e) => setForm({ ...form, target: e.target.value })}
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Status</label>
-              <select className="form-control text-capitalize" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                {DRIVE_STATUS.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="d-flex justify-content-end gap-2 mt-3">
-            <button className="btn btn-outline-secondary" onClick={() => setShowForm(false)}>Cancel</button>
-            <button className="btn btn-primary" onClick={save}>{form._id ? "Update" : "Add Drive"}</button>
-          </div>
-        </ModalShell>
-      )}
     </div>
   );
 };
 
-// ─── Tab: Campaigns ────────────────────────────────────────────────────────
-const emptyCampaign = {
-  _id: null,
-  title: "",
-  type: "Awareness",
-  channel: "Online",
-  description: "",
-  startDate: "",
-  endDate: "",
-  budget: "",
-  audienceTarget: "",
-  status: "draft",
-  resultsNotes: "",
+
+// ─── Tab: Documents ────────────────────────────────────────────────────────
+// Documents the org uploaded from its dashboard (Organisation / Verification /
+// Certificates). Admin reviews each and marks verified / rejected / pending —
+// this is what backs the verification decision on the Overview tab.
+const DOC_CATEGORY_TABS = [
+  { key: "all",          label: "All"           },
+  { key: "verification", label: "Verification"  },
+  { key: "organisation", label: "Organisation"  },
+  { key: "certificate",  label: "Certificates"  },
+];
+
+const docStatusBadge = (s) =>
+  s === "verified"
+    ? { label: "Verified", color: "#16A34A", icon: "ti-circle-check" }
+    : s === "rejected"
+      ? { label: "Rejected", color: "#DC2626", icon: "ti-circle-x" }
+      : s === "uploaded"
+        ? { label: "Uploaded", color: "#6B7280", icon: "ti-file" }
+        : { label: "Pending", color: "#F59E0B", icon: "ti-clock" };
+
+const formatBytes = (b) => {
+  if (!b) return "—";
+  if (b < 1024) return `${b} B`;
+  if (b < 1024 * 1024) return `${Math.round(b / 1024)} KB`;
+  return `${(b / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-const CampaignsTab = ({ org }) => {
+const DocumentsTab = ({ org }) => {
   const { setLoading } = useContext(GlobalContext);
-  const [campaigns, setCampaigns] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(emptyCampaign);
+  const [docs, setDocs] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const load = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(apiUrl(`/organizations/${org._id}/campaigns`), {
-        headers: authGet(),
-      });
-      setCampaigns(res?.data?.data?.campaigns || []);
+      const qs = categoryFilter === "all" ? "" : `?category=${categoryFilter}`;
+      const res = await axios.get(
+        apiUrl(`/organizations/${org._id}/documents${qs}`),
+        { headers: authGet() }
+      );
+      setDocs(res?.data?.data?.items || []);
     } catch (err) {
       console.error(err);
+      swal("Error", err?.response?.data?.error || "Failed to load documents", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { load(); }, [org._id]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [org._id, categoryFilter]);
 
-  const stats = useMemo(() => {
-    const total = campaigns.length;
-    const running = campaigns.filter((c) => c.status === "running").length;
-    const scheduled = campaigns.filter((c) => c.status === "scheduled").length;
-    const completed = campaigns.filter((c) => c.status === "completed").length;
-    return { total, running, scheduled, completed };
-  }, [campaigns]);
-
-  const openCreate = () => { setForm(emptyCampaign); setShowForm(true); };
-  const openEdit = (c) => {
-    setForm({
-      _id: c._id,
-      title: c.title || "",
-      type: c.type || "Awareness",
-      channel: c.channel || "Online",
-      description: c.description || "",
-      startDate: c.startDate ? new Date(c.startDate).toISOString().slice(0, 10) : "",
-      endDate: c.endDate ? new Date(c.endDate).toISOString().slice(0, 10) : "",
-      budget: c.budget ?? "",
-      audienceTarget: c.audienceTarget ?? "",
-      status: c.status || "draft",
-      resultsNotes: c.resultsNotes || "",
-    });
-    setShowForm(true);
-  };
-
-  const save = async () => {
-    if (!form.title.trim()) return swal("Error", "Title is required", "error");
-    const payload = {
-      title: form.title.trim(),
-      type: form.type,
-      channel: form.channel,
-      description: form.description.trim(),
-      startDate: form.startDate || null,
-      endDate: form.endDate || null,
-      budget: form.budget === "" ? null : Number(form.budget),
-      audienceTarget: form.audienceTarget === "" ? null : Number(form.audienceTarget),
-      status: form.status,
-      resultsNotes: form.resultsNotes.trim(),
-    };
+  const setStatus = async (d, status) => {
+    let reviewNote = d.reviewNote || "";
+    if (status === "rejected") {
+      const note = await swal({
+        title: `Reject "${d.title}"?`,
+        text: "Optional note to share with the organisation:",
+        content: { element: "input", attributes: { placeholder: "e.g. document expired / unreadable" } },
+        buttons: ["Cancel", "Reject"],
+        dangerMode: true,
+      });
+      if (note === null) return; // cancelled
+      reviewNote = typeof note === "string" ? note : "";
+    }
     try {
       setLoading(true);
-      if (form._id) {
-        await axios.patch(apiUrl(`/organizations/${org._id}/campaigns/${form._id}`), payload, { headers: authHeaders() });
-      } else {
-        await axios.post(apiUrl(`/organizations/${org._id}/campaigns`), payload, { headers: authHeaders() });
-      }
-      setShowForm(false);
-      setForm(emptyCampaign);
+      await axios.patch(
+        apiUrl(`/organizations/${org._id}/documents/${d._id}`),
+        { status, reviewNote },
+        { headers: authHeaders() }
+      );
       await load();
     } catch (err) {
-      swal("Error", err?.response?.data?.error || "Failed to save campaign", "error");
+      swal("Error", err?.response?.data?.error || "Failed to update document", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const remove = async (c) => {
+  const remove = async (d) => {
     const ok = await swal({
-      title: "Delete campaign?",
-      text: `${c.title} will be removed.`,
+      title: `Delete "${d.title}"?`,
+      text: "This permanently removes the document record.",
       icon: "warning",
       buttons: ["Cancel", "Delete"],
       dangerMode: true,
@@ -1033,7 +1028,9 @@ const CampaignsTab = ({ org }) => {
     if (!ok) return;
     try {
       setLoading(true);
-      await axios.delete(apiUrl(`/organizations/${org._id}/campaigns/${c._id}`), { headers: authGet() });
+      await axios.delete(apiUrl(`/organizations/${org._id}/documents/${d._id}`), {
+        headers: authGet(),
+      });
       await load();
     } catch (err) {
       swal("Error", err?.response?.data?.error || "Failed to delete", "error");
@@ -1042,133 +1039,234 @@ const CampaignsTab = ({ org }) => {
     }
   };
 
-  const setStatus = async (c, status) => {
+  return (
+    <div className="card">
+      <div className="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <h5 className="m-0"><i className="ti ti-files me-2"></i>Documents</h5>
+          <small className="text-muted">
+            Documents uploaded by this organisation. Verify or reject to inform the overall verification decision.
+          </small>
+        </div>
+        <div className="d-flex gap-2 flex-wrap">
+          {DOC_CATEGORY_TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              className={`btn btn-sm ${categoryFilter === t.key ? "btn-primary" : "btn-outline-secondary"}`}
+              onClick={() => setCategoryFilter(t.key)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="card-body">
+        <div className="table-responsive">
+          <table className="table table-hover-removed my-table">
+            <thead id="request-heading">
+              <tr>
+                <th className="align-left">Document</th>
+                <th className="align-left">Category</th>
+                <th className="align-center">Uploaded</th>
+                <th className="align-center">Status</th>
+                <th className="align-center">File</th>
+                <th className="align-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {docs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="align-center">
+                    <p className="m-5 p-5 fs-4">No documents in this view.</p>
+                  </td>
+                </tr>
+              ) : (
+                docs.map((d) => {
+                  const sb = docStatusBadge(d.status);
+                  return (
+                    <tr key={d._id}>
+                      <td className="align-left">
+                        <div className="fw-bold" style={{ color: "#111827" }}>{d.title}</div>
+                        <div className="text-muted small">
+                          {(d.mime || "").toUpperCase().replace("APPLICATION/", "")} · {formatBytes(d.size)}
+                        </div>
+                      </td>
+                      <td className="align-left text-capitalize">{d.category}</td>
+                      <td className="align-center">
+                        {d.createdAt ? moment(d.createdAt).format("DD-MM-YYYY") : "—"}
+                      </td>
+                      <td className="align-center">
+                        <span
+                          style={{
+                            padding: "3px 10px",
+                            borderRadius: 10,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: "#fff",
+                            background: sb.color,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          <i className={`ti ${sb.icon}`}></i> {sb.label}
+                        </span>
+                        {d.status === "rejected" && d.reviewNote && (
+                          <div className="text-muted small mt-1" style={{ maxWidth: 180 }}>
+                            {d.reviewNote}
+                          </div>
+                        )}
+                      </td>
+                      <td className="align-center">
+                        {d.url ? (
+                          <a
+                            href={d.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="btn btn-sm btn-outline-secondary"
+                            title="Open / download"
+                          >
+                            <i className="ti ti-external-link"></i>
+                          </a>
+                        ) : "—"}
+                      </td>
+                      <td className="align-center">
+                        {d.status !== "verified" && (
+                          <button
+                            className="btn btn-sm btn-outline-success me-1"
+                            onClick={() => setStatus(d, "verified")}
+                            title="Mark verified"
+                          >
+                            <i className="ti ti-check"></i>
+                          </button>
+                        )}
+                        {d.status !== "rejected" && (
+                          <button
+                            className="btn btn-sm btn-outline-warning me-1"
+                            onClick={() => setStatus(d, "rejected")}
+                            title="Reject"
+                          >
+                            <i className="ti ti-x"></i>
+                          </button>
+                        )}
+                        {d.status !== "pending" && (
+                          <button
+                            className="btn btn-sm btn-outline-secondary me-1"
+                            onClick={() => setStatus(d, "pending")}
+                            title="Mark pending"
+                          >
+                            <i className="ti ti-clock"></i>
+                          </button>
+                        )}
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() => remove(d)}
+                          title="Delete"
+                        >
+                          <i className="ti ti-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Tab: NGO Collaboration (admin oversight) ────────────────────────────────
+// Read view of the NGO partners + joint campaigns an org self-manages from its
+// dashboard. Admin can remove partners for moderation.
+const partnerStatusColor = (s) =>
+  s === "active" ? "#16A34A" :
+  s === "pending" ? "#F59E0B" :
+  s === "declined" ? "#DC2626" : "#6B7280";
+
+const NgoCollaborationTab = ({ org }) => {
+  const { setLoading } = useContext(GlobalContext);
+  const [partners, setPartners] = useState([]);
+  const [campaigns, setCampaigns] = useState([]);
+
+  const load = async () => {
     try {
       setLoading(true);
-      await axios.patch(
-        apiUrl(`/organizations/${org._id}/campaigns/${c._id}`),
-        { status },
-        { headers: authHeaders() }
-      );
+      const [pRes, cRes] = await Promise.all([
+        axios.get(apiUrl(`/organizations/${org._id}/ngo-partners`), { headers: authGet() }),
+        axios.get(apiUrl(`/organizations/${org._id}/joint-campaigns`), { headers: authGet() }),
+      ]);
+      setPartners(pRes?.data?.data?.items || []);
+      setCampaigns(cRes?.data?.data?.items || []);
+    } catch (err) {
+      console.error(err);
+      swal("Error", err?.response?.data?.error || "Failed to load NGO collaboration", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [org._id]);
+
+  const removePartner = async (p) => {
+    const ok = await swal({
+      title: `Remove "${p.name}"?`,
+      text: "This deletes the partner record from the organisation.",
+      icon: "warning",
+      buttons: ["Cancel", "Remove"],
+      dangerMode: true,
+    });
+    if (!ok) return;
+    try {
+      setLoading(true);
+      await axios.delete(apiUrl(`/organizations/${org._id}/ngo-partners/${p._id}`), { headers: authGet() });
       await load();
     } catch (err) {
-      swal("Error", err?.response?.data?.error || "Failed to update status", "error");
+      swal("Error", err?.response?.data?.error || "Failed to remove", "error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div>
-      <div className="row g-3 mb-3">
-        <div className="col-md-3 col-sm-6">
-          <div className="card" style={{ borderLeft: "4px solid #0EA5E9", borderRadius: 10 }}>
-            <div className="card-body" style={{ padding: 14 }}>
-              <div className="text-muted small" style={{ textTransform: "uppercase", letterSpacing: 0.5 }}>Total</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>{stats.total}</div>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-3 col-sm-6">
-          <div className="card" style={{ borderLeft: "4px solid #16A34A", borderRadius: 10 }}>
-            <div className="card-body" style={{ padding: 14 }}>
-              <div className="text-muted small" style={{ textTransform: "uppercase", letterSpacing: 0.5 }}>Running</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>{stats.running}</div>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-3 col-sm-6">
-          <div className="card" style={{ borderLeft: "4px solid #F59E0B", borderRadius: 10 }}>
-            <div className="card-body" style={{ padding: 14 }}>
-              <div className="text-muted small" style={{ textTransform: "uppercase", letterSpacing: 0.5 }}>Scheduled</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>{stats.scheduled}</div>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-3 col-sm-6">
-          <div className="card" style={{ borderLeft: "4px solid #6B7280", borderRadius: 10 }}>
-            <div className="card-body" style={{ padding: 14 }}>
-              <div className="text-muted small" style={{ textTransform: "uppercase", letterSpacing: 0.5 }}>Completed</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>{stats.completed}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="card">
-        <div className="card-header bg-white d-flex justify-content-between align-items-center">
-          <div>
-            <h5 className="m-0">Campaigns</h5>
-            <small className="text-muted">
-              Awareness, recruitment, fundraising and seasonal campaigns run by this organization.
-            </small>
-          </div>
-          <button className="btn btn-primary" onClick={openCreate}>
-            <i className="ti ti-megaphone me-1"></i> Add Campaign
-          </button>
+    <>
+      <div className="card mb-4">
+        <div className="card-header bg-white">
+          <h5 className="m-0"><i className="ti ti-building-community me-2"></i>NGO Partners</h5>
+          <small className="text-muted">NGO partners this organisation manages from its dashboard.</small>
         </div>
         <div className="card-body">
           <div className="table-responsive">
             <table className="table table-hover-removed my-table">
               <thead id="request-heading">
                 <tr>
-                  <th className="align-left">Campaign</th>
-                  <th className="align-left">Type</th>
-                  <th className="align-left">Channel</th>
-                  <th className="align-left">Period</th>
-                  <th className="align-center">Budget</th>
-                  <th className="align-center">Audience</th>
-                  <th className="align-left">Status</th>
+                  <th className="align-left">NGO</th>
+                  <th className="align-left">Focus / City</th>
+                  <th className="align-left">Partnership</th>
+                  <th className="align-center">Status</th>
+                  <th className="align-center">Since</th>
                   <th className="align-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {campaigns.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="align-center">
-                      <p className="m-5 p-5 fs-4">No campaigns yet — click ‘Add Campaign’ to begin.</p>
-                    </td>
-                  </tr>
+                {partners.length === 0 ? (
+                  <tr><td colSpan={6} className="align-center"><p className="m-5 p-5 fs-4">No NGO partners yet.</p></td></tr>
                 ) : (
-                  campaigns.map((c) => (
-                    <tr key={c._id}>
+                  partners.map((p) => (
+                    <tr key={p._id}>
                       <td className="align-left">
-                        <div className="fw-bold">{c.title}</div>
-                        {c.description && <div className="text-muted small" style={{ maxWidth: 320 }}>{c.description}</div>}
+                        <div className="fw-bold" style={{ color: "#111827" }}>{p.name}</div>
+                        {p.contactName && <div className="text-muted small">{p.contactName}{p.email ? ` · ${p.email}` : ""}</div>}
                       </td>
-                      <td className="align-left">{c.type}</td>
-                      <td className="align-left">{c.channel}</td>
-                      <td className="align-left small">
-                        {c.startDate ? moment(c.startDate).format("DD MMM YYYY") : "—"}
-                        {c.endDate && <> → {moment(c.endDate).format("DD MMM YYYY")}</>}
-                      </td>
-                      <td className="align-center">{c.budget != null ? `₹${Number(c.budget).toLocaleString()}` : "—"}</td>
-                      <td className="align-center">{c.audienceTarget != null ? Number(c.audienceTarget).toLocaleString() : "—"}</td>
-                      <td className="align-left">
-                        <select
-                          className="form-control"
-                          style={{
-                            maxWidth: 140,
-                            color: "#fff",
-                            background: campaignStatusColor(c.status),
-                            fontWeight: 600,
-                            fontSize: 12,
-                            textTransform: "capitalize",
-                            border: "none",
-                          }}
-                          value={c.status || "draft"}
-                          onChange={(e) => setStatus(c, e.target.value)}
-                        >
-                          {CAMPAIGN_STATUS.map((s) => (
-                            <option key={s} value={s} style={{ color: "#111", background: "#fff" }}>{s}</option>
-                          ))}
-                        </select>
-                      </td>
+                      <td className="align-left">{[p.focus, p.city].filter(Boolean).join(" · ") || "—"}</td>
+                      <td className="align-left">{p.partnershipType || "—"}</td>
+                      <td className="align-center"><Badge color={partnerStatusColor(p.status)}>{p.status}</Badge></td>
+                      <td className="align-center">{p.partnerSince ? moment(p.partnerSince).format("DD MMM YYYY") : "—"}</td>
                       <td className="align-center">
-                        <button className="btn btn-sm btn-outline-info me-1" onClick={() => openEdit(c)} title="Edit">
-                          <i className="ti ti-pencil"></i>
-                        </button>
-                        <button className="btn btn-sm btn-outline-danger" onClick={() => remove(c)} title="Delete">
+                        <button className="btn btn-sm btn-outline-danger" onClick={() => removePartner(p)} title="Remove">
                           <i className="ti ti-trash"></i>
                         </button>
                       </td>
@@ -1181,199 +1279,119 @@ const CampaignsTab = ({ org }) => {
         </div>
       </div>
 
-      {showForm && (
-        <ModalShell title={form._id ? "Edit Campaign" : "Add Campaign"} onClose={() => setShowForm(false)}>
-          <div className="row g-3">
-            <div className="col-md-8">
-              <label className="form-label">Title *</label>
-              <input
-                className="form-control"
-                placeholder="e.g. #DonateBlood2026"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-              />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">Type</label>
-              <select className="form-control" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                {CAMPAIGN_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-            <div className="col-md-12">
-              <label className="form-label">Description</label>
-              <textarea
-                className="form-control"
-                rows={2}
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Short pitch / goal of the campaign"
-              />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">Channel</label>
-              <select className="form-control" value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })}>
-                {CAMPAIGN_CHANNELS.map((ch) => <option key={ch} value={ch}>{ch}</option>)}
-              </select>
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">Start Date</label>
-              <input type="date" className="form-control" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">End Date</label>
-              <input type="date" className="form-control" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">Budget (₹)</label>
-              <input
-                type="number"
-                min={0}
-                className="form-control"
-                placeholder="0"
-                value={form.budget}
-                onChange={(e) => setForm({ ...form, budget: e.target.value })}
-              />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">Audience Target</label>
-              <input
-                type="number"
-                min={0}
-                className="form-control"
-                placeholder="e.g. 10000 reach"
-                value={form.audienceTarget}
-                onChange={(e) => setForm({ ...form, audienceTarget: e.target.value })}
-              />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">Status</label>
-              <select className="form-control text-capitalize" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                {CAMPAIGN_STATUS.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div className="col-md-12">
-              <label className="form-label">Results / Impact Notes</label>
-              <textarea
-                className="form-control"
-                rows={3}
-                value={form.resultsNotes}
-                onChange={(e) => setForm({ ...form, resultsNotes: e.target.value })}
-                placeholder="Donors recruited, reach, media coverage…"
-              />
-            </div>
+      <div className="card">
+        <div className="card-header bg-white">
+          <h5 className="m-0"><i className="ti ti-heart-handshake me-2"></i>Joint Campaigns</h5>
+          <small className="text-muted">Campaigns co-run with NGO partners.</small>
+        </div>
+        <div className="card-body">
+          <div className="table-responsive">
+            <table className="table table-hover-removed my-table">
+              <thead id="request-heading">
+                <tr>
+                  <th className="align-left">Campaign</th>
+                  <th className="align-left">Partner</th>
+                  <th className="align-left">Our Role</th>
+                  <th className="align-left">Contribution</th>
+                  <th className="align-center">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {campaigns.length === 0 ? (
+                  <tr><td colSpan={5} className="align-center"><p className="m-5 p-5 fs-4">No joint campaigns yet.</p></td></tr>
+                ) : (
+                  campaigns.map((c) => (
+                    <tr key={c._id}>
+                      <td className="align-left fw-bold">{c.name}</td>
+                      <td className="align-left">{c.partner?.name || c.partnerName || "—"}</td>
+                      <td className="align-left">{c.role || "—"}</td>
+                      <td className="align-left">{c.contribution || "—"}</td>
+                      <td className="align-center">{c.date ? moment(c.date).format("DD MMM YYYY") : "—"}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
-          <div className="d-flex justify-content-end gap-2 mt-3">
-            <button className="btn btn-outline-secondary" onClick={() => setShowForm(false)}>Cancel</button>
-            <button className="btn btn-primary" onClick={save}>{form._id ? "Update" : "Add Campaign"}</button>
-          </div>
-        </ModalShell>
-      )}
-    </div>
+        </div>
+      </div>
+    </>
   );
 };
 
-// ─── Tab: NGO Collaborations ───────────────────────────────────────────────
-const emptyCollab = {
-  _id: null,
-  ngoId: "",
-  scope: "",
-  startDate: "",
-  endDate: "",
-  status: "proposed",
-  notes: "",
-};
-
-const CollaborationsTab = ({ org }) => {
+// ─── Tab: Volunteers ─────────────────────────────────────────────────────────
+// Volunteers are a separate record type from employees, with their own
+// approval queue. Mirrors the MembersTab pattern but hits /org-volunteers.
+const VolunteersTab = ({ org }) => {
   const { setLoading } = useContext(GlobalContext);
-  const [collabs, setCollabs] = useState([]);
-  const [ngos, setNgos] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(emptyCollab);
+  const [vols, setVols] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("pending");
 
   const load = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(apiUrl(`/organizations/${org._id}/collaborations`), {
-        headers: authGet(),
-      });
-      setCollabs(res?.data?.data?.collaborations || []);
+      const res = await axios.get(
+        apiUrl(`/org-volunteers?organization=${org._id}&status=${statusFilter}`),
+        { headers: authGet() }
+      );
+      setVols(res?.data?.data?.items || []);
     } catch (err) {
       console.error(err);
+      swal("Error", err?.response?.data?.error || "Failed to load volunteers", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const loadNgos = async () => {
-    try {
-      const res = await axios.get(apiUrl(`/organizations?type=NGO&active=true`), {
-        headers: authGet(),
-      });
-      setNgos((res?.data?.data?.items || []).filter((n) => n._id !== org._id));
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [org._id, statusFilter]);
 
-  useEffect(() => {
-    load();
-    loadNgos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [org._id]);
-
-  const openCreate = () => { setForm(emptyCollab); setShowForm(true); };
-  const openEdit = (c) => {
-    setForm({
-      _id: c._id,
-      ngoId: c.ngo?._id || c.ngoId || "",
-      scope: c.scope || "",
-      startDate: c.startDate ? new Date(c.startDate).toISOString().slice(0, 10) : "",
-      endDate: c.endDate ? new Date(c.endDate).toISOString().slice(0, 10) : "",
-      status: c.status || "proposed",
-      notes: c.notes || "",
-    });
-    setShowForm(true);
-  };
-
-  const save = async () => {
-    if (!form.ngoId) return swal("Error", "Pick a partner NGO", "error");
-    const payload = {
-      ngoId: form.ngoId,
-      scope: form.scope.trim(),
-      startDate: form.startDate || null,
-      endDate: form.endDate || null,
-      status: form.status,
-      notes: form.notes.trim(),
-    };
+  const approve = async (v) => {
     try {
       setLoading(true);
-      if (form._id) {
-        await axios.patch(apiUrl(`/organizations/${org._id}/collaborations/${form._id}`), payload, { headers: authHeaders() });
-      } else {
-        await axios.post(apiUrl(`/organizations/${org._id}/collaborations`), payload, { headers: authHeaders() });
-      }
-      setShowForm(false);
-      setForm(emptyCollab);
+      await axios.post(apiUrl(`/org-volunteers/${v._id}/approve`), {}, { headers: authHeaders() });
+      swal("Approved", `${v.name} is now an active volunteer for ${org.name}.`, "success");
       await load();
     } catch (err) {
-      swal("Error", err?.response?.data?.error || "Failed to save collaboration", "error");
+      swal("Error", err?.response?.data?.error || "Failed to approve", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const remove = async (c) => {
+  const reject = async (v) => {
+    const reason = await swal({
+      title: `Reject ${v.name}?`,
+      text: "Optional reason to share with the organisation:",
+      content: { element: "input", attributes: { placeholder: "e.g. duplicate / wrong details" } },
+      buttons: ["Cancel", "Reject"],
+      dangerMode: true,
+    });
+    if (reason === null) return;
+    try {
+      setLoading(true);
+      await axios.post(apiUrl(`/org-volunteers/${v._id}/reject`), { reason: typeof reason === "string" ? reason : "" }, { headers: authHeaders() });
+      swal("Rejected", `${v.name} has been rejected.`, "success");
+      await load();
+    } catch (err) {
+      swal("Error", err?.response?.data?.error || "Failed to reject", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removeVol = async (v) => {
     const ok = await swal({
-      title: "End collaboration?",
-      text: "This will remove the partnership record.",
+      title: `Delete ${v.name}?`,
+      text: "This permanently removes the volunteer record.",
       icon: "warning",
-      buttons: ["Cancel", "Remove"],
+      buttons: ["Cancel", "Delete"],
       dangerMode: true,
     });
     if (!ok) return;
     try {
       setLoading(true);
-      await axios.delete(apiUrl(`/organizations/${org._id}/collaborations/${c._id}`), { headers: authGet() });
+      await axios.delete(apiUrl(`/org-volunteers/${v._id}`), { headers: authGet() });
+      swal("Deleted", "Volunteer removed.", "success");
       await load();
     } catch (err) {
       swal("Error", err?.response?.data?.error || "Failed to remove", "error");
@@ -1384,173 +1402,183 @@ const CollaborationsTab = ({ org }) => {
 
   return (
     <div className="card">
-      <div className="card-header bg-white d-flex justify-content-between align-items-center">
+      <div className="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
-          <h5 className="m-0">NGO Collaborations</h5>
+          <h5 className="m-0"><i className="ti ti-user-heart me-2"></i>Volunteers</h5>
           <small className="text-muted">
-            {org.type === "NGO"
-              ? "Other partners this NGO works with."
-              : "NGO partners that this organization collaborates with."}
+            Volunteers submitted by this organisation. Approve or reject to control what shows in their dashboard.
           </small>
         </div>
-        <button className="btn btn-primary" onClick={openCreate}>
-          <i className="ti ti-heart-handshake me-1"></i> Add Collaboration
-        </button>
+        <div className="d-flex gap-2 flex-wrap">
+          {STATUS_TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              className={`btn btn-sm ${statusFilter === t.key ? "btn-primary" : "btn-outline-secondary"}`}
+              onClick={() => setStatusFilter(t.key)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="card-body">
         <div className="table-responsive">
           <table className="table table-hover-removed my-table">
             <thead id="request-heading">
               <tr>
-                <th className="align-left">Partner NGO</th>
-                <th className="align-left">Scope</th>
-                <th className="align-left">Period</th>
-                <th className="align-left">Status</th>
+                <th className="align-left">Name</th>
+                <th className="align-left">Email</th>
+                <th className="align-left">Department</th>
+                <th className="align-center">Group</th>
+                <th className="align-left">Skills</th>
+                <th className="align-center">Status</th>
+                <th className="align-center">Submitted</th>
                 <th className="align-center">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {collabs.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="align-center">
-                    <p className="m-5 p-5 fs-4">No collaborations yet.</p>
-                  </td>
-                </tr>
+              {vols.length === 0 ? (
+                <tr><td colSpan={8} className="align-center"><p className="m-5 p-5 fs-4">No volunteers in this view.</p></td></tr>
               ) : (
-                collabs.map((c) => (
-                  <tr key={c._id}>
-                    <td className="align-left fw-bold">
-                      {c.ngo?.name || ngos.find((n) => n._id === c.ngoId)?.name || "—"}
-                    </td>
-                    <td className="align-left">{c.scope || "—"}</td>
-                    <td className="align-left small">
-                      {c.startDate ? moment(c.startDate).format("DD MMM YYYY") : "—"}
-                      {c.endDate && <> → {moment(c.endDate).format("DD MMM YYYY")}</>}
-                    </td>
-                    <td className="align-left">
-                      <Badge color={collabStatusColor(c.status)}>{c.status || "proposed"}</Badge>
-                    </td>
-                    <td className="align-center">
-                      <button className="btn btn-sm btn-outline-info me-1" onClick={() => openEdit(c)} title="Edit">
-                        <i className="ti ti-pencil"></i>
-                      </button>
-                      <button className="btn btn-sm btn-outline-danger" onClick={() => remove(c)} title="Remove">
-                        <i className="ti ti-trash"></i>
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                vols.map((v) => {
+                  const sb = memberStatusBadge(v.status);
+                  return (
+                    <tr key={v._id}>
+                      <td className="align-left">
+                        <div className="fw-bold" style={{ color: "#111827" }}>{v.name}</div>
+                        {v.phone && <div className="text-muted small">{v.phone}</div>}
+                      </td>
+                      <td className="align-left">{v.email}</td>
+                      <td className="align-left">{v.dept || "—"}</td>
+                      <td className="align-center">{v.blood || "—"}</td>
+                      <td className="align-left">{v.skills || "—"}</td>
+                      <td className="align-center">
+                        <span style={{ padding: "3px 10px", borderRadius: 10, fontSize: 11, fontWeight: 700, color: "#fff", background: sb.color, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          <i className={`ti ${sb.icon}`}></i> {sb.label}
+                        </span>
+                        {v.status === "rejected" && v.rejectionNote && (
+                          <div className="text-muted small mt-1" style={{ maxWidth: 180 }}>{v.rejectionNote}</div>
+                        )}
+                      </td>
+                      <td className="align-center">{v.createdAt ? moment(v.createdAt).format("DD-MM-YYYY") : "—"}</td>
+                      <td className="align-center">
+                        {v.status !== "approved" && (
+                          <button className="btn btn-sm btn-outline-success me-1" onClick={() => approve(v)} title="Approve"><i className="ti ti-check"></i></button>
+                        )}
+                        {v.status !== "rejected" && (
+                          <button className="btn btn-sm btn-outline-warning me-1" onClick={() => reject(v)} title="Reject"><i className="ti ti-x"></i></button>
+                        )}
+                        <button className="btn btn-sm btn-outline-danger" onClick={() => removeVol(v)} title="Delete"><i className="ti ti-trash"></i></button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
-
-      {showForm && (
-        <ModalShell title={form._id ? "Edit Collaboration" : "Add Collaboration"} onClose={() => setShowForm(false)}>
-          <div className="row g-3">
-            <div className="col-md-12">
-              <label className="form-label">Partner NGO *</label>
-              <select className="form-control" value={form.ngoId} onChange={(e) => setForm({ ...form, ngoId: e.target.value })}>
-                <option value="">— Pick an NGO —</option>
-                {ngos.map((n) => <option key={n._id} value={n._id}>{n.name}</option>)}
-              </select>
-              <small className="text-muted">Only active organizations of type NGO appear here.</small>
-            </div>
-            <div className="col-md-12">
-              <label className="form-label">Scope</label>
-              <input
-                className="form-control"
-                placeholder="Joint blood camps, donor outreach, training…"
-                value={form.scope}
-                onChange={(e) => setForm({ ...form, scope: e.target.value })}
-              />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">Start Date</label>
-              <input type="date" className="form-control" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">End Date</label>
-              <input type="date" className="form-control" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">Status</label>
-              <select className="form-control text-capitalize" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                {COLLAB_STATUS.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div className="col-md-12">
-              <label className="form-label">Notes</label>
-              <textarea
-                className="form-control"
-                rows={3}
-                value={form.notes}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              />
-            </div>
-          </div>
-          <div className="d-flex justify-content-end gap-2 mt-3">
-            <button className="btn btn-outline-secondary" onClick={() => setShowForm(false)}>Cancel</button>
-            <button className="btn btn-primary" onClick={save}>{form._id ? "Update" : "Add Collaboration"}</button>
-          </div>
-        </ModalShell>
-      )}
     </div>
   );
 };
 
-// ─── Reusable modal shell ──────────────────────────────────────────────────
-const ModalShell = ({ title, onClose, children }) => (
-  <div
-    style={{
-      position: "fixed",
-      inset: 0,
-      background: "rgba(0,0,0,0.5)",
-      zIndex: 1050,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 20,
-    }}
-    onClick={onClose}
-  >
+// ─── Profile header ────────────────────────────────────────────────────────
+// Hero card at the top of the detail page: avatar/initials, name, status
+// chips and contact info. Built with inline styles so it reads as a distinct
+// "profile" surface rather than another red-headed admin card.
+const initialsOf = (name = "") =>
+  name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("") || "?";
+
+const HeaderChip = ({ icon, children, href }) => {
+  const inner = (
+    <>
+      <i className={`ti ${icon}`} style={{ fontSize: 14 }}></i>
+      <span>{children}</span>
+    </>
+  );
+  const style = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    fontSize: 13,
+    color: "#475569",
+    background: "#F1F5F9",
+    border: "1px solid #E2E8F0",
+    borderRadius: 999,
+    padding: "5px 12px",
+    textDecoration: "none",
+    fontWeight: 500,
+  };
+  return href ? (
+    <a href={href} target="_blank" rel="noreferrer" style={style}>{inner}</a>
+  ) : (
+    <span style={style}>{inner}</span>
+  );
+};
+
+const OrgProfileHeader = ({ org }) => {
+  const statusColor = org.verified ? "#16A34A" : org.verificationRejected ? "#DC2626" : "#F59E0B";
+  return (
     <div
-      style={{
-        background: "#fff",
-        borderRadius: 12,
-        width: "100%",
-        maxWidth: 720,
-        maxHeight: "90vh",
-        overflowY: "auto",
-        boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
-      }}
-      onClick={(e) => e.stopPropagation()}
+      className="card mb-4"
+      style={{ borderTop: `4px solid ${statusColor}` }}
     >
-      <div
-        style={{
-          padding: "14px 20px",
-          background: "#C0392B",
-          color: "#fff",
-          borderTopLeftRadius: 12,
-          borderTopRightRadius: 12,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h5 className="m-0">{title}</h5>
-        <button
-          onClick={onClose}
-          style={{ background: "transparent", border: "none", color: "#fff", fontSize: 22, cursor: "pointer" }}
-        >
-          ×
-        </button>
+      <div className="card-body">
+        <div className="d-flex align-items-start gap-3 flex-wrap">
+          {/* Avatar */}
+          {org.logo?.url ? (
+            <img
+              src={org.logo.url}
+              alt={org.name}
+              style={{ width: 64, height: 64, borderRadius: 16, objectFit: "cover", flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.12)" }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 64, height: 64, borderRadius: 16, flexShrink: 0,
+                background: "linear-gradient(135deg, #C0392B, #E74C3C)",
+                color: "#fff", fontWeight: 800, fontSize: 24,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 4px 12px rgba(192,57,43,0.35)",
+                fontFamily: "var(--f-display, inherit)",
+              }}
+            >
+              {initialsOf(org.name)}
+            </div>
+          )}
+
+          {/* Identity */}
+          <div className="flex-grow-1" style={{ minWidth: 220 }}>
+            <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+              <h3 className="m-0" style={{ fontWeight: 800, letterSpacing: "-0.4px" }}>{org.name}</h3>
+              <Badge color="#0EA5E9" icon="ti-building">{org.type}</Badge>
+              {verificationBadge(org)}
+            </div>
+            {org.description && (
+              <div className="text-muted mb-2" style={{ maxWidth: 720 }}>{org.description}</div>
+            )}
+            <div className="d-flex gap-2 flex-wrap mt-2">
+              {org.contactName && <HeaderChip icon="ti-user">{org.contactName}</HeaderChip>}
+              {org.contactEmail && <HeaderChip icon="ti-mail" href={`mailto:${org.contactEmail}`}>{org.contactEmail}</HeaderChip>}
+              {org.contactPhone && <HeaderChip icon="ti-phone">{org.contactPhone}</HeaderChip>}
+              {org.website && (
+                <HeaderChip icon="ti-world" href={org.website}>
+                  {org.website.replace(/^https?:\/\//, "")}
+                </HeaderChip>
+              )}
+              {org.partnershipSince && (
+                <HeaderChip icon="ti-calendar">
+                  Partner since {moment(org.partnershipSince).format("MMM YYYY")}
+                </HeaderChip>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
-      <div style={{ padding: 20 }}>{children}</div>
     </div>
-  </div>
-);
+  );
+};
 
 // ─── Main page ─────────────────────────────────────────────────────────────
 const OrganizationDetails = () => {
@@ -1590,20 +1618,25 @@ const OrganizationDetails = () => {
         onClick: () => {},
         render: <MembersTab org={org} refresh={load} />,
       },
+      volunteers: {
+        label: (<><i className="ti ti-user-heart me-1"></i>Volunteers</>),
+        onClick: () => {},
+        render: <VolunteersTab org={org} />,
+      },
+      documents: {
+        label: (<><i className="ti ti-files me-1"></i>Documents</>),
+        onClick: () => {},
+        render: <DocumentsTab org={org} />,
+      },
       drives: {
-        label: (<><i className="ti ti-heart me-1"></i>CSR &amp; Drives</>),
+        label: (<><i className="ti ti-heart me-1"></i>Drives</>),
         onClick: () => {},
         render: <DrivesTab org={org} />,
       },
-      campaigns: {
-        label: (<><i className="ti ti-megaphone me-1"></i>Campaigns</>),
+      ngoPartners: {
+        label: (<><i className="ti ti-building-community me-1"></i>NGO Partners</>),
         onClick: () => {},
-        render: <CampaignsTab org={org} />,
-      },
-      collaborations: {
-        label: (<><i className="ti ti-heart-handshake me-1"></i>NGO Collaborations</>),
-        onClick: () => {},
-        render: <CollaborationsTab org={org} />,
+        render: <NgoCollaborationTab org={org} />,
       },
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1633,36 +1666,7 @@ const OrganizationDetails = () => {
           </button>
         </div>
 
-        <div className="card mb-4">
-          <div className="card-body d-flex justify-content-between align-items-start flex-wrap gap-3">
-            <div>
-              <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-                <h3 className="m-0">{org.name}</h3>
-                <Badge color="#0EA5E9">{org.type}</Badge>
-                {verificationBadge(org)}
-                <Badge color={org.active ? "#22C55E" : "#6B7280"}>
-                  {org.active ? "Active" : "Inactive"}
-                </Badge>
-              </div>
-              {org.description && <div className="text-muted">{org.description}</div>}
-              <div className="d-flex gap-3 flex-wrap mt-2 small text-muted">
-                {org.contactEmail && <span><i className="ti ti-mail me-1"></i>{org.contactEmail}</span>}
-                {org.contactPhone && <span><i className="ti ti-phone me-1"></i>{org.contactPhone}</span>}
-                {org.website && (
-                  <a href={org.website} target="_blank" rel="noreferrer">
-                    <i className="ti ti-world me-1"></i>{org.website}
-                  </a>
-                )}
-                {org.partnershipSince && (
-                  <span>
-                    <i className="ti ti-calendar me-1"></i>
-                    Partner since {moment(org.partnershipSince).format("MMM YYYY")}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <OrgProfileHeader org={org} />
 
         {tabs && <Tabs tabs={tabs} />}
       </div>

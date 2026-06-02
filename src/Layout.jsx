@@ -54,6 +54,7 @@ import TrainingModules from "./Pages/TrainingModules";
 import RecurringRequests from "./Pages/RecurringRequests";
 import Organizations from "./Pages/Organizations";
 import OrganizationDetails from "./Pages/OrganizationDetails";
+import OrgEmployees from "./Pages/OrgEmployees";
 import Ngos from "./Pages/Ngos";
 import NgoDetails from "./Pages/NgoDetails";
 import Colleges from "./Pages/Colleges";
@@ -110,6 +111,7 @@ const Layout = () => {
               <Route path="/recurring-requests" element={<RecurringRequests />} />
               <Route path="/organizations" element={<Organizations />} />
               <Route path="/organizations/:id" element={<OrganizationDetails />} />
+              <Route path="/org-employees" element={<OrgEmployees />} />
               <Route path="/ngos" element={<Ngos />} />
               <Route path="/ngo/:id" element={<NgoDetails />} />
               <Route path="/colleges" element={<Colleges />} />
