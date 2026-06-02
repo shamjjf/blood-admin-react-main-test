@@ -1,17 +1,13 @@
 /**
- * LeaderboardTicker (admin copy) — same behaviour as the client-side
- * one, kept in this repo so the admin app doesn't import from outside
- * its own source tree.
- *
- *   Polls /api/public/leaderboard-ticker every 30s and marquee-scrolls
- *   the result. Public endpoint = no auth juggling, identical shape
- *   across all 6 dashboards.
+ * LeaderboardTicker (admin copy) — premium fade-in variant.
+ *   Crossfade between items with a soft upward drift + brief blur on
+ *   enter / leave. No continuous scroll.
  *
  *   If you change visuals here, mirror the change in
  *   blood-client-main-test/src/components/common/LeaderboardTicker.jsx
  *   so admin / dashboard look consistent.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
 const apiRoot = () =>
@@ -20,9 +16,20 @@ const apiRoot = () =>
     ""
   );
 
-const LeaderboardTicker = ({ pollMs = 30_000, style: styleOverride = {} }) => {
+const ROW_H = 44;
+
+const LeaderboardTicker = ({
+  pollMs = 30_000,
+  // 7s per item — slow, deliberate. Matches the deep-blur entry/leave
+  // animation so the whole strip feels intentional, not rushed.
+  perItemMs = 7000,
+  style: styleOverride = {},
+}) => {
   const [items, setItems] = useState([]);
+  const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(false);
+  pausedRef.current = paused;
 
   useEffect(() => {
     let alive = true;
@@ -32,6 +39,7 @@ const LeaderboardTicker = ({ pollMs = 30_000, style: styleOverride = {} }) => {
         const res = await axios.get(`${root}/public/leaderboard-ticker`);
         if (!alive) return;
         setItems(res?.data?.data?.items || []);
+        setIdx(0);
       } catch {
         if (alive) setItems([]);
       }
@@ -44,23 +52,29 @@ const LeaderboardTicker = ({ pollMs = 30_000, style: styleOverride = {} }) => {
     };
   }, [pollMs]);
 
-  const looped = useMemo(() => (items.length ? [...items, ...items] : []), [
-    items,
-  ]);
+  useEffect(() => {
+    if (items.length <= 1) return;
+    const t = setInterval(() => {
+      if (pausedRef.current) return;
+      setIdx((i) => (i + 1) % items.length);
+    }, perItemMs);
+    return () => clearInterval(t);
+  }, [items.length, perItemMs]);
 
   if (items.length === 0) return null;
+
+  const it = items[idx] || items[0];
 
   return (
     <div
       style={{
         position: "relative",
-        background:
-          "linear-gradient(90deg, #FEF2F2 0%, #FFFFFF 50%, #FEF2F2 100%)",
-        border: "1px solid #FECACA",
-        borderRadius: 10,
-        padding: "8px 0",
-        overflow: "hidden",
+        background: "transparent",
+        border: "none",
         marginBottom: 14,
+        display: "flex",
+        alignItems: "stretch",
+        height: ROW_H + 12,
         ...styleOverride,
       }}
       onMouseEnter={() => setPaused(true)}
@@ -69,32 +83,33 @@ const LeaderboardTicker = ({ pollMs = 30_000, style: styleOverride = {} }) => {
     >
       <div
         style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          display: "flex",
+          display: "inline-flex",
           alignItems: "center",
-          gap: 6,
-          padding: "0 14px",
-          background:
-            "linear-gradient(90deg, #DC2626 0%, #DC2626 75%, rgba(220,38,38,0))",
-          color: "#FFFFFF",
+          alignSelf: "center",
+          gap: 7,
+          padding: "6px 12px",
+          margin: "0 12px 0 10px",
+          background: "#FECACA",
+          color: "#991B1B",
           fontWeight: 800,
           fontSize: 12,
-          letterSpacing: 0.4,
+          letterSpacing: 0.6,
           textTransform: "uppercase",
+          borderRadius: 6,
+          border: "1px solid #FCA5A5",
           zIndex: 2,
-          paddingRight: 30,
+          flexShrink: 0,
         }}
       >
         <span
           style={{
-            width: 8,
-            height: 8,
+            width: 9,
+            height: 9,
             borderRadius: "50%",
-            background: "#FFFFFF",
-            animation: "lba-pulse 1.4s infinite",
+            background: "#22C55E",
+            boxShadow:
+              "0 0 0 0 rgba(34,197,94,0.7), 0 0 6px rgba(34,197,94,0.55)",
+            animation: "lba-pulse-g 1.4s infinite",
           }}
         />
         Live
@@ -102,74 +117,100 @@ const LeaderboardTicker = ({ pollMs = 30_000, style: styleOverride = {} }) => {
 
       <div
         style={{
-          display: "inline-flex",
-          gap: 28,
-          paddingLeft: 90,
-          animation: `lba-marquee ${Math.max(20, items.length * 6)}s linear infinite`,
-          animationPlayState: paused ? "paused" : "running",
-          whiteSpace: "nowrap",
-          willChange: "transform",
+          flex: 1,
+          minWidth: 0,
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
         }}
       >
-        {looped.map((it, i) => (
+        <div
+          key={idx}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            whiteSpace: "nowrap",
+            minWidth: 0,
+            width: "100%",
+            animation:
+              "lba-enter 1400ms cubic-bezier(.16,1,.3,1) both, lba-leave 1000ms cubic-bezier(.7,0,.84,0) " +
+              `${perItemMs - 1000}ms forwards`,
+            willChange: "opacity, transform",
+          }}
+        >
           <span
-            key={`${it.category}-${i}`}
             style={{
+              width: 28,
+              height: 28,
+              borderRadius: "50%",
+              background: `${it.color || "#6B7280"}1f`,
+              color: it.color || "#6B7280",
               display: "inline-flex",
               alignItems: "center",
-              gap: 8,
-              padding: "4px 12px",
-              borderRadius: 999,
-              background: "#FFFFFF",
-              border: `1px solid ${it.color || "#E5E7EB"}33`,
-              boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
-              fontSize: 13,
+              justifyContent: "center",
+              fontSize: 15,
+              flexShrink: 0,
+              boxShadow: `0 0 0 4px ${it.color || "#6B7280"}10`,
             }}
           >
+            <i className={`ti ${it.icon || "ti-circle"}`} />
+          </span>
+          <span
+            style={{
+              color: "#6B7280",
+              fontWeight: 600,
+              fontSize: 13,
+              flexShrink: 0,
+              letterSpacing: 0.1,
+            }}
+          >
+            {it.label}:
+          </span>
+          <span
+            style={{
+              color: "#0F172A",
+              fontWeight: 800,
+              fontSize: 14,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              minWidth: 0,
+              letterSpacing: -0.2,
+            }}
+          >
+            {it.name}
+          </span>
+          {it.metric && (
             <span
               style={{
-                width: 22,
-                height: 22,
-                borderRadius: "50%",
-                background: `${it.color || "#6B7280"}1f`,
                 color: it.color || "#6B7280",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 14,
+                fontWeight: 700,
+                fontSize: 13,
                 flexShrink: 0,
+                letterSpacing: 0.1,
               }}
             >
-              <i className={`ti ${it.icon || "ti-circle"}`} />
+              · {it.metric}
             </span>
-            <span style={{ color: "#6B7280", fontWeight: 600 }}>
-              {it.label}:
-            </span>
-            <span style={{ color: "#111827", fontWeight: 700 }}>{it.name}</span>
-            {it.metric && (
-              <span
-                style={{
-                  color: it.color || "#6B7280",
-                  fontWeight: 700,
-                  marginLeft: 2,
-                }}
-              >
-                · {it.metric}
-              </span>
-            )}
-          </span>
-        ))}
+          )}
+        </div>
       </div>
 
       <style>{`
-        @keyframes lba-marquee {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+        @keyframes lba-enter {
+          0%   { opacity: 0; transform: translateY(14px) scale(.985); filter: blur(8px); }
+          55%  { opacity: 0.85; filter: blur(2px); }
+          100% { opacity: 1; transform: translateY(0)   scale(1);    filter: blur(0); }
         }
-        @keyframes lba-pulse {
-          0%   { box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
-          70%  { box-shadow: 0 0 0 8px rgba(255,255,255,0); }
-          100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+        @keyframes lba-leave {
+          0%   { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0); }
+          45%  { opacity: 0.7; filter: blur(2px); }
+          100% { opacity: 0; transform: translateY(-14px) scale(.985); filter: blur(8px); }
+        }
+        @keyframes lba-pulse-g {
+          0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0.7), 0 0 6px rgba(34,197,94,0.55); }
+          70%  { box-shadow: 0 0 0 8px rgba(34,197,94,0), 0 0 6px rgba(34,197,94,0.55); }
+          100% { box-shadow: 0 0 0 0 rgba(34,197,94,0), 0 0 6px rgba(34,197,94,0.55); }
         }
       `}</style>
     </div>
