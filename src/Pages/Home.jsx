@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import SEO from "../SEO";
+import LeaderboardTicker from "../Components/common/LeaderboardTicker";
 
 /* ─────────────────────────────────────────────
    SVG DONUT — exact match to reference HTML
@@ -251,6 +252,7 @@ const Home = () => {
   return (
     <div className="content-wrapper">
       <SEO title="Dashboard" />
+      <LeaderboardTicker />
       <style>{`
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes mapPulse{0%,100%{box-shadow:0 0 0 4px rgba(192,57,43,0.3)}50%{box-shadow:0 0 0 12px rgba(192,57,43,0)}}
