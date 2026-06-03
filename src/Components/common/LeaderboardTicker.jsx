@@ -20,9 +20,9 @@ const ROW_H = 44;
 
 const LeaderboardTicker = ({
   pollMs = 30_000,
-  // 7s per item — slow, deliberate. Matches the deep-blur entry/leave
-  // animation so the whole strip feels intentional, not rushed.
-  perItemMs = 7000,
+  // 3.5s per item — snappy, keeps the ticker moving while still
+  // giving each item ~2s of clear hold-time.
+  perItemMs = 3500,
   style: styleOverride = {},
 }) => {
   const [items, setItems] = useState([]);
@@ -69,12 +69,15 @@ const LeaderboardTicker = ({
     <div
       style={{
         position: "relative",
-        background: "transparent",
-        border: "none",
+        background: "linear-gradient(180deg, #FEF2F2 0%, #FFFFFF 100%)",
+        border: "1.5px solid #DC2626",
+        borderRadius: 12,
+        boxShadow: "0 6px 18px -10px rgba(220,38,38,0.35)",
         marginBottom: 14,
         display: "flex",
         alignItems: "stretch",
         height: ROW_H + 12,
+        overflow: "hidden",
         ...styleOverride,
       }}
       onMouseEnter={() => setPaused(true)}
@@ -88,7 +91,7 @@ const LeaderboardTicker = ({
           alignSelf: "center",
           gap: 7,
           padding: "6px 12px",
-          margin: "0 12px 0 10px",
+          margin: "0 14px 0 10px",
           background: "#FECACA",
           color: "#991B1B",
           fontWeight: 800,
@@ -97,7 +100,6 @@ const LeaderboardTicker = ({
           textTransform: "uppercase",
           borderRadius: 6,
           border: "1px solid #FCA5A5",
-          zIndex: 2,
           flexShrink: 0,
         }}
       >
@@ -133,9 +135,10 @@ const LeaderboardTicker = ({
             whiteSpace: "nowrap",
             minWidth: 0,
             width: "100%",
+            paddingLeft: 4,
             animation:
-              "lba-enter 1400ms cubic-bezier(.16,1,.3,1) both, lba-leave 1000ms cubic-bezier(.7,0,.84,0) " +
-              `${perItemMs - 1000}ms forwards`,
+              "lba-enter 600ms cubic-bezier(.16,1,.3,1) both, lba-leave 400ms cubic-bezier(.7,0,.84,0) " +
+              `${perItemMs - 400}ms forwards`,
             willChange: "opacity, transform",
           }}
         >
@@ -198,14 +201,14 @@ const LeaderboardTicker = ({
 
       <style>{`
         @keyframes lba-enter {
-          0%   { opacity: 0; transform: translateY(14px) scale(.985); filter: blur(8px); }
-          55%  { opacity: 0.85; filter: blur(2px); }
-          100% { opacity: 1; transform: translateY(0)   scale(1);    filter: blur(0); }
+          0%   { opacity: 0; transform: translateY(8px) scale(.99); filter: blur(4px); }
+          60%  { opacity: 0.9; filter: blur(1px); }
+          100% { opacity: 1; transform: translateY(0)   scale(1);   filter: blur(0); }
         }
         @keyframes lba-leave {
-          0%   { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0); }
-          45%  { opacity: 0.7; filter: blur(2px); }
-          100% { opacity: 0; transform: translateY(-14px) scale(.985); filter: blur(8px); }
+          0%   { opacity: 1; transform: translateY(0)    scale(1);   filter: blur(0); }
+          40%  { opacity: 0.75; filter: blur(1px); }
+          100% { opacity: 0; transform: translateY(-8px) scale(.99); filter: blur(4px); }
         }
         @keyframes lba-pulse-g {
           0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0.7), 0 0 6px rgba(34,197,94,0.55); }
