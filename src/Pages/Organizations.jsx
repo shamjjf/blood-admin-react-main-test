@@ -6,20 +6,16 @@ import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 import { DEMO_MODE, resetOrganizationsDemoData } from "./organizationsDemo";
 
-const ORG_TYPES = ["NGO", "Company", "University", "School", "Hospital", "Government", "Other"];
-
 const emptyForm = {
   _id: null,
   name: "",
-  type: "NGO",
   description: "",
   contactName: "",
   contactEmail: "",
   contactPhone: "",
   address: "",
   website: "",
-  partnershipSince: "",
-  partnershipNotes: "",
+  password: "",
   active: true,
 };
 
@@ -33,6 +29,15 @@ const verificationStatus = (o) => {
   if (o.verificationRejected) return { label: "Rejected", color: "#DC2626", icon: "ti-circle-x" };
   return { label: "Pending", color: "#F59E0B", icon: "ti-clock" };
 };
+
+// Verification tabs that double as the list filter (NGO Partners style).
+// `countKey` maps to the computed `stats` object below.
+const STATUS_TABS = [
+  { key: "all",      label: "All Organisations", color: "#0EA5E9", countKey: "total"    },
+  { key: "pending",  label: "Pending",           color: "#F59E0B", countKey: "pending"  },
+  { key: "verified", label: "Verified",          color: "#16A34A", countKey: "verified" },
+  { key: "rejected", label: "Rejected",          color: "#DC2626", countKey: "rejected" },
+];
 
 const StatCard = ({ label, value, accent, icon }) => (
   <div className="col-md-3 col-sm-6">
@@ -76,15 +81,13 @@ const Organizations = () => {
   const [items, setItems] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [showModal, setShowModal] = useState(false);
-  const [typeFilter, setTypeFilter] = useState("All");
-  const [verifiedFilter, setVerifiedFilter] = useState("All");
+  const [status, setStatus] = useState("all");
   const [searchText, setSearchText] = useState("");
 
   const load = async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      if (typeFilter !== "All") params.set("type", typeFilter);
       if (searchText) params.set("searchText", searchText);
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/organizations?${params.toString()}`,
@@ -101,22 +104,23 @@ const Organizations = () => {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typeFilter]);
+  }, []);
 
   const filtered = useMemo(() => {
     return items.filter((o) => {
-      if (verifiedFilter === "Verified" && !o.verified) return false;
-      if (verifiedFilter === "Pending" && (o.verified || o.verificationRejected)) return false;
-      if (verifiedFilter === "Rejected" && !o.verificationRejected) return false;
-      return true;
+      if (status === "verified") return !!o.verified;
+      if (status === "rejected") return !!o.verificationRejected;
+      if (status === "pending") return !o.verified && !o.verificationRejected;
+      return true; // "all"
     });
-  }, [items, verifiedFilter]);
+  }, [items, status]);
 
   const stats = useMemo(() => {
     const total = items.length;
     const verified = items.filter((o) => o.verified).length;
+    const rejected = items.filter((o) => o.verificationRejected).length;
     const pending = items.filter((o) => !o.verified && !o.verificationRejected).length;
-    return { total, verified, pending };
+    return { total, verified, rejected, pending };
   }, [items]);
 
   const openCreate = () => {
@@ -128,17 +132,13 @@ const Organizations = () => {
     setForm({
       _id: o._id,
       name: o.name || "",
-      type: o.type || "NGO",
       description: o.description || "",
       contactName: o.contactName || "",
       contactEmail: o.contactEmail || "",
       contactPhone: o.contactPhone || "",
       address: o.address || "",
       website: o.website || "",
-      partnershipSince: o.partnershipSince
-        ? new Date(o.partnershipSince).toISOString().slice(0, 10)
-        : "",
-      partnershipNotes: o.partnershipNotes || "",
+      password: "", // never prefilled — leave blank to keep the existing one
       active: !!o.active,
     });
     setShowModal(true);
@@ -153,17 +153,22 @@ const Organizations = () => {
     if (!form.name.trim()) return swal("Error", "Name is required", "error");
     const payload = {
       name: form.name.trim(),
-      type: form.type,
+      // Org accounts created here log into the organisation portal, which
+      // only recognises the "Company" type — so we fix the type rather than
+      // exposing a picker.
+      type: "Company",
       description: form.description.trim(),
       contactName: form.contactName.trim(),
       contactEmail: form.contactEmail.trim(),
       contactPhone: form.contactPhone.trim(),
       address: form.address.trim(),
       website: form.website.trim(),
-      partnershipSince: form.partnershipSince || null,
-      partnershipNotes: form.partnershipNotes.trim(),
       active: !!form.active,
     };
+    // Password is optional on edit (blank = keep existing); send only when set.
+    if (form.password && form.password.trim()) {
+      payload.password = form.password.trim();
+    }
     try {
       setLoading(true);
       if (form._id) {
@@ -289,31 +294,61 @@ const Organizations = () => {
           <StatCard label="Pending Verification" value={stats.pending} accent="#F59E0B" icon="ti-clock" />
         </div>
 
+        {/* Verification tabs — act as the list filter (NGO Partners style) */}
+        <div
+          style={{
+            display: "flex",
+            gap: 6,
+            borderBottom: "1px solid #e5e7eb",
+            marginBottom: 18,
+            flexWrap: "wrap",
+          }}
+        >
+          {STATUS_TABS.map((tab) => {
+            const isActive = status === tab.key;
+            const count = stats[tab.countKey] ?? 0;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setStatus(tab.key)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: "10px 14px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: isActive ? tab.color : "#6b7280",
+                  borderBottom: `2px solid ${isActive ? tab.color : "transparent"}`,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                {tab.label}
+                <span
+                  style={{
+                    background: isActive ? tab.color : "#e5e7eb",
+                    color: isActive ? "white" : "#6b7280",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: "1px 8px",
+                    borderRadius: 999,
+                    minWidth: 22,
+                    textAlign: "center",
+                  }}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="card">
           <div className="card-body">
             <div className="d-flex gap-2 mb-3 flex-wrap">
-              <select
-                className="form-control"
-                style={{ maxWidth: 170 }}
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-              >
-                <option value="All">All Types</option>
-                {ORG_TYPES.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-              <select
-                className="form-control"
-                style={{ maxWidth: 200 }}
-                value={verifiedFilter}
-                onChange={(e) => setVerifiedFilter(e.target.value)}
-              >
-                <option value="All">All Verification</option>
-                <option value="Verified">Verified</option>
-                <option value="Pending">Pending</option>
-                <option value="Rejected">Rejected</option>
-              </select>
               <input
                 className="form-control"
                 style={{ maxWidth: 260 }}
@@ -490,16 +525,17 @@ const Organizations = () => {
                   />
                 </div>
                 <div className="col-md-3">
-                  <label className="form-label">Type *</label>
-                  <select
+                  <label className="form-label">
+                    Password {form._id && <span className="text-muted small">(leave blank to keep)</span>}
+                  </label>
+                  <input
+                    type="password"
                     className="form-control"
-                    value={form.type}
-                    onChange={(e) => setForm({ ...form, type: e.target.value })}
-                  >
-                    {ORG_TYPES.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
+                    autoComplete="new-password"
+                    placeholder={form._id ? "••••••••" : "Set a login password"}
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  />
                 </div>
                 <div className="col-md-3 d-flex align-items-end">
                   <div className="form-check">
@@ -560,23 +596,6 @@ const Organizations = () => {
                     className="form-control"
                     value={form.website}
                     onChange={(e) => setForm({ ...form, website: e.target.value })}
-                  />
-                </div>
-                <div className="col-md-4">
-                  <label className="form-label">Partnership Since</label>
-                  <input
-                    type="date"
-                    className="form-control"
-                    value={form.partnershipSince}
-                    onChange={(e) => setForm({ ...form, partnershipSince: e.target.value })}
-                  />
-                </div>
-                <div className="col-md-8">
-                  <label className="form-label">Partnership Notes</label>
-                  <input
-                    className="form-control"
-                    value={form.partnershipNotes}
-                    onChange={(e) => setForm({ ...form, partnershipNotes: e.target.value })}
                   />
                 </div>
               </div>

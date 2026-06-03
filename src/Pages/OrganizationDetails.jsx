@@ -1646,7 +1646,7 @@ const OrganizationDetails = () => {
     return (
       <>
         <SEO title="Organization" />
-        <div className="content-wrapper pt-4">
+        <div className="content-wrapper lsa-tight-top">
           <Link to="/organizations" className="btn btn-outline-secondary mb-3">
             <i className="ti ti-arrow-left me-1"></i> Back
           </Link>
@@ -1659,7 +1659,7 @@ const OrganizationDetails = () => {
   return (
     <>
       <SEO title={`Organization · ${org.name}`} />
-      <div className="content-wrapper pt-4">
+      <div className="content-wrapper lsa-tight-top">
         <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
           <button className="btn btn-outline-secondary" onClick={() => navigate("/organizations")}>
             <i className="ti ti-arrow-left me-1"></i> Back to Organizations
