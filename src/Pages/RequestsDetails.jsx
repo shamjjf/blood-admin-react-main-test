@@ -300,7 +300,13 @@ const RequestDetails = () => {
              padding:"3px 9px", borderRadius:99, fontFamily:"var(--f-display)", display:"inline-block" };
   };
 
-  /* ── reusable donation table ── */
+  /* ── reusable donation table ──
+       Now surfaces the proof images uploaded by the recipient. After the
+       admin-gate removal donations land directly in "Donations Done"
+       (Approved status) — the Pending Approvals card with its inline
+       proof viewer no longer renders, so this table is the only place
+       the proof gets seen. Each row gets a Proofs column with one
+       download icon per uploaded file. */
   const DonTable = ({ title, filter }) => {
     const rows = request.donations?.filter(filter) || [];
     return (
@@ -312,23 +318,75 @@ const RequestDetails = () => {
           <table style={{ width:"100%", borderCollapse:"collapse", fontFamily:"var(--f-body)", fontSize:13 }}>
             <thead>
               <tr style={{ background:"#F7F4F1" }}>
-                {["#","Donor Name","Distance","Date","Mobile No","View"].map(h=>(
+                {["#","Donor Name","Distance","Date","Mobile No","Proofs","View"].map(h=>(
                   <th key={h} style={{ padding:"10px 16px", fontSize:10, fontWeight:700, color:"#9ca3af", textAlign:"left", letterSpacing:"0.8px", fontFamily:"var(--f-display)", textTransform:"uppercase", borderBottom:"1px solid rgba(0,0,0,0.07)", background:"#F7F4F1" }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {rows.length===0 ? (
-                <tr><td colSpan={6} style={{ padding:"40px", textAlign:"center", color:"#9ca3af", fontSize:13 }}>No records yet</td></tr>
+                <tr><td colSpan={7} style={{ padding:"40px", textAlign:"center", color:"#9ca3af", fontSize:13 }}>No records yet</td></tr>
               ) : rows.map((d,i)=>(
-                <tr key={d._id} style={{ cursor:"pointer" }}
+                <tr key={d._id}
                   onMouseEnter={e=>e.currentTarget.style.background="#F7F4F1"}
                   onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                   <td style={{ padding:"12px 16px", borderTop:"1px solid rgba(0,0,0,0.07)" }}>{i+1}</td>
                   <td style={{ padding:"12px 16px", borderTop:"1px solid rgba(0,0,0,0.07)", fontWeight:600, color:"#111" }}>{d.donor?.name}</td>
                   <td style={{ padding:"12px 16px", borderTop:"1px solid rgba(0,0,0,0.07)" }}>{d.distance ? `${d.distance} km` : "N/A"}</td>
-                  <td style={{ padding:"12px 16px", borderTop:"1px solid rgba(0,0,0,0.07)" }}>{d.updatedAt ? moment(d.updatedAt).format("DD-MM-YYYY h:mm A") : "N/A"}</td>
+                  <td style={{ padding:"12px 16px", borderTop:"1px solid rgba(0,0,0,0.07)" }}>{d.donatedDate ? moment(d.donatedDate).format("DD-MM-YYYY") : d.updatedAt ? moment(d.updatedAt).format("DD-MM-YYYY h:mm A") : "N/A"}</td>
                   <td style={{ padding:"12px 16px", borderTop:"1px solid rgba(0,0,0,0.07)" }}>{d.donor?.phone||"N/A"}</td>
+                  {/* Proofs — one tile per uploaded file. Image
+                      thumbnail when possible, falls back to a file
+                      icon for PDFs / other types. Clicking opens the
+                      original file in a new tab. */}
+                  <td style={{ padding:"12px 16px", borderTop:"1px solid rgba(0,0,0,0.07)", minWidth: 220 }}>
+                    {(!d.proof || d.proof.length === 0) ? (
+                      <span style={{ color:"#9ca3af", fontSize:12 }}>No proof</span>
+                    ) : (
+                      <div style={{ display:"flex", gap:8, flexWrap:"wrap", alignItems:"center" }}>
+                        {d.proof.map((p, pi) => {
+                          const f = p?.fid;
+                          if (!f?.url) return null;
+                          const isImg = (f.mime || "").startsWith("image/");
+                          return (
+                            <a key={pi}
+                               href={f.url}
+                               target="_blank"
+                               rel="noreferrer"
+                               title={`${f.name || "proof"} (uploaded by ${p.by || "receiver"})`}
+                               style={{
+                                 display:"inline-flex",
+                                 alignItems:"center",
+                                 gap:6,
+                                 padding: isImg ? 0 : "6px 10px",
+                                 borderRadius:6,
+                                 border:"1px solid rgba(0,0,0,0.10)",
+                                 background:"#fff",
+                                 textDecoration:"none",
+                                 color:"var(--red)",
+                                 fontSize:11.5,
+                                 fontWeight:600,
+                                 maxWidth: 130,
+                                 overflow:"hidden",
+                               }}
+                            >
+                              {isImg ? (
+                                <img src={f.url} alt={f.name || "proof"}
+                                  style={{ width:36, height:36, objectFit:"cover", display:"block" }} />
+                              ) : (
+                                <>
+                                  <i className="ti ti-file-description" style={{ fontSize:16 }} />
+                                  <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                                    {f.name || `proof-${pi + 1}`}
+                                  </span>
+                                </>
+                              )}
+                            </a>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </td>
                   <td style={{ padding:"12px 16px", borderTop:"1px solid rgba(0,0,0,0.07)" }}>
                     <Link to={`/user/${d.donor?._id}`} style={{ color:"var(--red)", fontSize:16 }}><i className="ti ti-eye"/></Link>
                   </td>
