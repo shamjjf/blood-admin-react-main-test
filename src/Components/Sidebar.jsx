@@ -24,6 +24,7 @@ const NAV_GROUPS = [
       // group — admins approve / reject new influencer applications here.
       { key: "influencers", icon: "ti ti-speakerphone",     name: "Influencer",   badgeKey: "influencers" },
       { key: "bloodbank",   icon: "ti ti-building-hospital",name: "Blood Bank" },
+      { key: "blood-drives", icon: "ti ti-calendar-heart",  name: "Blood Donation Drives" },
     ],
   },
   {
@@ -95,7 +96,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
   const [adminRoles] = useState(
     auth.isSuperAdmin
       ? ["requests","recurring-requests","tasks","users","admins","settings","leaderboard","badges","gifts","onboarding","training-modules","organizations","ngos","colleges",
-         "camp","contribution","volunteer","influencers","bloodbank","awssetting","smtpsetting","firebasesetting",
+         "camp","contribution","volunteer","influencers","bloodbank","blood-drives","awssetting","smtpsetting","firebasesetting",
          "donations-report","certificate-orders","certificate-management","reminders","analytics","audit-logs","india-content"]
       : auth.roles || []
   );

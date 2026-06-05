@@ -67,6 +67,7 @@ import Reminders from "./Pages/Reminders";
 import Analytics from "./Pages/Analytics";
 import AuditLogs from "./Pages/AuditLogs";
 import IndiaContent from "./Pages/IndiaContent";
+import BloodDonationDrives from "./Pages/BloodDonationDrives";
 
 // import { DndProvider } from "react-dnd";
 // import { HTML5Backend } from "react-dnd-html5-backend";
@@ -129,6 +130,7 @@ const Layout = () => {
               <Route path="/influencers" element={<Influencer />} />
               <Route path="/vendor" element={<Vendor />} />
               <Route path="/bloodbank" element={<BloodBank />} />
+              <Route path="/blood-drives" element={<BloodDonationDrives />} />
               <Route path="/awssetting" element={<AWSSetting />} />
               <Route path="/smtpsetting" element={<SMTPSetting />} />
               <Route path="/firebasesetting" element={<FirebaseSetting />} />

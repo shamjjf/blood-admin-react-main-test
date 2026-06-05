@@ -189,6 +189,8 @@ const Request = () => {
           <p className="card-title p-0 m-0">Requests</p>
         </div>
         <Tabs
+          variant="pill"
+          accent="#c0392b"
           tabs={{
             Blood: {
               label: "Blood",

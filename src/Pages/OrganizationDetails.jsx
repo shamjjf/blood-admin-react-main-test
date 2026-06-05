@@ -1668,7 +1668,7 @@ const OrganizationDetails = () => {
 
         <OrgProfileHeader org={org} />
 
-        {tabs && <Tabs tabs={tabs} />}
+        {tabs && <Tabs tabs={tabs} accent="#DC2626" />}
       </div>
     </>
   );

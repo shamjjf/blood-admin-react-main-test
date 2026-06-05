@@ -30,13 +30,17 @@ const verificationStatus = (o) => {
   return { label: "Pending", color: "#F59E0B", icon: "ti-clock" };
 };
 
-// Verification tabs that double as the list filter (NGO Partners style).
+// Brand red used for the pill-style filter tabs (matches the NGO panel).
+const BRAND_RED = "#c0392b";
+
+// Verification tabs that double as the list filter (NGO panel style — red
+// pill buttons with white text when active).
 // `countKey` maps to the computed `stats` object below.
 const STATUS_TABS = [
-  { key: "all",      label: "All Organisations", color: "#0EA5E9", countKey: "total"    },
-  { key: "pending",  label: "Pending",           color: "#F59E0B", countKey: "pending"  },
-  { key: "verified", label: "Verified",          color: "#16A34A", countKey: "verified" },
-  { key: "rejected", label: "Rejected",          color: "#DC2626", countKey: "rejected" },
+  { key: "all",      label: "All Organisations", color: BRAND_RED, countKey: "total"    },
+  { key: "pending",  label: "Pending",           color: BRAND_RED, countKey: "pending"  },
+  { key: "verified", label: "Verified",          color: BRAND_RED, countKey: "verified" },
+  { key: "rejected", label: "Rejected",          color: BRAND_RED, countKey: "rejected" },
 ];
 
 const StatCard = ({ label, value, accent, icon }) => (
@@ -294,16 +298,9 @@ const Organizations = () => {
           <StatCard label="Pending Verification" value={stats.pending} accent="#F59E0B" icon="ti-clock" />
         </div>
 
-        {/* Verification tabs — act as the list filter (NGO Partners style) */}
-        <div
-          style={{
-            display: "flex",
-            gap: 6,
-            borderBottom: "1px solid #e5e7eb",
-            marginBottom: 18,
-            flexWrap: "wrap",
-          }}
-        >
+        {/* Verification tabs — act as the list filter (NGO panel pill style:
+            red filled button with white text when active) */}
+        <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap" }}>
           {STATUS_TABS.map((tab) => {
             const isActive = status === tab.key;
             const count = stats[tab.countKey] ?? 0;
@@ -313,14 +310,16 @@ const Organizations = () => {
                 type="button"
                 onClick={() => setStatus(tab.key)}
                 style={{
-                  background: "none",
-                  border: "none",
-                  padding: "10px 14px",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: isActive ? tab.color : "#6b7280",
-                  borderBottom: `2px solid ${isActive ? tab.color : "transparent"}`,
+                  padding: "6px 14px",
+                  borderRadius: 6,
+                  border: "1px solid",
+                  borderColor: isActive ? tab.color : "#e2e8f0",
+                  background: isActive ? tab.color : "white",
+                  color: isActive ? "white" : "#475569",
+                  fontWeight: 700,
+                  fontSize: 12,
                   cursor: "pointer",
+                  transition: "all 0.12s",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 8,
@@ -329,13 +328,13 @@ const Organizations = () => {
                 {tab.label}
                 <span
                   style={{
-                    background: isActive ? tab.color : "#e5e7eb",
+                    background: isActive ? "rgba(255,255,255,0.25)" : "#e5e7eb",
                     color: isActive ? "white" : "#6b7280",
                     fontSize: 11,
                     fontWeight: 700,
-                    padding: "1px 8px",
+                    padding: "1px 7px",
                     borderRadius: 999,
-                    minWidth: 22,
+                    minWidth: 20,
                     textAlign: "center",
                   }}
                 >
