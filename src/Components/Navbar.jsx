@@ -68,10 +68,6 @@ function Navbar({ setSidebar }) {
 
         <div style={{ flex: 1 }} />
 
-        <div className="lsa-live-wrap" style={{ marginRight: 4 }}>
-          <span className="lsa-live-dot" /> Live
-        </div>
-
         {auth.id && (
           <Link to="/notifications" className="lsa-notif-btn" title="Notifications" style={{ textDecoration: "none" }}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

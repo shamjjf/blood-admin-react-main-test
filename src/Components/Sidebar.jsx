@@ -15,16 +15,21 @@ const NAV_GROUPS = [
       { key: "recurring-requests", icon: "ti ti-rotate",    name: "Recurring Requests" },
       { key: "tasks",       icon: "ti ti-checkup-list",     name: "Tasks",        badgeKey: "tasks" },
       { key: "camp",          icon: "ti ti-calendar-event",  name: "Camp" },
-      { key: "organizations", icon: "ti ti-building-bank",   name: "Organizations" },
-      { key: "ngos",          icon: "ti ti-heart-handshake", name: "NGO Partners" },
-      { key: "colleges",      icon: "ti ti-school",          name: "Colleges & Universities" },
       { key: "contribution",  icon: "ti ti-coin",            name: "Contribution" },
       { key: "volunteer",   icon: "ti ti-heart-handshake",  name: "Volunteer",    badgeKey: "volunteers" },
-      // Influencer review sits directly under Volunteer in the Operations
-      // group — admins approve / reject new influencer applications here.
-      { key: "influencers", icon: "ti ti-speakerphone",     name: "Influencer",   badgeKey: "influencers" },
       { key: "bloodbank",   icon: "ti ti-building-hospital",name: "Blood Bank" },
       { key: "blood-drives", icon: "ti ti-calendar-heart",  name: "Blood Donation Drives" },
+    ],
+  },
+  {
+    // Partner & institution entities grouped together so they read as one
+    // related set rather than being scattered through Operations.
+    label: "Partners & Institutions",
+    items: [
+      { key: "ngos",          icon: "ti ti-heart-handshake", name: "NGO Partners",            badgeKey: undefined },
+      { key: "organizations", icon: "ti ti-building-bank",   name: "Organizations" },
+      { key: "influencers",   icon: "ti ti-speakerphone",    name: "Influencer",   badgeKey: "influencers" },
+      { key: "colleges",      icon: "ti ti-school",          name: "Colleges & Universities" },
     ],
   },
   {

@@ -372,8 +372,8 @@ const Home = () => {
             </div>
           </ChartCard>
 
-          {/* Special Users Bar */}
-          <ChartCard title="Special Users" sub="By organization type" tag={`${totalSpecial} Total`} tagColor="amber">
+          {/* User Panel Bar */}
+          <ChartCard title="User Panel" sub="By organization type" tag={`${totalSpecial} Total`} tagColor="amber">
             <div style={{ padding: "14px 18px 18px" }}>
               <BarChart rows={specialBars} />
             </div>
