@@ -5,7 +5,6 @@ import { useParams, Link } from "react-router-dom";
 import moment from "moment";
 import { GlobalContext } from "../GlobalContext";
 import axios from "axios";
-import PhoneInput from "react-phone-input-2";
 import swal from "sweetalert";
 import { formatDate } from "../Components/FormatedDate";
 import SEO from "../SEO";
@@ -145,21 +144,18 @@ const RequestDetails = () => {
 
   const BG_LIST = ["A+","A-","B+","B-","AB+","AB-","O+","O-","A1+","A1-","A2+","A2-","A1B+","A1B-","A2B+","A2B-","Bombay Blood Group","INRA","Don't Know"];
 
+  // All fields are optional on update — the admin can change just the one they
+  // want. We only validate the *format* of values that have actually been
+  // entered (not their presence), so a partial update never gets blocked.
   const validate = () => {
     let ok = true;
-    if (!request.name?.trim())       { swal("Error","Name is Required!","error");       ok=false; }
-    if (!request.pinCode?.trim())    { swal("Error","Pincode is Required!","error");    ok=false; }
-    if (!formatDate(request.date))   { swal("Error","Date is Required!","error");       ok=false; }
     if (request.date) {
       const sel = new Date(request.date), today = new Date(); today.setHours(0,0,0,0);
       if (sel <= today) { swal("Error","Cannot accept a Date from the past!","error"); ok=false; }
     }
-    if (!request.gotUnits  || isNaN(request.gotUnits))  { swal("Error","Got Units required!","error");  ok=false; }
-    if (!request.needUnits || isNaN(request.needUnits)) { swal("Error","Need Units required!","error"); ok=false; }
-    if (!request.location) { swal("Error","Cannot accept an empty Location!","error"); ok=false; }
-    if (!request.note)     { swal("Error","Cannot accept an empty Note!","error");     ok=false; }
-    if (!request.phone)    { swal("Error","Phone number is required!","error");        ok=false; }
-    else if (phoneError)   { swal("Error","Invalid Phone Number Format!","error");     ok=false; }
+    if (request.gotUnits  !== "" && request.gotUnits  != null && isNaN(request.gotUnits))  { swal("Error","Got Units must be a number!","error");  ok=false; }
+    if (request.needUnits !== "" && request.needUnits != null && isNaN(request.needUnits)) { swal("Error","Need Units must be a number!","error"); ok=false; }
+    if (request.phone && phoneError) { swal("Error","Invalid Phone Number Format!","error"); ok=false; }
     return ok;
   };
 
@@ -446,13 +442,13 @@ const RequestDetails = () => {
           {/* LEFT: Personal Details */}
           <Section title="Personal Details" desc="Personal details for this request">
             {[
-              { label:"Name",          name:"name",         type:"text",   value:request.name,        required:true,  err:errors.name },
+              { label:"Name",          name:"name",         type:"text",   value:request.name,        err:errors.name },
               { label:"Hospital Name", name:"hospitalName", type:"text",   value:request.hospitalName },
               { label:"Type",          name:"type",         type:"select", value:request.type,         opts:["Blood","Platelet"] },
               { label:"Blood Group",   name:"bloodGroup",   type:"select", value:request.bloodGroup,   opts:BG_LIST },
               { label:"Status",        name:"status",       type:"select", value:request.status,       opts:["Open","Pending","Close","Canceled"] },
-              { label:"Pincode",       name:"pinCode",      type:"number", value:request.pinCode,      required:true,  err:errors.pinCode },
-              { label:"Date",          name:"date",         type:"date",   value:formatDate(request.date), required:true, err:errors.date },
+              { label:"Pincode",       name:"pinCode",      type:"number", value:request.pinCode,      err:errors.pinCode },
+              { label:"Date",          name:"date",         type:"date",   value:formatDate(request.date), err:errors.date },
             ].map((f,i)=>(
               <div key={i} style={F.wrap}>
                 <label style={F.label}>{f.label}{f.required && <span style={F.req}>*</span>}</label>
@@ -474,30 +470,35 @@ const RequestDetails = () => {
           <Section title="Resource Requirements & Contact" desc="Units needed and contact information">
             {/* Got Units */}
             <div style={F.wrap}>
-              <label style={F.label}>Got Units<span style={F.req}>*</span></label>
+              <label style={F.label}>Got Units</label>
               <input name="gotUnits" type="number" value={request.gotUnits} onChange={handleInputChange}
                 disabled={!isEditing} className="rd-input" style={F.input}/>
               {errors.gotUnits && <div style={F.err}>{errors.gotUnits}</div>}
             </div>
             {/* Need Units */}
             <div style={F.wrap}>
-              <label style={F.label}>Need Units<span style={F.req}>*</span></label>
+              <label style={F.label}>Need Units</label>
               <input name="needUnits" type="number" value={request.needUnits} onChange={handleInputChange}
                 disabled={!isEditing} className="rd-input" style={F.input}/>
               {errors.needUnits && <div style={F.err}>{errors.needUnits}</div>}
             </div>
-            {/* Phone */}
+            {/* Phone — read-only display. A plain input is used instead of the
+                react-phone-input-2 flag widget because that widget overlaps the
+                flag dropdown on top of the value and clips the leading digit. */}
             <div style={F.wrap}>
               <label style={F.label}>Mobile Number</label>
-              <PhoneInput country="in"
-                containerStyle={{ width:"100%", borderRadius:8, height:40 }}
-                inputStyle={{ width:"100%", height:40, border:"1px solid rgba(0,0,0,0.12)", borderRadius:8, fontSize:13, fontFamily:"var(--f-body)", background:"#FAFAFA" }}
-                value={`${request.phoneCode}${request.phone}`}
-                disabled={true}
-                onChange={(val,country,e,fmt)=>{
-                  const parts = fmt.split(" "); const newPhone = parts.slice(1).join("").replace("-","");
-                  setRequest({...request, phoneCode:country.dialCode, phone:newPhone});
-                }}/>
+              <input
+                type="text"
+                readOnly
+                value={
+                  request.phone
+                    ? `+${request.phoneCode || ""} ${request.phone}`.trim()
+                    : ""
+                }
+                className="rd-input"
+                style={F.input}
+                placeholder="Mobile Number"
+              />
             </div>
             {/* Location */}
             <div style={{ ...F.wrap, position:"relative" }}>
