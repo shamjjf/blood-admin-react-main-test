@@ -4,7 +4,7 @@
    Loads LAST — overrides everything
    ================================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 /* ── DESIGN TOKENS (exact from reference HTML) ── */
 :root {
@@ -20,8 +20,8 @@
   --shadow-md:0 4px 12px rgba(0,0,0,0.08),0 12px 32px rgba(0,0,0,0.06);
   --r:12px; --r-sm:8px;
   --sidebar-w:240px; --topbar-h:68px;
-  --f-display:'Inter',sans-serif;
-  --f-body:'DM Sans',sans-serif;
+  --f-display: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Inter', sans-serif;
+  --f-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Inter', sans-serif;
 }
 
 /* ── BASE RESET ── */
@@ -46,7 +46,7 @@ html, body {
   font-family: var(--f-body) !important;
   background: var(--bg) !important;
   color: var(--text) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
 }
 /* Global scrollbar — hidden by default, shows on hover */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -358,8 +358,15 @@ nav.sidebar {
   background: var(--bg) !important;
   width: calc(100% - var(--sidebar-w)) !important;
 }
+/* The legacy template adds a redundant 60px padding-top on
+   .page-body-wrapper to clear a fixed navbar — but .main-panel already
+   clears the navbar via padding-top:var(--topbar-h). That double-clearing
+   left a big empty band under the top bar on every page. Zero it. */
+.page-body-wrapper {
+  padding-top: 0 !important;
+}
 .content-wrapper {
-  padding: 24px !important;
+  padding: 16px 24px 24px !important;
   background: var(--bg) !important;
 }
 
@@ -1098,3 +1105,284 @@ input:focus, textarea:focus, select:focus {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ================================================================
+   READABILITY PASS — the admin's smallest UI text was hard to read.
+   Bump table cells, headers, labels and nav text a step larger and
+   keep all headings clearly bold so every page reads like the
+   dashboard. Loads last → wins.
+   ================================================================ */
+
+/* Tables — larger, legible cells + bigger uppercase headers */
+.content-wrapper th,
+#request-heading th { font-size: 13px !important; letter-spacing: 0.5px !important; }
+.content-wrapper td { font-size: 16px !important; color: #1a1a1a !important; }
+
+/* Filter + form labels */
+.filter-layout .filter-label { font-size: 13px !important; }
+.content-wrapper .form-group label { font-size: 15px !important; }
+.limit-holder label,
+.page-info #total-counts p { font-size: 15px !important; }
+.filter-layout select,
+.filter-layout input[type="text"],
+.filter-layout input[type="date"] { font-size: 14px !important; }
+
+/* Sidebar nav — bigger so items are easy to scan */
+.sidebar .nav .nav-item .nav-link,
+.sidebar .nav .nav-item .nav-link .menu-title { font-size: 15.5px !important; }
+.lsa-nav-group { font-size: 11.5px !important; }
+
+/* Navbar text — search, admin name */
+.lsa-search-wrap input { font-size: 14.5px !important; }
+.lsa-name { font-size: 13px !important; }
+
+/* ── HEADINGS / TITLES — big and bold ── */
+/* Main page titles (Admin Dashboard, page-head h1s) */
+.content-wrapper h1,
+.lsa-page-head h1 { font-size: 30px !important; font-weight: 800 !important; letter-spacing: -0.5px !important; }
+/* Card-style page titles (e.g. "Requests" rendered as .card-title) */
+.content-wrapper .card-title,
+.card-title { font-size: 24px !important; font-weight: 800 !important; }
+/* Section / card-header titles */
+.content-wrapper .card-header h5 { font-size: 19px !important; font-weight: 800 !important; }
+.content-wrapper .card-header h4 { font-size: 21px !important; font-weight: 800 !important; }
+/* Chart card titles on the dashboard */
+.lsa-chart-title { font-size: 17px !important; font-weight: 800 !important; }
+
+/* Status pills / badges — nudged up so the label is readable */
+.content-wrapper .badge,
+.lsa-pill { font-size: 12px !important; }
+.content-wrapper select { font-size: 15px !important; }
+.content-wrapper .form-control { font-size: 15px !important; }
+.content-wrapper .btn,
+.content-wrapper .btn-primary,
+.lsa-btn-primary, .lsa-btn-outline { font-size: 14px !important; }
+
+/* ================================================================
+   FONT ENFORCEMENT — the whole admin references var(--f-body) /
+   var(--f-display), so swapping those vars (above) already changes the
+   font everywhere. These rules just stop legacy template fonts (Nunito)
+   leaking into containers that hard-set their own family, and keep
+   every heading bold. Deliberately NOT targeting div/span so intentional
+   inline display-font usage (e.g. dashboard stat numbers) is preserved.
+   ================================================================ */
+body, .container-scroller, .main-panel, .content-wrapper,
+.navbar, .sidebar, button, input, select, textarea, table, label {
+  font-family: var(--f-body) !important;
+}
+/* Headings / titles use the display font and are always bold */
+h1, h2, h3, h4, h5, h6,
+.content-wrapper h1, .content-wrapper h2, .content-wrapper h3,
+.content-wrapper h4, .content-wrapper h5, .content-wrapper h6,
+.content-wrapper .card-title,
+.content-wrapper .card-header h5, .content-wrapper .card-header h4,
+.lsa-page-head h1, .lsa-chart-title, .card-title {
+  font-family: var(--f-display) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.2px !important;
+}
+/* The ti icon font must never be overridden by the rules above */
+.ti, [class^="ti-"], [class*=" ti-"] { font-family: "tabler-icons" !important; }
+
+/* ================================================================
+   NAVBAR — responsive + attractive (loads last → overrides earlier
+   navbar rules). The search now flexes to fill the bar instead of a
+   fixed width that clipped its placeholder, with a clean focus ring;
+   icon buttons and the admin chip are larger and more polished; and
+   the whole bar degrades gracefully down to phones.
+   ================================================================ */
+.navbar .navbar-menu-wrapper {
+  gap: 12px !important;
+  padding: 0 18px !important;
+}
+
+/* Search — flexible, fills available space up to a sensible cap */
+.lsa-search-wrap {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  max-width: 460px !important;
+  min-width: 0 !important;
+  height: 40px !important;
+  background: var(--bg) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  transition: border-color .15s, box-shadow .15s, background .15s !important;
+}
+.lsa-search-wrap:focus-within {
+  background: var(--white) !important;
+  border-color: var(--red) !important;
+  box-shadow: 0 0 0 3px rgba(192,57,43,0.10) !important;
+}
+.lsa-search-wrap i { font-size: 16px !important; }
+.lsa-search-wrap input { font-size: 14.5px !important; }
+
+/* Icon buttons (notifications / settings) — larger, soft red hover */
+.lsa-notif-btn {
+  width: 38px !important; height: 38px !important;
+  border-radius: 10px !important;
+}
+.lsa-notif-btn:hover {
+  background: var(--red-pale) !important;
+  border-color: var(--red-mid) !important;
+  color: var(--red) !important;
+}
+.lsa-notif-btn:hover i { color: var(--red) !important; }
+
+/* Admin chip — taller, rounded, gentle hover lift */
+.lsa-admin-chip {
+  height: 40px !important;
+  padding: 4px 12px 4px 5px !important;
+  border-radius: 99px !important;
+  transition: background .15s, border-color .15s, box-shadow .15s !important;
+}
+.lsa-admin-chip:hover {
+  background: var(--white) !important;
+  border-color: var(--red-mid) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
+}
+.lsa-admin-av { width: 30px !important; height: 30px !important; font-size: 12px !important; }
+.lsa-name { font-size: 13.5px !important; font-weight: 700 !important; }
+.lsa-role { font-size: 9.5px !important; letter-spacing: 0.7px !important; }
+
+/* ── Responsive (override the older breakpoints) ── */
+/* Tablet: keep the search but smaller, tighten gaps */
+@media (max-width: 991px) {
+  .lsa-search-wrap { display: flex !important; max-width: 300px !important; }
+  .navbar .navbar-menu-wrapper { gap: 9px !important; padding: 0 12px !important; }
+}
+/* Small tablet / large phone: drop the chip's text, keep search compact */
+@media (max-width: 768px) {
+  .navbar .navbar-brand-wrapper {
+    width: auto !important; min-width: 60px !important;
+    padding: 0 10px !important;
+  }
+  .lsa-search-wrap { display: flex !important; max-width: none !important; flex: 1 1 auto !important; }
+  .lsa-admin-chip .lsa-name,
+  .lsa-admin-chip .lsa-role { display: none !important; }
+  .lsa-admin-chip { padding: 4px !important; gap: 0 !important; }
+  .lsa-admin-chip > i { display: none !important; }
+}
+/* Phone: hide the search to make room for the action icons */
+@media (max-width: 560px) {
+  .lsa-search-wrap { display: none !important; }
+  .navbar .navbar-menu-wrapper { gap: 7px !important; padding: 0 10px !important; }
+  .lsa-notif-btn { width: 36px !important; height: 36px !important; }
+}
+
+/* ================================================================
+   BEAUTIFY PASS — tasteful, global polish (loads last). Softer cards,
+   a gentle gradient table header, zebra rows with an on-brand hover
+   tint + left accent, gradient primary buttons, a refined filter bar,
+   and a left accent on the active sidebar item.
+   ================================================================ */
+
+/* Cards — rounder corners, softer layered shadow */
+.content-wrapper .card,
+.table-card-border {
+  border-radius: 16px !important;
+  box-shadow: 0 1px 3px rgba(16,24,40,0.04), 0 12px 30px -16px rgba(16,24,40,0.18) !important;
+}
+
+/* Table header — subtle gradient, darker labels for contrast */
+.content-wrapper thead,
+.content-wrapper thead tr,
+.content-wrapper th {
+  background: linear-gradient(180deg, #FAF8F6 0%, #F3EFEB 100%) !important;
+}
+.content-wrapper th,
+#request-heading th { color: #6b7280 !important; }
+
+/* Rows — gentle zebra, smooth transition */
+.content-wrapper tbody tr td { transition: background .12s ease, box-shadow .12s ease !important; }
+.content-wrapper tbody tr:nth-child(even) td { background: #FBFAF9 !important; }
+/* Hover wins over zebra: soft red tint + a red accent on the first cell */
+.content-wrapper tbody tr:hover td { background: var(--red-pale) !important; }
+.content-wrapper tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 var(--red) !important; }
+
+/* Filter bar — soft gradient surface so it reads as one clean panel */
+.filter-layout {
+  background: linear-gradient(180deg, #FCFBFA 0%, #F7F4F1 100%) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+.filter-layout select,
+.filter-layout .dropdown-btn,
+.filter-layout input[type="text"],
+.filter-layout input[type="date"] {
+  height: 38px !important;
+  border-radius: 10px !important;
+  transition: border-color .15s, box-shadow .15s !important;
+}
+
+/* Primary buttons — brand gradient + soft shadow, lift on hover */
+.content-wrapper .btn-primary,
+.content-wrapper .btn.btn-primary,
+.lsa-btn-primary,
+.btn-primary, button.btn-primary {
+  background: linear-gradient(135deg, #D4453A 0%, #C0392B 60%, #A0291C 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 12px -4px rgba(192,57,43,0.45) !important;
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s ease !important;
+}
+.content-wrapper .btn-primary:hover,
+.content-wrapper .btn.btn-primary:hover,
+.lsa-btn-primary:hover,
+.btn-primary:hover, button.btn-primary:hover {
+  filter: brightness(1.05) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 8px 18px -6px rgba(192,57,43,0.55) !important;
+}
+
+/* Outline button — subtle hover lift */
+.lsa-btn-outline { transition: all .15s ease !important; }
+.lsa-btn-outline:hover { transform: translateY(-1px) !important; box-shadow: 0 6px 14px -8px rgba(0,0,0,0.25) !important; }
+
+/* Sidebar active item — left red accent bar for a crisper highlight */
+.sidebar .nav .nav-item.active .nav-link,
+.sidebar .nav .nav-item .nav-link.active {
+  box-shadow: inset 3px 0 0 var(--red) !important;
+}
+.sidebar .nav .nav-item .nav-link { transition: background .13s ease, color .13s ease, box-shadow .13s ease !important; }
+
+/* Inputs — rounder, smoother focus across content */
+.content-wrapper .form-control,
+.content-wrapper select { border-radius: 10px !important; }
+
+/* Status pills — tiny lift so they read as chips */
+.lsa-pill, .content-wrapper .badge { box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important; }
+
+/* Pagination active page — gradient pill */
+.page-info .pagination-container .active,
+.page-info .pagination-container button.active {
+  background: linear-gradient(135deg, #D4453A 0%, #C0392B 70%) !important;
+  box-shadow: 0 4px 10px -4px rgba(192,57,43,0.5) !important;
+}
+
+/* ================================================================
+   RED WASH — warm, on-brand red tint on the page background plus a
+   red accent on titles and table headers so the admin feels branded
+   instead of flat grey/white.
+   ================================================================ */
+.main-panel, .main-panel.me-0 {
+  background: #FCEEEC !important;
+}
+.content-wrapper {
+  background:
+    radial-gradient(1000px 460px at 92% -10%, rgba(192,57,43,0.13) 0%, transparent 60%),
+    radial-gradient(820px 420px at 0% 105%, rgba(192,57,43,0.08) 0%, transparent 60%),
+    linear-gradient(180deg, #FCEEEC 0%, #FAF2F0 45%, #F8F1EF 100%) !important;
+}
+
+/* Cards stay clean white so content pops against the red page */
+.content-wrapper .card,
+.table-card-border { background: #ffffff !important; }
+
+/* Page / card titles in brand red */
+.content-wrapper .card-title,
+.card-title,
+.lsa-page-head h1,
+.content-wrapper > h1,
+.lsa-dash h1 { color: var(--red) !important; }
+
+/* Table column headers get a soft red tone */
+.content-wrapper th,
+#request-heading th { color: #A23A2E !important; }
