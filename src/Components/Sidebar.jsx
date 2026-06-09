@@ -45,6 +45,7 @@ const NAV_GROUPS = [
       { key: "leaderboard",       icon: "ti ti-trophy",       name: "Leaderboard" },
       { key: "badges",            icon: "ti ti-medal",        name: "Badges" },
       { key: "gifts",             icon: "ti ti-gift",         name: "Gifts Catalog" },
+      { key: "missions",          icon: "ti ti-target-arrow", name: "Missions" },
       { key: "spin-rewards",      icon: "ti ti-confetti",     name: "Lucky Spin" },
       { key: "onboarding",        icon: "ti ti-school",       name: "Volunteer 101" },
       { key: "training-modules",  icon: "ti ti-book",         name: "Training Modules" },
@@ -55,6 +56,7 @@ const NAV_GROUPS = [
     items: [
       { key: "reminders", icon: "ti ti-bell-ringing", name: "Reminders & Campaigns" },
       { key: "promotions", icon: "ti ti-speakerphone", name: "Promotions & Ads" },
+      { key: "community", icon: "ti ti-users-group", name: "Community Feed" },
     ],
   },
   {
@@ -104,7 +106,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
     auth.isSuperAdmin
       ? ["requests","recurring-requests","tasks","users","admins","settings","leaderboard","badges","gifts","onboarding","training-modules","organizations","ngos","colleges",
          "camp","contribution","volunteer","influencers","bloodbank","blood-drives","awssetting","smtpsetting","firebasesetting",
-         "donations-report","certificate-orders","certificate-management","reminders","promotions","spin-rewards","analytics","audit-logs","india-content"]
+         "donations-report","certificate-orders","certificate-management","reminders","promotions","community","spin-rewards","missions","analytics","audit-logs","india-content"]
       : auth.roles || []
   );
 
