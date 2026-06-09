@@ -16,6 +16,7 @@ import "./Assets/css/vertical-layout-light/style.css";
 import "./Assets/css/admin-theme.css";
 import Navbar from "./Components/Navbar";
 import Sidebar from "./Components/Sidebar";
+import ScrollToTop from "./Components/ScrollToTop";
 import Home from "./Pages/Home";
 import { Route, Routes } from "react-router-dom";
 import Request from "./Pages/Request";
@@ -78,6 +79,7 @@ const Layout = () => {
   const [sidebar, setSidebar] = useState(false);
   return (
     <div className={`container-scroller ${sidebar && "sidebar-icon-only"}`}>
+      <ScrollToTop />
       <Navbar setSidebar={setSidebar} />
       <div className="container-fluid page-body-wrapper">
         <Sidebar sidebar={sidebar} setSidebar={setSidebar} />

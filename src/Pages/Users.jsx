@@ -10,6 +10,7 @@ import "react-loading-skeleton/dist/skeleton.css";
 import SEO from "../SEO";
 import { downloadCsv } from "../utils/downloadCsv";
 import ConfirmModal from "../Components/ConfirmModal";
+import EmptyState from "../Components/EmptyState";
 const Users = () => {
   const { setLoading, alert } = useContext(GlobalContext);
   const [users, setUsers] = useState(null);
@@ -295,11 +296,11 @@ const Users = () => {
                           </tr>
                         ))
                       ) : (
-                        <tr className="">
-                          <td colSpan={11} className="align-center">
-                            <p className="m-5 p-5 fs-4">No Data Found</p>
-                          </td>
-                        </tr>
+                        <EmptyState
+                          colSpan={11}
+                          icon="ti ti-users"
+                          title="No Data Found"
+                        />
                       )}
                     </tbody>
                   </table>

@@ -4,6 +4,7 @@ import axios from "axios";
 import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
+import EmptyState from "../Components/EmptyState";
 
 const PATIENT_CONDITIONS = [
   "normal",
@@ -208,15 +209,15 @@ const RecurringRequests = () => {
                   </thead>
                   <tbody>
                     {filtered.length === 0 ? (
-                      <tr>
-                        <td colSpan={9} className="align-center">
-                          <p className="m-5 p-5 fs-4">
-                            {requests.length === 0
-                              ? "No recurring or chronic requests yet."
-                              : "No matches for the selected filters."}
-                          </p>
-                        </td>
-                      </tr>
+                      <EmptyState
+                        colSpan={9}
+                        icon="ti ti-rotate"
+                        title={
+                          requests.length === 0
+                            ? "No recurring or chronic requests yet."
+                            : "No matches for the selected filters."
+                        }
+                      />
                     ) : (
                       filtered.map((r) => {
                         const dd = daysUntil(r.nextRecurrenceAt);

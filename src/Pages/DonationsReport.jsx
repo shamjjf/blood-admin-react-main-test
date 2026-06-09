@@ -4,6 +4,7 @@ import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 import { downloadCsv } from "../utils/downloadCsv";
+import EmptyState from "../Components/EmptyState";
 
 const statusBadge = (status) => {
   const base = { padding: "3px 10px", borderRadius: 10, fontSize: 11, fontWeight: 700, color: "#fff", display: "inline-block" };
@@ -17,10 +18,10 @@ const statusBadge = (status) => {
 // in the new `byType` object. "unknown" exists for legacy rows that predate
 // the `type` field (filled in by the backend backfill script when run).
 const TYPE_META = {
-  direct:  { label: "Direct (Cause)",      color: "#0EA5E9", icon: "ti ti-heart-handshake" },
-  vendor:  { label: "Vendor / UPI Proof",  color: "#8B5CF6", icon: "ti ti-qrcode" },
-  deliver: { label: "Deliver In Person",   color: "#F59E0B", icon: "ti ti-truck-delivery" },
-  unknown: { label: "Legacy (untagged)",   color: "#6B7280", icon: "ti ti-help" },
+  direct:  { label: "Direct (Cause)",      color: "#d4453a", icon: "ti ti-heart-handshake" },
+  vendor:  { label: "Vendor / UPI Proof",  color: "#d4453a", icon: "ti ti-qrcode" },
+  deliver: { label: "Deliver In Person",   color: "#d4453a", icon: "ti ti-truck-delivery" },
+  unknown: { label: "Legacy (untagged)",   color: "#d4453a", icon: "ti ti-help" },
 };
 
 const EMPTY_REPORT = { totals: {}, byMonth: [], byStatus: {}, byType: {} };
@@ -121,15 +122,8 @@ const DonationsReport = () => {
           <p className="card-title p-0 m-0">Monetary Donations Report</p>
           <div className="d-flex gap-2 flex-wrap">
             <button
-              className="btn btn-outline-secondary"
-              onClick={() => sendRecurringReminders(true)}
-              disabled={sendingReminders}
-              title="Preview how many donors would be emailed without actually sending"
-            >
-              <i className="ti ti-eye"></i> Dry-run
-            </button>
-            <button
-              className="btn btn-warning"
+              className="btn"
+              style={{ backgroundColor: "#d4453a", borderColor: "#d4453a", color: "#fff" }}
               onClick={() => sendRecurringReminders(false)}
               disabled={sendingReminders}
               title="Trigger the monthly recurring-contribution reminder emails now"
@@ -208,7 +202,7 @@ const DonationsReport = () => {
             <div className="card h-100">
               <div className="card-body">
                 <div className="text-muted small text-uppercase" style={{ letterSpacing: 0.5 }}>Total Amount</div>
-                <div className="fs-3 fw-bold" style={{ color: "#0EA5E9" }}>{fmtMoney(report.totals.totalAmount)}</div>
+                <div className="fs-3 fw-bold" style={{ color: "#d4453a" }}>{fmtMoney(report.totals.totalAmount)}</div>
               </div>
             </div>
           </div>
@@ -216,7 +210,7 @@ const DonationsReport = () => {
             <div className="card h-100">
               <div className="card-body">
                 <div className="text-muted small text-uppercase" style={{ letterSpacing: 0.5 }}>Total Donations</div>
-                <div className="fs-3 fw-bold">{report.totals.totalContributions || 0}</div>
+                <div className="fs-3 fw-bold" style={{ color: "#d4453a" }}>{report.totals.totalContributions || 0}</div>
               </div>
             </div>
           </div>
@@ -224,7 +218,7 @@ const DonationsReport = () => {
             <div className="card h-100">
               <div className="card-body">
                 <div className="text-muted small text-uppercase" style={{ letterSpacing: 0.5 }}>Approved Amount</div>
-                <div className="fs-3 fw-bold" style={{ color: "#22C55E" }}>{fmtMoney(report.totals.approvedAmount)}</div>
+                <div className="fs-3 fw-bold" style={{ color: "#d4453a" }}>{fmtMoney(report.totals.approvedAmount)}</div>
               </div>
             </div>
           </div>
@@ -232,7 +226,7 @@ const DonationsReport = () => {
             <div className="card h-100">
               <div className="card-body">
                 <div className="text-muted small text-uppercase" style={{ letterSpacing: 0.5 }}>Approved Count</div>
-                <div className="fs-3 fw-bold" style={{ color: "#22C55E" }}>{report.totals.approvedContributions || 0}</div>
+                <div className="fs-3 fw-bold" style={{ color: "#d4453a" }}>{report.totals.approvedContributions || 0}</div>
               </div>
             </div>
           </div>
@@ -251,7 +245,7 @@ const DonationsReport = () => {
                   <div key={s} className="col-md-4">
                     <div style={{ border: "1px solid #E5E7EB", borderRadius: 8, padding: 14 }}>
                       <span style={statusBadge(s)}>{s}</span>
-                      <div className="mt-2 fs-4 fw-bold">{fmtMoney(row.amount)}</div>
+                      <div className="mt-2 fs-4 fw-bold" style={{ color: "#d4453a" }}>{fmtMoney(row.amount)}</div>
                       <div className="text-muted small">{row.count} contribution(s)</div>
                     </div>
                   </div>
@@ -269,7 +263,7 @@ const DonationsReport = () => {
           </div>
           <div className="card-body">
             {report.byMonth.length === 0 ? (
-              <p className="m-0 text-muted">No donations in this range.</p>
+              <EmptyState icon="ti ti-report-money" title="No donations in this range." />
             ) : (
               <div className="table-responsive">
                 <table className="table table-hover-removed my-table">
@@ -299,7 +293,7 @@ const DonationsReport = () => {
                               <div style={{
                                 width: `${pct}%`,
                                 height: "100%",
-                                background: "#0EA5E9",
+                                background: "#d4453a",
                               }} />
                             </div>
                           </td>
@@ -347,7 +341,9 @@ const DonationsReport = () => {
                 );
               })}
               {Object.keys(report.byType || {}).length === 0 && (
-                <div className="col-12 text-muted">No donations in this range.</div>
+                <div className="col-12">
+                  <EmptyState icon="ti ti-report-money" title="No donations in this range." />
+                </div>
               )}
             </div>
           </div>

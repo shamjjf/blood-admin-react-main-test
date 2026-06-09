@@ -11,6 +11,7 @@ import PageDetails from "../Components/PageDetails";
 import { GlobalContext } from "../GlobalContext";
 import moment from "moment";
 import CampFilter from "../Components/CampFilter";
+import EmptyState from "../Components/EmptyState";
 import SEO from "../SEO";
 
 const STATUS_OPTIONS = ["scheduled", "ongoing", "completed", "cancelled"];
@@ -252,8 +253,8 @@ const Camps = () => {
                                   <div style={{ fontSize: 10.5, marginTop: 2 }}>
                                     <span
                                       style={{
-                                        background: "rgba(124,58,237,0.12)",
-                                        color: "#6d28d9",
+                                        background: "rgba(192,57,43,0.12)",
+                                        color: "#C0392B",
                                         padding: "1px 6px",
                                         borderRadius: 4,
                                         fontWeight: 700,
@@ -300,11 +301,11 @@ const Camps = () => {
                           );
                         })
                       ) : (
-                        <tr className="">
-                          <td colSpan={10} className="align-center ">
-                            <p className="m-5 p-5 fs-4">No Data Found</p>
-                          </td>
-                        </tr>
+                        <EmptyState
+                          colSpan={10}
+                          icon="ti ti-calendar-event"
+                          title="No Data Found"
+                        />
                       )}
                     </tbody>
                   </table>

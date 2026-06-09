@@ -9,6 +9,7 @@ import Pagination from "../Components/Pagination";
 import PageDetails from "../Components/PageDetails";
 import { GlobalContext } from "../GlobalContext";
 import VolunteerFilter from "../Components/VolunteerFilter";
+import EmptyState from "../Components/EmptyState";
 import SEO from "../SEO";
 
 const Volunteer = () => {
@@ -166,8 +167,8 @@ const Volunteer = () => {
                                 <div style={{ fontSize: 10.5, marginTop: 2 }}>
                                   <span
                                     style={{
-                                      background: "rgba(124,58,237,0.12)",
-                                      color: "#6d28d9",
+                                      background: "rgba(192,57,43,0.12)",
+                                      color: "#C0392B",
                                       padding: "1px 6px",
                                       borderRadius: 4,
                                       fontWeight: 700,
@@ -217,11 +218,11 @@ const Volunteer = () => {
                           </tr>
                         ))
                       ) : (
-                        <tr className="">
-                          <td colSpan={9} className="align-center">
-                            <p className="m-5 p-5 fs-4">No Data Found</p>
-                          </td>
-                        </tr>
+                        <EmptyState
+                          colSpan={9}
+                          icon="ti ti-heart-handshake"
+                          title="No Data Found"
+                        />
                       )}
                     </tbody>
                   </table>

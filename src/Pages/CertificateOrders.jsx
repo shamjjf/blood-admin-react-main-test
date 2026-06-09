@@ -3,6 +3,7 @@ import axios from "axios";
 import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
+import EmptyState from "../Components/EmptyState";
 
 // Admin moderation view for ALL reward redemptions from the Gifts catalog
 // (GiftClaim model) — printed certificates, stickers, merch, etc. The
@@ -149,11 +150,7 @@ const CertificateOrders = () => {
                 </thead>
                 <tbody>
                   {claims.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="align-center">
-                        <p className="m-5 p-5 fs-4">No reward redemptions yet.</p>
-                      </td>
-                    </tr>
+                    <EmptyState colSpan={8} icon="ti ti-certificate" title="No reward redemptions yet." />
                   ) : (
                     claims.map((c) => (
                       <tr key={c._id}>

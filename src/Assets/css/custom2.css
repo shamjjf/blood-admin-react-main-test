@@ -21,12 +21,13 @@
   padding: 0;
 }
 .myupdatedcard> .card-body>div {
-  background-color: #4b49ac;
+  background-color: #C0392B;
   color: white;
   padding: 10px;
 }
 .myupdatedcard> .card-body>div >.card-title{
 font-size: x-large;
+color: #ffffff !important;
 }
 .myupdatedcard> .card-body>div>h4 {
  padding: 0px;

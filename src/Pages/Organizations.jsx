@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
+import EmptyState from "../Components/EmptyState";
 import { DEMO_MODE, resetOrganizationsDemoData } from "./organizationsDemo";
 
 const emptyForm = {
@@ -376,15 +377,20 @@ const Organizations = () => {
                 </thead>
                 <tbody>
                   {filtered.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="align-center">
-                        <p className="m-5 p-5 fs-4">
-                          {items.length === 0
-                            ? "No organizations yet — click ‘Add Organization’ to begin."
-                            : "No organizations match the current filters."}
-                        </p>
-                      </td>
-                    </tr>
+                    items.length === 0 ? (
+                      <EmptyState
+                        colSpan={7}
+                        icon="ti ti-building-bank"
+                        title="No organizations yet"
+                        subtitle="Click ‘Add Organization’ to begin."
+                      />
+                    ) : (
+                      <EmptyState
+                        colSpan={7}
+                        icon="ti ti-building-bank"
+                        title="No organizations match the current filters."
+                      />
+                    )
                   ) : (
                     filtered.map((o) => {
                       const vs = verificationStatus(o);

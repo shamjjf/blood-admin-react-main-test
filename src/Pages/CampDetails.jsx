@@ -9,8 +9,8 @@ const STATUS_OPTIONS = ["scheduled", "ongoing", "completed", "cancelled"];
 
 const statusBadge = (status) => {
   const base = { padding: "4px 12px", borderRadius: 12, fontSize: 11, fontWeight: 700, color: "#fff" };
-  if (status === "scheduled") return { ...base, background: "#0EA5E9" };
-  if (status === "ongoing") return { ...base, background: "#16A34A" };
+  if (status === "scheduled") return { ...base, background: "#C0392B" };
+  if (status === "ongoing") return { ...base, background: "#C0392B" };
   if (status === "completed") return { ...base, background: "#6B7280" };
   if (status === "cancelled") return { ...base, background: "#DC2626" };
   return { ...base, background: "#94A3B8" };
@@ -18,8 +18,8 @@ const statusBadge = (status) => {
 
 const regBadge = (s) => {
   const base = { padding: "3px 10px", borderRadius: 10, fontSize: 11, fontWeight: 700, color: "#fff" };
-  if (s === "registered") return { ...base, background: "#F59E0B" };
-  if (s === "attended") return { ...base, background: "#22C55E" };
+  if (s === "registered") return { ...base, background: "#C0392B" };
+  if (s === "attended") return { ...base, background: "#C0392B" };
   if (s === "no-show") return { ...base, background: "#EF4444" };
   if (s === "cancelled") return { ...base, background: "#6B7280" };
   return { ...base, background: "#94A3B8" };
@@ -133,11 +133,11 @@ const CampDetails = () => {
             <div className="row g-3 mb-2">
               <div className="col-md-3">
                 <div className="text-muted small">Registered</div>
-                <div className="fs-3 fw-bold" style={{ color: "#F59E0B" }}>{counts.registered || 0}</div>
+                <div className="fs-3 fw-bold" style={{ color: "#C0392B" }}>{counts.registered || 0}</div>
               </div>
               <div className="col-md-3">
                 <div className="text-muted small">Attended</div>
-                <div className="fs-3 fw-bold" style={{ color: "#22C55E" }}>{counts.attended || 0}</div>
+                <div className="fs-3 fw-bold" style={{ color: "#C0392B" }}>{counts.attended || 0}</div>
               </div>
               <div className="col-md-3">
                 <div className="text-muted small">No-show</div>
@@ -200,7 +200,7 @@ const CampDetails = () => {
                       <td className="align-left">{new Date(r.createdAt).toLocaleDateString()}</td>
                       <td className="align-center">
                         {r.status !== "attended" && (
-                          <button className="btn btn-sm btn-success me-2" onClick={() => setRegStatus(r._id, "attended")}>
+                          <button className="btn btn-sm btn-primary me-2" onClick={() => setRegStatus(r._id, "attended")}>
                             Attended
                           </button>
                         )}

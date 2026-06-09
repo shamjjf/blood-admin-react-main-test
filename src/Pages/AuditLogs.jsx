@@ -3,6 +3,7 @@ import axios from "axios";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 import { downloadCsv } from "../utils/downloadCsv";
+import EmptyState from "../Components/EmptyState";
 
 const AuditLogs = () => {
   const { setLoading } = useContext(GlobalContext);
@@ -164,7 +165,7 @@ const AuditLogs = () => {
                 </thead>
                 <tbody>
                   {items.length === 0 ? (
-                    <tr><td colSpan={6} className="align-center"><p className="m-5 p-5 fs-4">No logged events.</p></td></tr>
+                    <EmptyState colSpan={6} icon="ti ti-history" title="No logged events." />
                   ) : items.map((it) => (
                     <>
                       <tr key={it._id}>

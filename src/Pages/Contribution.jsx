@@ -4,6 +4,7 @@ import axios from "axios";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { GlobalContext } from "../GlobalContext";
+import EmptyState from "../Components/EmptyState";
 import SEO from "../SEO";
 
 /*
@@ -65,14 +66,14 @@ const TABS = [
     label: "Contribute to Cause",
     description: "Direct money donations made via Razorpay (auto-approved).",
     icon: "ti ti-heart-handshake",
-    color: "#0EA5E9",
+    color: "#C0392B",
   },
   {
     key: "deliver",
     label: "Contribute in Kind & Deliver",
     description: "Donors sending items directly. Coordinate pickup / drop-off.",
     icon: "ti ti-truck-delivery",
-    color: "#F59E0B",
+    color: "#C0392B",
   },
 ];
 
@@ -370,14 +371,19 @@ const Contribution = () => {
           </div>
           <div className="d-flex gap-2">
             <button
-              type="button"
-              className="btn btn-outline-secondary"
-              onClick={() => navigate("/vendor")}
-              style={{ borderRadius: 5 }}
-            >
-              <i className="fa-solid fa-store me-2"></i>
-              Manage Vendors
-            </button>
+  type="button"
+  className="btn"
+  onClick={() => navigate("/vendor")}
+  style={{
+    borderRadius: 5,
+    backgroundColor: "#d4453a",
+    borderColor: "#d4453a",
+    color: "#fff",
+  }}
+>
+  <i className="fa-solid fa-store me-2"></i>
+  Manage Vendors
+</button>
             <button
               type="button"
               className="btn btn-outline-primary"
@@ -469,7 +475,7 @@ const Contribution = () => {
                 <div
                   style={{
                     fontSize: 11,
-                    color: "#6b7280",
+                    color: "#d4453a",
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
                     fontWeight: 700,
@@ -477,7 +483,7 @@ const Contribution = () => {
                 >
                   Total
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 700 }}>
+                <div style={{ fontSize: 22, fontWeight: 700, color: "#d4453a", }}>
                   {counts.total}
                 </div>
               </div>
@@ -485,7 +491,7 @@ const Contribution = () => {
                 <div
                   style={{
                     fontSize: 11,
-                    color: "#6b7280",
+                    color: "#d4453a",
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
                     fontWeight: 700,
@@ -507,7 +513,7 @@ const Contribution = () => {
                 <div
                   style={{
                     fontSize: 11,
-                    color: "#b45309",
+                    color: "#d4453a",
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
                     fontWeight: 700,
@@ -515,7 +521,7 @@ const Contribution = () => {
                 >
                   Pending
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: "#b45309" }}>
+                <div style={{ fontSize: 22, fontWeight: 700, color: "#d4453a" }}>
                   {counts.pending || 0}
                 </div>
               </div>
@@ -523,7 +529,7 @@ const Contribution = () => {
                 <div
                   style={{
                     fontSize: 11,
-                    color: "#16a34a",
+                    color: "#d4453a",
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
                     fontWeight: 700,
@@ -531,7 +537,7 @@ const Contribution = () => {
                 >
                   Approved
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: "#16a34a" }}>
+                <div style={{ fontSize: 22, fontWeight: 700, color: "#d4453a" }}>
                   {counts.approved || 0}
                 </div>
               </div>
@@ -539,7 +545,7 @@ const Contribution = () => {
                 <div
                   style={{
                     fontSize: 11,
-                    color: "#dc2626",
+                    color: "#d4453a",
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
                     fontWeight: 700,
@@ -666,18 +672,11 @@ const Contribution = () => {
                     }
                     if (filtered.length === 0) {
                       return (
-                        <tr>
-                          <td
-                            colSpan={colCount}
-                            style={{
-                              padding: "40px 16px",
-                              textAlign: "center",
-                              color: "#6b7280",
-                            }}
-                          >
-                            No contributions found for this filter.
-                          </td>
-                        </tr>
+                        <EmptyState
+                          colSpan={colCount}
+                          icon="ti ti-coin"
+                          title="No contributions found for this filter."
+                        />
                       );
                     }
                     return null;

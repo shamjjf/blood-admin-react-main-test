@@ -9,6 +9,17 @@ const NAV_GROUPS = [
     items: [{ key: "dashboard", icon: "ti ti-layout-dashboard", name: "Dashboard", path: "/" }],
   },
   {
+    // Partner & institution entities grouped together so they read as one
+    // related set rather than being scattered through Operations.
+    label: "Partners & Institutions",
+    items: [
+      { key: "ngos",          icon: "ti ti-heart-handshake", name: "NGO Partners",            badgeKey: undefined },
+      { key: "organizations", icon: "ti ti-building-bank",   name: "Organizations" },
+      { key: "influencers",   icon: "ti ti-speakerphone",    name: "Influencer",   badgeKey: "influencers" },
+      { key: "colleges",      icon: "ti ti-school",          name: "Colleges & Universities" },
+    ],
+  },
+  {
     label: "Operations",
     items: [
       { key: "requests",    icon: "ti ti-droplet-filled",   name: "Requests",     badgeKey: "requests" },
@@ -19,17 +30,6 @@ const NAV_GROUPS = [
       { key: "volunteer",   icon: "ti ti-heart-handshake",  name: "Volunteer",    badgeKey: "volunteers" },
       { key: "bloodbank",   icon: "ti ti-building-hospital",name: "Blood Bank" },
       { key: "blood-drives", icon: "ti ti-calendar-heart",  name: "Blood Donation Drives" },
-    ],
-  },
-  {
-    // Partner & institution entities grouped together so they read as one
-    // related set rather than being scattered through Operations.
-    label: "Partners & Institutions",
-    items: [
-      { key: "ngos",          icon: "ti ti-heart-handshake", name: "NGO Partners",            badgeKey: undefined },
-      { key: "organizations", icon: "ti ti-building-bank",   name: "Organizations" },
-      { key: "influencers",   icon: "ti ti-speakerphone",    name: "Influencer",   badgeKey: "influencers" },
-      { key: "colleges",      icon: "ti ti-school",          name: "Colleges & Universities" },
     ],
   },
   {
@@ -59,7 +59,7 @@ const NAV_GROUPS = [
     label: "Donations",
     items: [
       { key: "donations-report",       icon: "ti ti-report-money",      name: "Donations Report" },
-      { key: "certificate-orders",     icon: "ti ti-certificate",       name: "Certificate Orders" },
+      { key: "certificate-orders",     icon: "ti ti-certificate",       name: "Claimed Reward Awards" },
       { key: "certificate-management", icon: "ti ti-file-certificate",  name: "Certificate Config" },
     ],
   },
@@ -77,6 +77,10 @@ const NAV_GROUPS = [
   },
 ];
 
+// Only these lower/secondary groups collapse into dropdowns. The primary
+// groups above (Overview, Partners, Operations, People) stay always-expanded.
+const COLLAPSIBLE = new Set(["Rewards", "Communication", "Donations", "Settings"]);
+
 const BADGE_COLOR = {
   requests:  { bg: "#C0392B",  color: "#fff" },
   tasks:     { bg: "#d97706",  color: "#fff" },
@@ -93,6 +97,31 @@ const Sidebar = ({ sidebar, setSidebar }) => {
   const topSegment = pathname.split("/").filter(Boolean)[0] || "";
 
   const [counts, setCounts] = useState({ requests: 0, tasks: 0, volunteers: 0 });
+
+  // Collapsible nav groups (Rewards / Communication / Donations / Settings).
+  // The dropdown that owns the current route starts open; the rest collapsed.
+  const findActiveGroup = () =>
+    NAV_GROUPS.find((g) =>
+      g.items.some((it) =>
+        it.key === "dashboard" ? pathname === "/" : topSegment === it.key
+      )
+    );
+  const [openGroups, setOpenGroups] = useState(() => {
+    const g = findActiveGroup();
+    return new Set(g ? [g.label] : []);
+  });
+  const toggleGroup = (label) =>
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+  useEffect(() => {
+    const g = findActiveGroup();
+    if (g) setOpenGroups((prev) => new Set(prev).add(g.label));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   const initials = auth?.name
     ? auth.name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()
@@ -145,9 +174,28 @@ const Sidebar = ({ sidebar, setSidebar }) => {
         {NAV_GROUPS.map((group) => {
           const visibleItems = group.items.filter((item) => canShow(item.key));
           if (!visibleItems.length) return null;
+          const collapsible = COLLAPSIBLE.has(group.label);
+          // When the rail is minimized (`sidebar` true) there are no dropdown
+          // toggles, so force every group open so all icons stay reachable.
+          const isOpen = !collapsible || openGroups.has(group.label) || sidebar;
           return (
-            <li key={group.label} style={{ listStyle: "none", width: "100%" }}>
-              <span className="lsa-nav-group">{group.label}</span>
+            <li key={group.label} className="lsa-nav-section" style={{ listStyle: "none", width: "100%" }}>
+              {collapsible ? (
+                <button
+                  type="button"
+                  className={`lsa-nav-group-toggle${isOpen ? " open" : ""}`}
+                  onClick={() => toggleGroup(group.label)}
+                  aria-expanded={isOpen}
+                >
+                  <span className="lsa-nav-group">{group.label}</span>
+                  <i className="ti ti-chevron-right lsa-nav-caret" />
+                </button>
+              ) : (
+                <div className="lsa-nav-group-header" style={{ padding: "12px 10px 6px" }}>
+                  <span className="lsa-nav-group">{group.label}</span>
+                </div>
+              )}
+              {isOpen && (
               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                 {visibleItems.map((item) => {
                   const path = item.path || `/${item.key}`;
@@ -161,7 +209,12 @@ const Sidebar = ({ sidebar, setSidebar }) => {
                       <Link
                         className="nav-link"
                         to={path}
-                        onClick={() => setSidebar(false)}
+                        title={item.name}
+                        onClick={() => {
+                          // Only auto-close on mobile (dismiss the offcanvas).
+                          // On desktop, keep the rail's collapsed/expanded state.
+                          if (window.innerWidth < 992) setSidebar(false);
+                        }}
                         style={{ justifyContent: "flex-start" }}
                       >
                         <i className={`${item.icon} menu-icon`} style={{ fontSize: 17, width: 19, flexShrink: 0 }} />
@@ -190,6 +243,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
                   );
                 })}
               </ul>
+              )}
             </li>
           );
         })}

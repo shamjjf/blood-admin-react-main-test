@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import swal from "sweetalert";
 import SEO from "../SEO";
+import EmptyState from "../Components/EmptyState";
 import { GlobalContext } from "../GlobalContext";
 
 const CATEGORIES = [
@@ -414,13 +415,12 @@ const Gifts = () => {
                   </thead>
                   <tbody>
                     {gifts.length === 0 ? (
-                      <tr>
-                        <td colSpan={8} className="align-center">
-                          <p className="m-5 p-5 fs-4">
-                            No gifts yet — create one above.
-                          </p>
-                        </td>
-                      </tr>
+                      <EmptyState
+                        colSpan={8}
+                        icon="ti ti-gift"
+                        title="No gifts yet"
+                        subtitle="Create one above."
+                      />
                     ) : (
                       gifts.map((g) => (
                         <tr key={g._id}>

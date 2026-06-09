@@ -136,22 +136,22 @@ const Analytics = () => {
             {/* ===== Users ===== */}
             <Section title="Users">
               <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-5 g-3">
-                <div className="col"><Stat label="Total Active" value={fmt(data.users.total)} color="#0EA5E9" /></div>
-                <div className="col"><Stat label="Donors" value={fmt(data.users.donors)} color="#16A34A" /></div>
-                <div className="col"><Stat label="Patients" value={fmt(data.users.patients)} color="#F97316" /></div>
-                <div className="col"><Stat label="Volunteers" value={fmt(data.users.volunteers)} color="#EAB308" /></div>
-                <div className="col"><Stat label="Deactivated" value={fmt(data.users.deactivated)} color="#6B7280" /></div>
+                <div className="col"><Stat label="Total Active" value={fmt(data.users.total)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Donors" value={fmt(data.users.donors)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Patients" value={fmt(data.users.patients)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Volunteers" value={fmt(data.users.volunteers)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Deactivated" value={fmt(data.users.deactivated)} color="#d4453a" /></div>
               </div>
             </Section>
 
             {/* ===== Requests ===== */}
             <Section title="Blood Requests">
               <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-5 g-3">
-                <div className="col"><Stat label="Total" value={fmt(data.requests.total)} color="#0EA5E9" /></div>
-                <div className="col"><Stat label="Open" value={fmt(data.requests.open)} color="#22C55E" /></div>
-                <div className="col"><Stat label="Fulfilled" value={fmt(data.requests.fulfilled)} color="#16A34A" /></div>
-                <div className="col"><Stat label="Cancelled" value={fmt(data.requests.cancelled)} color="#EF4444" /></div>
-                <div className="col"><Stat label="Critical" value={fmt(data.requests.critical)} color="#DC2626" /></div>
+                <div className="col"><Stat label="Total" value={fmt(data.requests.total)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Open" value={fmt(data.requests.open)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Fulfilled" value={fmt(data.requests.fulfilled)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Cancelled" value={fmt(data.requests.cancelled)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Critical" value={fmt(data.requests.critical)} color="#d4453a" /></div>
               </div>
 
               {data.charts.requestsByBG.length > 0 && (
@@ -168,10 +168,10 @@ const Analytics = () => {
             {/* ===== Donations ===== */}
             <Section title="Donations">
               <div className="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3">
-                <div className="col"><Stat label="Total Records" value={fmt(data.donations.total)} color="#0EA5E9" /></div>
-                <div className="col"><Stat label="Approved" value={fmt(data.donations.approved)} color="#22C55E" /></div>
-                <div className="col"><Stat label="Invited" value={fmt(data.donations.invited)} color="#F59E0B" /></div>
-                <div className="col"><Stat label="Rejected" value={fmt(data.donations.rejected)} color="#EF4444" /></div>
+                <div className="col"><Stat label="Total Records" value={fmt(data.donations.total)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Approved" value={fmt(data.donations.approved)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Invited" value={fmt(data.donations.invited)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Rejected" value={fmt(data.donations.rejected)} color="#d4453a" /></div>
               </div>
 
               {data.charts.donationsByMonth.length > 0 && (
@@ -179,7 +179,7 @@ const Analytics = () => {
                   <hr />
                   <h6 className="mb-3">Approved Donations by Month</h6>
                   {data.charts.donationsByMonth.map((r) => (
-                    <Bar key={r.month} label={r.month} count={r.count} max={maxMonth} color="#16A34A" />
+                    <Bar key={r.month} label={r.month} count={r.count} max={maxMonth} color="#d4453a" />
                   ))}
                 </>
               )}
@@ -188,19 +188,19 @@ const Analytics = () => {
             {/* ===== Camps ===== */}
             <Section title="Camps & Drives">
               <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-5 g-3">
-                <div className="col"><Stat label="Total Camps" value={fmt(data.camps.total)} color="#0EA5E9" /></div>
-                <div className="col"><Stat label="Scheduled" value={fmt(data.camps.scheduled)} color="#0EA5E9" /></div>
-                <div className="col"><Stat label="Completed" value={fmt(data.camps.completed)} color="#22C55E" /></div>
-                <div className="col"><Stat label="Registrations" value={fmt(data.camps.registrations)} color="#F59E0B" /></div>
-                <div className="col"><Stat label="Attended" value={fmt(data.camps.attended)} color="#16A34A" /></div>
+                <div className="col"><Stat label="Total Camps" value={fmt(data.camps.total)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Scheduled" value={fmt(data.camps.scheduled)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Completed" value={fmt(data.camps.completed)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Registrations" value={fmt(data.camps.registrations)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Attended" value={fmt(data.camps.attended)} color="#d4453a" /></div>
               </div>
             </Section>
 
             {/* ===== Contributions ===== */}
             <Section title="Monetary Contributions">
               <div className="row row-cols-1 row-cols-md-2 g-3">
-                <div className="col"><Stat label="Total Amount" value={fmtMoney(data.contributions.amount)} color="#0EA5E9" /></div>
-                <div className="col"><Stat label="Number of Contributions" value={fmt(data.contributions.count)} color="#7C3AED" /></div>
+                <div className="col"><Stat label="Total Amount" value={fmtMoney(data.contributions.amount)} color="#d4453a" /></div>
+                <div className="col"><Stat label="Number of Contributions" value={fmt(data.contributions.count)} color="#d4453a" /></div>
               </div>
             </Section>
 
@@ -208,7 +208,7 @@ const Analytics = () => {
             <Section title="Rewards">
               <div className="row g-3">
                 <div className="col-12">
-                  <Stat label="Total Points Awarded (in this period)" value={fmt(data.pointsAwarded)} color="#EAB308" />
+                  <Stat label="Total Points Awarded (in this period)" value={fmt(data.pointsAwarded)} color="#d4453a" />
                 </div>
               </div>
             </Section>

@@ -8,6 +8,7 @@ import Pagination from "../Components/Pagination";
 import PageDetails from "../Components/PageDetails";
 import { GlobalContext } from "../GlobalContext";
 import SEO from "../SEO";
+import EmptyState from "../Components/EmptyState";
 
 const NOTIFICATION_TYPES = [
   "All",
@@ -347,11 +348,7 @@ const Notifications = () => {
                         </tr>
                       ))
                     ) : (
-                      <tr>
-                        <td colSpan={9} className="align-center">
-                          <p className="m-5 p-5 fs-4">No Notifications Found</p>
-                        </td>
-                      </tr>
+                      <EmptyState colSpan={9} icon="ti ti-bell" title="No Notifications Found" />
                     )}
                   </tbody>
                 </table>

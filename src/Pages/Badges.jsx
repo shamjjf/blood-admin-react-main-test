@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import swal from "sweetalert";
 import SEO from "../SEO";
+import EmptyState from "../Components/EmptyState";
 import { GlobalContext } from "../GlobalContext";
 
 const CRITERIA_KINDS = [
@@ -257,11 +258,12 @@ const Badges = () => {
                   </thead>
                   <tbody>
                     {badges.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="align-center">
-                          <p className="m-5 p-5 fs-4">No badges yet — create one above.</p>
-                        </td>
-                      </tr>
+                      <EmptyState
+                        colSpan={6}
+                        icon="ti ti-medal"
+                        title="No badges yet"
+                        subtitle="Create one above."
+                      />
                     ) : (
                       badges.map((b) => (
                         <tr key={b._id}>

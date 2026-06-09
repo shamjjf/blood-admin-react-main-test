@@ -10,6 +10,7 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import SEO from "../SEO";
 import SearchFilter from "../Components/SearchFilter";
+import EmptyState from "../Components/EmptyState";
 
 const Admins = () => {
   const [admins, setAdmins] = useState(null);
@@ -223,11 +224,11 @@ const Admins = () => {
                           </tr>
                         ))
                       ) : (
-                        <tr className="">
-                          <td colSpan={9} className="align-center">
-                            <p className="m-5 p-5 fs-4">No Data Found</p>
-                          </td>
-                        </tr>
+                        <EmptyState
+                          colSpan={9}
+                          icon="ti ti-user-check"
+                          title="No Data Found"
+                        />
                       )}
                     </tbody>
                   </table>

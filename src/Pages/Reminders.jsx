@@ -3,6 +3,7 @@ import axios from "axios";
 import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
+import EmptyState from "../Components/EmptyState";
 import { downloadCsv } from "../utils/downloadCsv";
 
 const AUDIENCES = [
@@ -17,9 +18,9 @@ const PRIORITIES = ["low", "normal", "high", "urgent"];
 
 const STATUS_COLORS = {
   draft:     "#6B7280",
-  scheduled: "#0EA5E9",
-  sending:   "#F59E0B",
-  sent:      "#22C55E",
+  scheduled: "#C0392B",
+  sending:   "#C0392B",
+  sent:      "#C0392B",
   cancelled: "#EF4444",
 };
 
@@ -303,7 +304,7 @@ const Reminders = () => {
                 </div>
                 <div className="col-md-4 d-flex align-items-end">
                   <div className="text-muted">
-                    Reach: <strong style={{ color: "#0EA5E9", fontSize: 18 }}>{estimate ?? "—"}</strong> user(s)
+                    Reach: <strong style={{ color: "#C0392B", fontSize: 18 }}>{estimate ?? "—"}</strong> user(s)
                   </div>
                 </div>
 
@@ -388,7 +389,7 @@ const Reminders = () => {
                   </thead>
                   <tbody>
                     {campaigns.length === 0 ? (
-                      <tr><td colSpan={6} className="align-center"><p className="m-5 p-5 fs-4">No campaigns yet.</p></td></tr>
+                      <EmptyState colSpan={6} icon="ti ti-bell-ringing" title="No campaigns yet." />
                     ) : campaigns.map((c) => (
                       <tr key={c._id}>
                         <td className="align-left">
@@ -413,7 +414,7 @@ const Reminders = () => {
                         </td>
                         <td className="align-center">
                           {["draft", "scheduled"].includes(c.status) && (
-                            <button className="btn btn-sm btn-success me-2" onClick={() => sendNow(c._id)}>Send Now</button>
+                            <button className="btn btn-sm btn-primary me-2" onClick={() => sendNow(c._id)}>Send Now</button>
                           )}
                           {["draft", "scheduled"].includes(c.status) && (
                             <button className="btn btn-sm btn-outline-secondary me-2" onClick={() => cancelCampaign(c._id)}>Cancel</button>

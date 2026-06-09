@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
+import EmptyState from "../Components/EmptyState";
 
 // Institution categories the panel manages. Kept deliberately academic so it
 // reads differently from the broader Organizations panel (which also has a
@@ -364,15 +365,20 @@ const Colleges = () => {
                 </thead>
                 <tbody>
                   {filtered.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="align-center">
-                        <p className="m-5 p-5 fs-4">
-                          {items.length === 0
-                            ? "No institutions yet — click ‘Add Institution’ to begin."
-                            : "No institutions match the current filters."}
-                        </p>
-                      </td>
-                    </tr>
+                    items.length === 0 ? (
+                      <EmptyState
+                        colSpan={8}
+                        icon="ti ti-school"
+                        title="No institutions yet"
+                        subtitle="Click ‘Add Institution’ to begin."
+                      />
+                    ) : (
+                      <EmptyState
+                        colSpan={8}
+                        icon="ti ti-school"
+                        title="No institutions match the current filters."
+                      />
+                    )
                   ) : (
                     filtered.map((c) => {
                       const vs = verificationStatus(c);

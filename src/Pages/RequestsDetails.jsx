@@ -38,9 +38,9 @@ const Section = ({ title, desc, children }) => (
     boxShadow:"0 1px 4px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)",
     overflow:"hidden", marginBottom:20,
   }}>
-    {/* header — red theme */}
+    {/* header — red theme gradient */}
     <div style={{
-      background:"var(--red)", padding:"14px 20px",
+      background:"linear-gradient(135deg, #9C0C0D 0%, #C0392B 55%, #D21C20 100%)", padding:"14px 20px",
     }}>
       <div style={{ fontSize:15, fontWeight:700, color:"#fff", fontFamily:"var(--f-display)" }}>{title}</div>
       {desc && <div style={{ fontSize:12, color:"rgba(255,255,255,0.75)", marginTop:2 }}>{desc}</div>}
@@ -307,7 +307,7 @@ const RequestDetails = () => {
     const rows = request.donations?.filter(filter) || [];
     return (
       <div style={{ background:"#fff", borderRadius:12, boxShadow:"0 1px 4px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)", overflow:"hidden", marginTop:20 }}>
-        <div style={{ background:"var(--red)", padding:"14px 20px" }}>
+        <div style={{ background:"linear-gradient(135deg, #9C0C0D 0%, #C0392B 55%, #D21C20 100%)", padding:"14px 20px" }}>
           <div style={{ fontSize:15, fontWeight:700, color:"#fff", fontFamily:"var(--f-display)" }}>{title}</div>
         </div>
         <div style={{ overflowX:"auto" }}>
@@ -403,10 +403,10 @@ const RequestDetails = () => {
         .rd-btn-edit { display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--f-display);transition:all 0.15s; }
       `}</style>
 
-      {/* Page header */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24, flexWrap:"wrap", gap:12 }}>
+      {/* Page header — themed card with red left accent */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24, flexWrap:"wrap", gap:12, background:"#fff", borderLeft:"4px solid #C0392B", border:"1px solid rgba(0,0,0,0.07)", borderRadius:12, boxShadow:"0 1px 4px rgba(0,0,0,0.05),0 4px 16px rgba(0,0,0,0.04)", padding:"18px 22px" }}>
         <div>
-          <h1 style={{ fontFamily:"var(--f-display)", fontSize:20, fontWeight:800, color:"#111", margin:0 }}>Request Details</h1>
+          <h1 style={{ fontFamily:"var(--f-display)", fontSize:24, fontWeight:800, color:"#C0392B", margin:0, letterSpacing:"-0.3px" }}>Request Details</h1>
           <div style={{ fontSize:12, color:"#6b7280", marginTop:4 }}>View and manage this blood/platelet request</div>
         </div>
         <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
@@ -428,7 +428,7 @@ const RequestDetails = () => {
           </button>
           {isEditing && (
             <button className="rd-btn-edit"
-              style={{ background:"var(--green)", border:"none", color:"white" }}
+              style={{ background:"var(--red)", border:"none", color:"white" }}
               onClick={handleUpdate}>
               <i className="ti ti-check"/> Update
             </button>
@@ -646,7 +646,7 @@ const RequestDetails = () => {
             <button
               type="button"
               className="rd-btn-edit"
-              style={{ background: "var(--green)", color: "#fff", border: "none" }}
+              style={{ background: "var(--red)", color: "#fff", border: "none" }}
               disabled={specialBusy}
               onClick={saveSpecialHandling}
             >
@@ -659,7 +659,7 @@ const RequestDetails = () => {
       {/* Pending Approvals */}
       {isApproving && (
         <div style={{ background:"#fff", borderRadius:12, boxShadow:"0 1px 4px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)", overflow:"hidden", marginTop:20 }}>
-          <div style={{ background:"var(--red)", padding:"14px 20px" }}>
+          <div style={{ background:"linear-gradient(135deg, #9C0C0D 0%, #C0392B 55%, #D21C20 100%)", padding:"14px 20px" }}>
             <div style={{ fontSize:15, fontWeight:700, color:"#fff", fontFamily:"var(--f-display)" }}>Pending Approvals</div>
           </div>
           <div style={{ overflowX:"auto" }}>

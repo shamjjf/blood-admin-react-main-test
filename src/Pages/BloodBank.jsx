@@ -3,6 +3,7 @@ import axios from "axios";
 import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
+import EmptyState from "../Components/EmptyState";
 
 // Admin Blood Banks — browse, edit, delete, add, bulk-import via CSV,
 // export filtered set to CSV. Filters mirror the client locator:
@@ -504,11 +505,11 @@ const BloodBank = () => {
                 </thead>
                 <tbody>
                   {items.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="text-center text-muted py-5">
-                        No blood banks found for the current filters.
-                      </td>
-                    </tr>
+                    <EmptyState
+                      colSpan={5}
+                      icon="ti ti-building-hospital"
+                      title="No blood banks found for the current filters."
+                    />
                   ) : (
                     items.map((b) => (
                       <tr key={b._id}>
@@ -584,25 +585,35 @@ const BloodBank = () => {
               {total === 1 ? "" : "s"}
             </span>
             <div className="d-flex align-items-center" style={{ gap: 10 }}>
-              <button
-                type="button"
-                className="btn btn-outline-secondary btn-sm"
-                onClick={() => setPage((p) => Math.max(p - 1, 0))}
-                disabled={page === 0}
-              >
-                <i className="ti ti-chevron-left"></i> Prev
-              </button>
+             <button
+  type="button"
+  className="btn btn-sm"
+  style={{
+    backgroundColor: "#d4453a",
+    borderColor: "#d4453a",
+    color: "#fff",
+  }}
+  onClick={() => setPage((p) => Math.max(p - 1, 0))}
+  disabled={page === 0}
+>
+  <i className="ti ti-chevron-left"></i> Prev
+</button>
               <span className="text-muted small">
                 Page {page + 1} of {totalPages}
               </span>
-              <button
-                type="button"
-                className="btn btn-outline-secondary btn-sm"
-                onClick={() => setPage((p) => Math.min(p + 1, totalPages - 1))}
-                disabled={page + 1 >= totalPages}
-              >
-                Next <i className="ti ti-chevron-right"></i>
-              </button>
+             <button
+  type="button"
+  className="btn btn-sm"
+  style={{
+    backgroundColor: "#d4453a",
+    borderColor: "#d4453a",
+    color: "#fff",
+  }}
+  onClick={() => setPage((p) => Math.min(p + 1, totalPages - 1))}
+  disabled={page + 1 >= totalPages}
+>
+  Next <i className="ti ti-chevron-right"></i>
+</button>
             </div>
           </div>
         )}

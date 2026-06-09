@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import swal from "sweetalert";
 import SEO from "../SEO";
+import EmptyState from "../Components/EmptyState";
 import { GlobalContext } from "../GlobalContext";
 
 const CATEGORIES = ["onboarding", "operations", "outreach", "emergency"];
@@ -13,7 +14,7 @@ const LEVELS = [
     description:
       "Volunteer 101 starter tasks. Volunteer submits proofs, admin approves.",
     icon: "ti ti-school",
-    color: "#3B82F6",
+    color: "#C0392B",
   },
   {
     key: "advanced",
@@ -21,7 +22,7 @@ const LEVELS = [
     description:
       "Post-Trainee modules. Same submission flow with admin approval.",
     icon: "ti ti-medal",
-    color: "#8B5CF6",
+    color: "#C0392B",
   },
 ];
 
@@ -596,13 +597,12 @@ const TrainingModules = () => {
                   </thead>
                   <tbody>
                     {modules.length === 0 ? (
-                      <tr>
-                        <td colSpan={8} className="align-center">
-                          <p className="m-5 p-5 fs-4">
-                            No modules yet — create one above.
-                          </p>
-                        </td>
-                      </tr>
+                      <EmptyState
+                        colSpan={8}
+                        icon="ti ti-book"
+                        title="No modules yet"
+                        subtitle="Create one above."
+                      />
                     ) : (
                       modules.map((m) => (
                         <tr key={m._id}>
@@ -624,8 +624,8 @@ const TrainingModules = () => {
                                 borderRadius: 10,
                                 fontSize: 11,
                                 fontWeight: 700,
-                                color: "#FFFFFF",
-                                background: m.active ? "#22C55E" : "#6B7280",
+                                color: m.active ? "#C0392B" : "#FFFFFF",
+                                background: m.active ? "#FDE3E1" : "#6B7280",
                               }}
                             >
                               {m.active ? "Active" : "Hidden"}
@@ -642,7 +642,7 @@ const TrainingModules = () => {
                               className={`btn btn-sm me-2 ${
                                 m.active
                                   ? "btn-outline-secondary"
-                                  : "btn-outline-success"
+                                  : "btn-outline-primary"
                               }`}
                               onClick={() => toggleActive(m)}
                             >

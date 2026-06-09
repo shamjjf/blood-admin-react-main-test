@@ -10,6 +10,7 @@ import PageDetails from "../Components/PageDetails";
 import { GlobalContext } from "../GlobalContext";
 import SEO from "../SEO";
 import Tabs from "../Components/Tabs";
+import EmptyState from "../Components/EmptyState";
 import moment from "moment";
 
 const Request = () => {
@@ -311,8 +312,8 @@ const Request = () => {
                                 <div style={{ fontSize: 10.5, marginTop: 2 }}>
                                   <span
                                     style={{
-                                      background: "rgba(124,58,237,0.12)",
-                                      color: "#6d28d9",
+                                      background: "rgba(192,57,43,0.12)",
+                                      color: "#C0392B",
                                       padding: "1px 6px",
                                       borderRadius: 4,
                                       fontWeight: 700,
@@ -329,8 +330,8 @@ const Request = () => {
                                 <div style={{ fontSize: 10.5, marginTop: 2 }}>
                                   <span
                                     style={{
-                                      background: "rgba(14,165,233,0.14)",
-                                      color: "#0369a1",
+                                      background: "rgba(192,57,43,0.12)",
+                                      color: "#C0392B",
                                       padding: "1px 6px",
                                       borderRadius: 4,
                                       fontWeight: 700,
@@ -431,11 +432,11 @@ const Request = () => {
                           </tr>
                         ))
                       ) : (
-                        <tr className="">
-                          <td colSpan={10} className="align-center">
-                            <p className="m-5 p-5 fs-4">No Data Found</p>
-                          </td>
-                        </tr>
+                        <EmptyState
+                          colSpan={10}
+                          icon="ti ti-droplet-filled"
+                          title="No Data Found"
+                        />
                       )}
                     </tbody>
                   </table>

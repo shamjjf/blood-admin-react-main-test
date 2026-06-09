@@ -38,9 +38,9 @@ const Badge = ({ color, icon, children }) => (
 );
 
 const verificationBadge = (o) => {
-  if (o?.verified) return <Badge color="#16A34A" icon="ti-circle-check">Verified</Badge>;
+  if (o?.verified) return <Badge color="#C0392B" icon="ti-circle-check">Verified</Badge>;
   if (o?.verificationRejected) return <Badge color="#DC2626" icon="ti-circle-x">Rejected</Badge>;
-  return <Badge color="#F59E0B" icon="ti-clock">Pending</Badge>;
+  return <Badge color="#D21C20" icon="ti-clock">Pending</Badge>;
 };
 
 
@@ -197,12 +197,12 @@ const OverviewTab = ({ org, refresh }) => {
           <div className="card-body">
             {(() => {
               const s = org.verified
-                ? { c: "#16A34A", bg: "#F0FDF4", bd: "#BBF7D0", icon: "ti-shield-check",
+                ? { c: "#C0392B", bg: "#FDE3E1", bd: "#F3C2BE", icon: "ti-shield-check",
                     t: "Verified", d: org.verifiedAt ? `on ${moment(org.verifiedAt).format("DD MMM YYYY")}` : "This organisation is verified." }
                 : org.verificationRejected
                   ? { c: "#DC2626", bg: "#FEF2F2", bd: "#FECACA", icon: "ti-circle-x",
                       t: "Rejected", d: "Review the notes and re-evaluate when ready." }
-                  : { c: "#D97706", bg: "#FFFBEB", bd: "#FDE68A", icon: "ti-clock",
+                  : { c: "#D21C20", bg: "#FCE7E6", bd: "#F3C2BE", icon: "ti-clock",
                       t: "Pending", d: "Awaiting verification. Review documents and decide." };
               return (
                 <div
@@ -240,7 +240,7 @@ const OverviewTab = ({ org, refresh }) => {
 
             <div className="d-grid gap-2 mt-3">
               <button
-                className="btn btn-success"
+                className="btn btn-primary"
                 disabled={org.verified}
                 onClick={() => setVerification("verified")}
               >
@@ -280,10 +280,10 @@ const STATUS_TABS = [
 
 const memberStatusBadge = (s) =>
   s === "approved"
-    ? { label: "Approved", color: "#16A34A", icon: "ti-circle-check" }
+    ? { label: "Approved", color: "#C0392B", icon: "ti-circle-check" }
     : s === "rejected"
       ? { label: "Rejected", color: "#DC2626", icon: "ti-circle-x" }
-      : { label: "Pending", color: "#F59E0B", icon: "ti-clock" };
+      : { label: "Pending", color: "#D21C20", icon: "ti-clock" };
 
 const MembersTab = ({ org }) => {
   const { setLoading } = useContext(GlobalContext);
@@ -461,7 +461,7 @@ const MembersTab = ({ org }) => {
                       <td className="align-center">
                         {m.status !== "approved" && (
                           <button
-                            className="btn btn-sm btn-outline-success me-1"
+                            className="btn btn-sm btn-outline-primary me-1"
                             onClick={() => approve(m)}
                             title="Approve"
                           >
@@ -656,7 +656,7 @@ const MemberDetailModal = ({ member, org, onClose, onChanged, onRemoved }) => {
                   <li key={i} className="d-flex gap-2 mb-2">
                     <span style={{
                       width: 8, height: 8, borderRadius: "50%",
-                      background: "#0EA5E9", marginTop: 7, flexShrink: 0,
+                      background: "#C0392B", marginTop: 7, flexShrink: 0,
                     }} />
                     <div>
                       <div>{a.text}</div>
@@ -711,14 +711,14 @@ const DRIVE_APPROVAL_TABS = [
 
 const driveApprovalBadge = (s) =>
   s === "approved"
-    ? { label: "Approved", color: "#16A34A", icon: "ti-circle-check" }
+    ? { label: "Approved", color: "#C0392B", icon: "ti-circle-check" }
     : s === "rejected"
       ? { label: "Rejected", color: "#DC2626", icon: "ti-circle-x" }
-      : { label: "Pending", color: "#F59E0B", icon: "ti-clock" };
+      : { label: "Pending", color: "#D21C20", icon: "ti-clock" };
 
 const driveLifecycleColor = (s) =>
-  s === "scheduled" ? "#0EA5E9"
-  : s === "completed" ? "#16A34A"
+  s === "scheduled" ? "#C0392B"
+  : s === "completed" ? "#C0392B"
   : s === "cancelled" ? "#DC2626"
   : "#6B7280";
 
@@ -901,7 +901,7 @@ const DrivesTab = ({ org }) => {
                       <td className="align-center">
                         {d.approvalStatus !== "approved" && (
                           <button
-                            className="btn btn-sm btn-outline-success me-1"
+                            className="btn btn-sm btn-outline-primary me-1"
                             onClick={() => approve(d)}
                             title="Approve"
                           >
@@ -951,12 +951,12 @@ const DOC_CATEGORY_TABS = [
 
 const docStatusBadge = (s) =>
   s === "verified"
-    ? { label: "Verified", color: "#16A34A", icon: "ti-circle-check" }
+    ? { label: "Verified", color: "#C0392B", icon: "ti-circle-check" }
     : s === "rejected"
       ? { label: "Rejected", color: "#DC2626", icon: "ti-circle-x" }
       : s === "uploaded"
         ? { label: "Uploaded", color: "#6B7280", icon: "ti-file" }
-        : { label: "Pending", color: "#F59E0B", icon: "ti-clock" };
+        : { label: "Pending", color: "#D21C20", icon: "ti-clock" };
 
 const formatBytes = (b) => {
   if (!b) return "—";
@@ -1134,7 +1134,7 @@ const DocumentsTab = ({ org }) => {
                       <td className="align-center">
                         {d.status !== "verified" && (
                           <button
-                            className="btn btn-sm btn-outline-success me-1"
+                            className="btn btn-sm btn-outline-primary me-1"
                             onClick={() => setStatus(d, "verified")}
                             title="Mark verified"
                           >
@@ -1183,8 +1183,8 @@ const DocumentsTab = ({ org }) => {
 // Read view of the NGO partners + joint campaigns an org self-manages from its
 // dashboard. Admin can remove partners for moderation.
 const partnerStatusColor = (s) =>
-  s === "active" ? "#16A34A" :
-  s === "pending" ? "#F59E0B" :
+  s === "active" ? "#C0392B" :
+  s === "pending" ? "#D21C20" :
   s === "declined" ? "#DC2626" : "#6B7280";
 
 const NgoCollaborationTab = ({ org }) => {
@@ -1464,7 +1464,7 @@ const VolunteersTab = ({ org }) => {
                       <td className="align-center">{v.createdAt ? moment(v.createdAt).format("DD-MM-YYYY") : "—"}</td>
                       <td className="align-center">
                         {v.status !== "approved" && (
-                          <button className="btn btn-sm btn-outline-success me-1" onClick={() => approve(v)} title="Approve"><i className="ti ti-check"></i></button>
+                          <button className="btn btn-sm btn-outline-primary me-1" onClick={() => approve(v)} title="Approve"><i className="ti ti-check"></i></button>
                         )}
                         {v.status !== "rejected" && (
                           <button className="btn btn-sm btn-outline-warning me-1" onClick={() => reject(v)} title="Reject"><i className="ti ti-x"></i></button>
@@ -1518,11 +1518,11 @@ const HeaderChip = ({ icon, children, href }) => {
 };
 
 const OrgProfileHeader = ({ org }) => {
-  const statusColor = org.verified ? "#16A34A" : org.verificationRejected ? "#DC2626" : "#F59E0B";
+  const statusColor = org.verified ? "#C0392B" : org.verificationRejected ? "#DC2626" : "#D21C20";
   return (
     <div
       className="card mb-4"
-      style={{ borderTop: `4px solid ${statusColor}` }}
+      style={{ borderLeft: `4px solid ${statusColor}` }}
     >
       <div className="card-body">
         <div className="d-flex align-items-start gap-3 flex-wrap">
@@ -1551,8 +1551,8 @@ const OrgProfileHeader = ({ org }) => {
           {/* Identity */}
           <div className="flex-grow-1" style={{ minWidth: 220 }}>
             <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-              <h3 className="m-0" style={{ fontWeight: 800, letterSpacing: "-0.4px" }}>{org.name}</h3>
-              <Badge color="#0EA5E9" icon="ti-building">{org.type}</Badge>
+              <h3 className="m-0" style={{ fontWeight: 800, letterSpacing: "-0.4px", color: "#C0392B" }}>{org.name}</h3>
+              <Badge color="#C0392B" icon="ti-building">{org.type}</Badge>
               {verificationBadge(org)}
             </div>
             {org.description && (

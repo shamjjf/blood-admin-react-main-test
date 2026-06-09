@@ -4,31 +4,41 @@ import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 
-const Pill = ({ active, onClick, children, color }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    style={{
-      background: active ? color : "#F9FAFB",
-      color: active ? "#fff" : "#374151",
-      border: active ? `1px solid ${color}` : "1px solid #E5E7EB",
-      borderRadius: 18,
-      padding: "6px 14px",
-      fontSize: 13,
-      fontWeight: 600,
-      cursor: "pointer",
-      margin: "0 6px 6px 0",
-      transition: "all 0.12s ease",
-      minHeight: 34,
-      display: "inline-flex",
-      alignItems: "center",
-      gap: 6,
-    }}
-  >
-    {active && <i className="ti ti-check" style={{ fontSize: 13 }} />}
-    {children}
-  </button>
-);
+// Unified, on-theme selectable pill. Active = brand red fill; inactive = clean
+// white chip that tints red on hover. (Per-section colors are intentionally
+// ignored so the whole page reads as one red theme.)
+const RED = "#C0392B";
+const Pill = ({ active, onClick, children }) => {
+  const [hover, setHover] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        background: active ? RED : hover ? "#FFF5F5" : "#FFFFFF",
+        color: active ? "#fff" : hover ? RED : "#374151",
+        border: `1px solid ${active || hover ? RED : "#E5E7EB"}`,
+        borderRadius: 18,
+        padding: "6px 14px",
+        fontSize: 13,
+        fontWeight: 600,
+        cursor: "pointer",
+        margin: "0 6px 6px 0",
+        transition: "all 0.12s ease",
+        minHeight: 34,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        boxShadow: active ? "0 2px 6px rgba(192,57,43,0.22)" : "none",
+      }}
+    >
+      {active && <i className="ti ti-check" style={{ fontSize: 13 }} />}
+      {children}
+    </button>
+  );
+};
 
 const Section = ({ title, desc, children, count }) => (
   <div className="card mb-4">

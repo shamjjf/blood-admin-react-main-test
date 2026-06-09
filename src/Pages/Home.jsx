@@ -190,32 +190,32 @@ const Home = () => {
 
   /* ── DONUT SEGMENTS ── */
   const bloodSegs = totalBlood === 0 ? [] : [
-    { name: "Critical",     color: "#C0392B", pct: (s.bloodRequestCountCrit / totalBlood) * 100 },
+    { name: "Critical",     color: "#D21C20", pct: (s.bloodRequestCountCrit / totalBlood) * 100 },
     { name: "Not Critical", color: "#FDDBD7", pct: (s.bloodRequestCountNoCrit / totalBlood) * 100 },
   ];
   const plateletSegs = totalPlatelet === 0 ? [] : [
-    { name: "Critical",     color: "#1d4ed8", pct: (s.plateletRequestCountCrit / totalPlatelet) * 100 },
-    { name: "Not Critical", color: "#BFDBFE", pct: (s.plateletRequestCountNoCrit / totalPlatelet) * 100 },
+    { name: "Critical",     color: "#9C0C0D", pct: (s.plateletRequestCountCrit / totalPlatelet) * 100 },
+    { name: "Not Critical", color: "#F6CBC8", pct: (s.plateletRequestCountNoCrit / totalPlatelet) * 100 },
   ];
   const genderSegs = totalUsers === 0 ? [] : [
-    { name: "Male",        color: "#3b82f6", pct: ((s.maleUser || 0) / totalUsers) * 100 },
-    { name: "Female",      color: "#ec4899", pct: ((s.femaleUser || 0) / totalUsers) * 100 },
-    { name: "Other",       color: "#a855f7", pct: ((s.otherUser || 0) / totalUsers) * 100 },
+    { name: "Male",        color: "#FD292F", pct: ((s.maleUser || 0) / totalUsers) * 100 },
+    { name: "Female",      color: "#D21C20", pct: ((s.femaleUser || 0) / totalUsers) * 100 },
+    { name: "Other",       color: "#9C0C0D", pct: ((s.otherUser || 0) / totalUsers) * 100 },
     { name: "Unspecified", color: "#E5E7EB", pct: ((totalUsers - ((s.maleUser||0)+(s.femaleUser||0)+(s.otherUser||0))) / totalUsers) * 100 },
   ];
   const taskSegs = totalTasks === 0 ? [] : [
-    { name: "Open",   color: "#d97706", pct: ((s.openTasks || 0) / totalTasks) * 100 },
-    { name: "Closed", color: "#FEF3C7", pct: ((s.closeTasks || 0) / totalTasks) * 100 },
+    { name: "Open",   color: "#D21C20", pct: ((s.openTasks || 0) / totalTasks) * 100 },
+    { name: "Closed", color: "#FDDBD7", pct: ((s.closeTasks || 0) / totalTasks) * 100 },
   ];
 
   /* ── SPECIAL USERS BAR ROWS ──
      Four categories, each combining the dedicated portal account count
      with the legacy SpecialUser rows of that flavour. */
   const specialBars = [
-    { label: "College / University", val: s.collegeUniversityCount || 0, color: "#f59e0b" },
-    { label: "NGO",                  val: s.ngoUserCount           || 0, color: "#6366f1" },
-    { label: "Influencer",           val: s.influencerUserCount    || 0, color: "#3b82f6" },
-    { label: "Organization",         val: s.organizationCount      || 0, color: "#10b981" },
+    { label: "College / University", val: s.collegeUniversityCount || 0, color: "#FD292F" },
+    { label: "NGO",                  val: s.ngoUserCount           || 0, color: "#D21C20" },
+    { label: "Influencer",           val: s.influencerUserCount    || 0, color: "#9C0C0D" },
+    { label: "Organization",         val: s.organizationCount      || 0, color: "#C0392B" },
   ];
 
   /* ── SYSTEM ALERTS (dynamic) ── */
@@ -294,7 +294,7 @@ const Home = () => {
             { icon: "ti ti-calendar-event",    cls: "amber",  hero: false, val: s.campsCount ?? 0,      label: "Camps Scheduled",     trend: s.campsCount ? "Upcoming" : "None yet" },
           ].map((c, i) => (
             <div key={i} style={{
-              background: c.hero ? "var(--dark)" : "var(--white)",
+              background: c.hero ? "var(--red)" : "var(--white)",
               borderRadius: "var(--r)", border: c.hero ? "none" : "1px solid var(--border)",
               padding: 16, boxShadow: "var(--shadow)", transition: "all 0.2s",
               cursor: "default", position: "relative", overflow: "hidden",
@@ -417,9 +417,9 @@ const Home = () => {
               {/* Mini stats */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
                 {[
-                  { val: s.campToday ?? 0,  label: "TODAY",    bg: "var(--amber-bg)", cl: "var(--amber)" },
-                  { val: s.campFuture ?? 0, label: "UPCOMING", bg: "var(--blue-bg)",  cl: "var(--blue)" },
-                  { val: s.campPast ?? 0,   label: "PAST",     bg: "#EEE9E4",         cl: "var(--muted)" },
+                  { val: s.campToday ?? 0,  label: "TODAY",    bg: "#FDDBD7", cl: "#D21C20" },
+                  { val: s.campFuture ?? 0, label: "UPCOMING", bg: "#FCE7E6", cl: "#9C0C0D" },
+                  { val: s.campPast ?? 0,   label: "PAST",     bg: "#EEE9E4", cl: "var(--muted)" },
                 ].map((c, i) => (
                   <div key={i} style={{ textAlign: "center", padding: 10, background: c.bg, borderRadius: "var(--r-sm)" }}>
                     <div style={{ fontFamily: "var(--f-display)", fontSize: 20, fontWeight: 800, color: c.cl }}>{c.val}</div>
@@ -435,9 +435,9 @@ const Home = () => {
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 {[
-                  { top: "35%", left: "45%", anim: "mapPulse 2s infinite", bg: "#C0392B" },
-                  { top: "60%", left: "60%", anim: "mapPulse2 2s infinite 0.5s", bg: "#3b82f6" },
-                  { top: "50%", left: "30%", anim: "mapPulse3 2s infinite 1s", bg: "#16a34a" },
+                  { top: "35%", left: "45%", anim: "mapPulse 2s infinite", bg: "#FD292F" },
+                  { top: "60%", left: "60%", anim: "mapPulse2 2s infinite 0.5s", bg: "#D21C20" },
+                  { top: "50%", left: "30%", anim: "mapPulse3 2s infinite 1s", bg: "#9C0C0D" },
                 ].map((d, i) => (
                   <div key={i} style={{ position: "absolute", top: d.top, left: d.left, width: 10, height: 10, borderRadius: "50%", background: d.bg, animation: d.anim }} />
                 ))}
@@ -538,7 +538,7 @@ const Home = () => {
                   <tr><td colSpan={7} style={{ padding: "48px 20px", textAlign: "center", color: "var(--muted2)", fontSize: 13 }}>No users found</td></tr>
                 ) : recentUsers.map((u, i) => {
                   const initials = (u.name || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
-                  const colors = ["#C0392B", "#1d4ed8", "#7c3aed", "#16a34a", "#d97706"];
+                  const colors = ["#C0392B"];
                   return (
                     <tr key={i} className="lsa-row-hover">
                       <td style={{ padding: "12px 16px", borderTop: "1px solid var(--border)", verticalAlign: "middle" }}>

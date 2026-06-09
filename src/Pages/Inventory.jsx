@@ -3,6 +3,7 @@ import axios from "axios";
 import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
+import EmptyState from "../Components/EmptyState";
 
 const CATEGORIES = ["sticker", "bag", "gift", "merchandise", "other"];
 
@@ -277,7 +278,7 @@ const Inventory = () => {
                 </thead>
                 <tbody>
                   {items.length === 0 ? (
-                    <tr><td colSpan={6} className="align-center"><p className="m-5 p-5 fs-4">No items yet — add one above.</p></td></tr>
+                    <EmptyState colSpan={6} icon="ti ti-packages" title="No items yet" subtitle="Add one above." />
                   ) : items.map((it) => (
                     <tr key={it._id}>
                       <td className="align-left">

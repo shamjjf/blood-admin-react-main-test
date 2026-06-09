@@ -3,6 +3,7 @@ import axios from "axios";
 import swal from "sweetalert";
 import SEO from "../SEO";
 import Tabs from "../Components/Tabs";
+import EmptyState from "../Components/EmptyState";
 
 // Admin moderation for blood donation drives created by NGOs and Organisations.
 // Reuses the two existing admin endpoint groups (no backend change):
@@ -302,11 +303,11 @@ const BloodDonationDrives = () => {
                     </td>
                   </tr>
                 ) : drives.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="text-center text-muted py-4">
-                      No drives in this view.
-                    </td>
-                  </tr>
+                  <EmptyState
+                    colSpan={7}
+                    icon="ti ti-calendar-heart"
+                    title="No drives in this view."
+                  />
                 ) : (
                   drives.map((d) => {
                     const ab = approvalBadge(d.approval);

@@ -13,12 +13,13 @@ import axios from "axios";
 import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
+import EmptyState from "../Components/EmptyState";
 
 const TABS = [
-  { key: "all", label: "All Influencers", color: "#6366F1" },
-  { key: "pending", label: "Pending review", color: "#F59E0B" },
-  { key: "approved", label: "Approved", color: "#22C55E" },
-  { key: "rejected", label: "Rejected", color: "#EF4444" },
+  { key: "all", label: "All Influencers", color: "#C0392B" },
+  { key: "pending", label: "Pending review", color: "#C0392B" },
+  { key: "approved", label: "Approved", color: "#C0392B" },
+  { key: "rejected", label: "Rejected", color: "#C0392B" },
 ];
 
 const TOP_TABS = [
@@ -203,15 +204,13 @@ const Influencer = () => {
                   padding: "10px 16px",
                   borderRadius: 10,
                   border: "none",
-                  background: active
-                    ? "linear-gradient(135deg, #FECACA 0%, #FCA5A5 100%)"
-                    : "transparent",
-                  color: active ? "#7F1D1D" : "#374151",
+                  background: active ? "#C0392B" : "transparent",
+                  color: active ? "#FFFFFF" : "#374151",
                   fontWeight: 700,
                   fontSize: 14,
                   cursor: "pointer",
                   boxShadow: active
-                    ? "0 4px 12px rgba(252,165,165,.35)"
+                    ? "0 4px 12px rgba(192,57,43,.35)"
                     : "none",
                   transition:
                     "background 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 120ms ease",
@@ -271,44 +270,15 @@ const Influencer = () => {
               const active = activeTab === t.key;
               // Per-status palette: { bg/border for inactive,
               // gradient + shadow for active }.
+              // Unified red theme for every status pill. Active = solid red fill.
               const palette = {
-                all: {
-                  text: "#3730A3",
-                  bgIdle: "#FFFFFF",
-                  borderIdle: "#C7D2FE",
-                  bgActive:
-                    "linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 100%)",
-                  borderActive: "#A5B4FC",
-                  shadow: "rgba(165, 180, 252, .35)",
-                },
-                pending: {
-                  text: "#92400E",
-                  bgIdle: "#FFFFFF",
-                  borderIdle: "#FDE68A",
-                  bgActive:
-                    "linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)",
-                  borderActive: "#FCD34D",
-                  shadow: "rgba(252, 211, 77, .35)",
-                },
-                approved: {
-                  text: "#14532D",
-                  bgIdle: "#FFFFFF",
-                  borderIdle: "#BBF7D0",
-                  bgActive:
-                    "linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%)",
-                  borderActive: "#86EFAC",
-                  shadow: "rgba(134, 239, 172, .35)",
-                },
-                rejected: {
-                  text: "#991B1B",
-                  bgIdle: "#FFFFFF",
-                  borderIdle: "#FCA5A5",
-                  bgActive:
-                    "linear-gradient(135deg, #FECACA 0%, #FCA5A5 100%)",
-                  borderActive: "#F87171",
-                  shadow: "rgba(248, 113, 113, .35)",
-                },
-              }[t.key];
+                text: "#C0392B",
+                bgIdle: "#FFFFFF",
+                borderIdle: "#F3C2BE",
+                bgActive: "#C0392B",
+                borderActive: "#C0392B",
+                shadow: "rgba(192, 57, 43, .35)",
+              };
               return (
                 <button
                   key={t.key}
@@ -324,7 +294,7 @@ const Influencer = () => {
                       active ? palette.borderActive : palette.borderIdle
                     }`,
                     background: active ? palette.bgActive : palette.bgIdle,
-                    color: palette.text,
+                    color: active ? "#FFFFFF" : palette.text,
                     fontWeight: 700,
                     fontSize: 13,
                     cursor: "pointer",
@@ -381,11 +351,14 @@ const Influencer = () => {
         <div className="card">
           <div className="card-body">
             {rows.length === 0 ? (
-              <p className="m-5 p-5 fs-4 text-center text-muted">
-                {activeTab === "all"
-                  ? "No influencers yet."
-                  : `No ${activeTab} influencers.`}
-              </p>
+              <EmptyState
+                icon="ti ti-speakerphone"
+                title={
+                  activeTab === "all"
+                    ? "No influencers yet."
+                    : `No ${activeTab} influencers.`
+                }
+              />
             ) : (
               rows.map((inf) => {
                 const isOpen = !!expanded[inf._id];
@@ -417,8 +390,8 @@ const Influencer = () => {
                           width: 38,
                           height: 38,
                           borderRadius: "50%",
-                          background: "#EFF6FF",
-                          color: "#1E40AF",
+                          background: "#FDE3E1",
+                          color: "#C0392B",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -451,16 +424,16 @@ const Influencer = () => {
                             const meta = {
                               pending: {
                                 label: "Pending",
-                                bg: "#FEF3C7",
-                                color: "#92400E",
-                                border: "#FCD34D",
+                                bg: "#FDE3E1",
+                                color: "#C0392B",
+                                border: "#F3C2BE",
                                 icon: "ti-clock",
                               },
                               approved: {
                                 label: "Approved",
-                                bg: "#DCFCE7",
-                                color: "#14532D",
-                                border: "#86EFAC",
+                                bg: "#FDE3E1",
+                                color: "#9C0C0D",
+                                border: "#F3C2BE",
                                 icon: "ti-circle-check",
                               },
                               rejected: {
@@ -528,8 +501,8 @@ const Influencer = () => {
                             borderRadius: 10,
                             fontSize: 11,
                             fontWeight: 700,
-                            color: "#92400E",
-                            background: "#FEF3C7",
+                            color: "#C0392B",
+                            background: "#FDE3E1",
                             border: "1px solid #FCD34D",
                           }}
                           title="New social links waiting for your review"
@@ -659,14 +632,14 @@ const Influencer = () => {
                                 const statusPillMeta = {
                                   pending: {
                                     label: "Pending review",
-                                    color: "#92400E",
-                                    bg: "#FEF3C7",
+                                    color: "#C0392B",
+                                    bg: "#FDE3E1",
                                     border: "#FCD34D",
                                   },
                                   approved: {
                                     label: "Approved",
                                     color: "#166534",
-                                    bg: "#DCFCE7",
+                                    bg: "#FDE3E1",
                                     border: "#86EFAC",
                                   },
                                   rejected: {
@@ -714,7 +687,7 @@ const Influencer = () => {
                                           flex: 1,
                                           minWidth: 180,
                                           wordBreak: "break-all",
-                                          color: "#1E40AF",
+                                          color: "#C0392B",
                                         }}
                                       >
                                         {rawUrl}
@@ -817,7 +790,7 @@ const Influencer = () => {
                             </div>
                             <div className="d-flex gap-2">
                               <button
-                                className="btn btn-success"
+                                className="btn btn-primary"
                                 onClick={() => review(inf, "approved")}
                               >
                                 <i className="ti ti-check me-1" />
@@ -859,7 +832,7 @@ const Influencer = () => {
                           <div className="d-flex gap-2 align-items-center small text-muted">
                             <span>Currently rejected.</span>
                             <button
-                              className="btn btn-outline-success ms-auto"
+                              className="btn btn-outline-primary ms-auto"
                               onClick={() => review(inf, "approved")}
                             >
                               Re-approve
@@ -915,8 +888,8 @@ const STATUS_FILTERS = [
 ];
 
 const STATUS_META = {
-  scheduled: { label: "Scheduled", color: "#B45309", bg: "#FEF3C7" },
-  published: { label: "Published", color: "#15803D", bg: "#DCFCE7" },
+  scheduled: { label: "Scheduled", color: "#C0392B", bg: "#FDE3E1" },
+  published: { label: "Published", color: "#9C0C0D", bg: "#FDE3E1" },
 };
 
 const AwarenessPostsPanel = () => {
@@ -1184,7 +1157,7 @@ const AwarenessPostsPanel = () => {
       <div className="card mb-3">
         <div className="card-body">
           <h5 className="mb-3">
-            <i className="ti ti-news me-2" style={{ color: "#1E40AF" }} />
+            <i className="ti ti-news me-2" style={{ color: "#C0392B" }} />
             New awareness post
           </h5>
 
@@ -1488,9 +1461,9 @@ const AwarenessPostsPanel = () => {
               style={{
                 padding: "6px 14px",
                 borderRadius: 999,
-                border: `1.5px solid ${active ? "#1E40AF" : "#E5E7EB"}`,
-                background: active ? "#EFF6FF" : "#FFFFFF",
-                color: active ? "#1E40AF" : "#374151",
+                border: `1.5px solid ${active ? "#C0392B" : "#E5E7EB"}`,
+                background: active ? "#FDE3E1" : "#FFFFFF",
+                color: active ? "#C0392B" : "#374151",
                 fontWeight: 600,
                 fontSize: 13,
                 cursor: "pointer",
@@ -1500,7 +1473,7 @@ const AwarenessPostsPanel = () => {
               <span
                 className="ms-2"
                 style={{
-                  background: active ? "#1E40AF" : "#E5E7EB",
+                  background: active ? "#C0392B" : "#E5E7EB",
                   color: active ? "#FFFFFF" : "#374151",
                   borderRadius: 999,
                   padding: "1px 8px",
@@ -1540,9 +1513,10 @@ const AwarenessPostsPanel = () => {
       <div className="card">
         <div className="card-body">
           {list.length === 0 ? (
-            <p className="m-5 p-5 fs-4 text-center text-muted">
-              No posts in this view.
-            </p>
+            <EmptyState
+              icon="ti ti-speakerphone"
+              title="No posts in this view."
+            />
           ) : (
             <div
               style={{
@@ -1817,7 +1791,7 @@ const AwarenessPostsPanel = () => {
                             );
                             const name =
                               meta?.name || a.user?.name || "Influencer";
-                            const color = meta?.color || "#15803D";
+                            const color = meta?.color || "#9C0C0D";
                             const rows =
                               (a.platformPublications || []).filter(
                                 (pp) => pp.liveLink
@@ -1840,7 +1814,7 @@ const AwarenessPostsPanel = () => {
                                 className="rounded p-2 mb-2"
                                 style={{
                                   background: "#F0FDF4",
-                                  border: "1px solid #BBF7D0",
+                                  border: "1px solid #F3C2BE",
                                 }}
                               >
                                 <div
@@ -1876,7 +1850,7 @@ const AwarenessPostsPanel = () => {
                                       style={{
                                         padding: "2px 8px",
                                         borderRadius: 999,
-                                        background: "#15803D",
+                                        background: "#9C0C0D",
                                         color: "#FFFFFF",
                                         fontWeight: 700,
                                         fontSize: 11,
@@ -1951,7 +1925,7 @@ const AwarenessPostsPanel = () => {
                                         {synced ? (
                                           <span
                                             style={{
-                                              color: "#15803D",
+                                              color: "#9C0C0D",
                                               fontWeight: 700,
                                               flexShrink: 0,
                                               fontSize: 11,
@@ -2144,7 +2118,7 @@ const AwarenessPostsPanel = () => {
                                 "Influencer";
                               return (
                                 <div key={String(uid)}>
-                                  <i className="ti ti-rocket me-1" style={{ color: "#15803D" }} />
+                                  <i className="ti ti-rocket me-1" style={{ color: "#9C0C0D" }} />
                                   <strong>{name}</strong> published{" "}
                                   {a.publishedAt
                                     ? new Date(
@@ -2181,15 +2155,15 @@ const AwarenessPostsPanel = () => {
 //                                user.influencer so we can filter for
 //                                influencer participants here
 const CAMP_PHASE_META = {
-  scheduled: { label: "Scheduled", color: "#B45309", bg: "#FEF3C7" },
-  ongoing: { label: "Ongoing", color: "#15803D", bg: "#DCFCE7" },
+  scheduled: { label: "Scheduled", color: "#C0392B", bg: "#FDE3E1" },
+  ongoing: { label: "Ongoing", color: "#9C0C0D", bg: "#FDE3E1" },
   completed: { label: "Completed", color: "#1F2937", bg: "#E5E7EB" },
   cancelled: { label: "Cancelled", color: "#991B1B", bg: "#FEE2E2" },
 };
 
 const REG_STATUS_META = {
-  registered: { label: "Registered", color: "#1E40AF", bg: "#DBEAFE" },
-  attended: { label: "Attended", color: "#15803D", bg: "#DCFCE7" },
+  registered: { label: "Registered", color: "#C0392B", bg: "#FDE3E1" },
+  attended: { label: "Attended", color: "#9C0C0D", bg: "#FDE3E1" },
   "no-show": { label: "No show", color: "#991B1B", bg: "#FEE2E2" },
   cancelled: { label: "Cancelled", color: "#6B7280", bg: "#E5E7EB" },
 };
@@ -2290,9 +2264,9 @@ const CampaignsPanel = () => {
               style={{
                 padding: "8px 16px",
                 borderRadius: 999,
-                border: `1.5px solid ${active ? "#1E40AF" : "#E5E7EB"}`,
-                background: active ? "#EFF6FF" : "#FFFFFF",
-                color: active ? "#1E40AF" : "#374151",
+                border: `1.5px solid ${active ? "#C0392B" : "#E5E7EB"}`,
+                background: active ? "#FDE3E1" : "#FFFFFF",
+                color: active ? "#C0392B" : "#374151",
                 fontWeight: 600,
                 fontSize: 13,
                 cursor: "pointer",
@@ -2319,9 +2293,10 @@ const CampaignsPanel = () => {
       <div className="card">
         <div className="card-body">
           {camps.length === 0 ? (
-            <p className="m-5 p-5 fs-4 text-center text-muted">
-              No campaigns found.
-            </p>
+            <EmptyState
+              icon="ti ti-speakerphone"
+              title="No campaigns found."
+            />
           ) : (
             <>
               <div className="small text-muted mb-2">
@@ -2379,7 +2354,7 @@ const CampaignsPanel = () => {
                           fontSize: 11,
                           fontWeight: 700,
                           color: "#FFFFFF",
-                          background: "#1E40AF",
+                          background: "#C0392B",
                         }}
                         title="Total registrations"
                       >
@@ -2392,8 +2367,8 @@ const CampaignsPanel = () => {
                             borderRadius: 10,
                             fontSize: 11,
                             fontWeight: 700,
-                            color: "#15803D",
-                            background: "#DCFCE7",
+                            color: "#9C0C0D",
+                            background: "#FDE3E1",
                           }}
                           title="Attended at the camp"
                         >
@@ -2446,8 +2421,8 @@ const CampaignsPanel = () => {
                                       width: 36,
                                       height: 36,
                                       borderRadius: "50%",
-                                      background: "#EFF6FF",
-                                      color: "#1E40AF",
+                                      background: "#FDE3E1",
+                                      color: "#C0392B",
                                       display: "flex",
                                       alignItems: "center",
                                       justifyContent: "center",
@@ -2660,7 +2635,7 @@ const DrivesAdminPanel = () => {
                         <div
                           className="fw-bold"
                           style={{
-                            color: active ? "#3730A3" : "#111827",
+                            color: active ? "#9C0C0D" : "#111827",
                             whiteSpace: "nowrap",
                             overflow: "hidden",
                             textOverflow: "ellipsis",
@@ -2671,10 +2646,10 @@ const DrivesAdminPanel = () => {
                         <div className="small text-muted">{r.niche || r.email}</div>
                       </div>
                       <div className="text-end small" style={{ flexShrink: 0 }}>
-                        <div style={{ color: "#15803D", fontWeight: 700 }}>
+                        <div style={{ color: "#9C0C0D", fontWeight: 700 }}>
                           {r.promoted} promo
                         </div>
-                        <div style={{ color: "#1E40AF" }}>
+                        <div style={{ color: "#C0392B" }}>
                           {r.registered} reg
                         </div>
                       </div>
@@ -2709,8 +2684,8 @@ const DrivesAdminPanel = () => {
                 </div>
                 <div className="d-flex gap-3 flex-wrap">
                   {[
-                    { label: "Joined", value: selected.registered, color: "#1E40AF" },
-                    { label: "Promoted", value: selected.promoted, color: "#6D28D9" },
+                    { label: "Joined", value: selected.registered, color: "#C0392B" },
+                    { label: "Promoted", value: selected.promoted, color: "#C0392B" },
                   ].map((s) => (
                     <div key={s.label} className="text-end">
                       <div
@@ -2732,7 +2707,7 @@ const DrivesAdminPanel = () => {
                   <h6 className="mt-3 mb-2">
                     <i
                       className="ti ti-megaphone me-1"
-                      style={{ color: "#6D28D9" }}
+                      style={{ color: "#C0392B" }}
                     />
                     Promotions ({detail?.promotions?.length || 0})
                   </h6>
@@ -2763,8 +2738,8 @@ const DrivesAdminPanel = () => {
                                     padding: "2px 6px",
                                     borderRadius: 4,
                                     background:
-                                      p.source === "NGO" ? "#EFF6FF" : "#F5F3FF",
-                                    color: p.source === "NGO" ? "#1E40AF" : "#6D28D9",
+                                      p.source === "NGO" ? "#FDE3E1" : "#FDE3E1",
+                                    color: p.source === "NGO" ? "#C0392B" : "#C0392B",
                                     fontSize: 11,
                                     fontWeight: 700,
                                   }}
@@ -2784,7 +2759,7 @@ const DrivesAdminPanel = () => {
                   <h6 className="mt-3 mb-2">
                     <i
                       className="ti ti-clipboard-check me-1"
-                      style={{ color: "#15803D" }}
+                      style={{ color: "#9C0C0D" }}
                     />
                     Joined drives ({detail?.registrations?.length || 0})
                   </h6>
@@ -2816,8 +2791,8 @@ const DrivesAdminPanel = () => {
                                     padding: "2px 6px",
                                     borderRadius: 4,
                                     background:
-                                      r.source === "NGO" ? "#EFF6FF" : "#F5F3FF",
-                                    color: r.source === "NGO" ? "#1E40AF" : "#6D28D9",
+                                      r.source === "NGO" ? "#FDE3E1" : "#FDE3E1",
+                                    color: r.source === "NGO" ? "#C0392B" : "#C0392B",
                                     fontSize: 11,
                                     fontWeight: 700,
                                   }}
@@ -2981,7 +2956,7 @@ const CommunityAdminPanel = () => {
                     <div
                       className="fw-bold"
                       style={{
-                        color: active ? "#3730A3" : "#111827",
+                        color: active ? "#9C0C0D" : "#111827",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -3026,7 +3001,7 @@ const CommunityAdminPanel = () => {
                   {detail?.referralCode && (
                     <div className="small mt-1">
                       Referral code:{" "}
-                      <strong style={{ color: "#6D28D9" }}>
+                      <strong style={{ color: "#C0392B" }}>
                         {detail.referralCode}
                       </strong>
                     </div>
@@ -3037,17 +3012,17 @@ const CommunityAdminPanel = () => {
                     {
                       label: "Members",
                       value: members.length,
-                      color: "#1E40AF",
+                      color: "#C0392B",
                     },
                     {
                       label: "Active donors",
                       value: donorCount,
-                      color: "#15803D",
+                      color: "#9C0C0D",
                     },
                     {
                       label: "Contributions",
                       value: totalContributions,
-                      color: "#6D28D9",
+                      color: "#C0392B",
                     },
                   ].map((s) => (
                     <div key={s.label} className="text-end">
@@ -3116,8 +3091,8 @@ const CommunityAdminPanel = () => {
                               width: 32,
                               height: 32,
                               borderRadius: "50%",
-                              background: "#EFF6FF",
-                              color: "#1E40AF",
+                              background: "#FDE3E1",
+                              color: "#C0392B",
                               display: "inline-flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -3159,8 +3134,8 @@ const CommunityAdminPanel = () => {
                                 borderRadius: 999,
                                 fontSize: 10,
                                 fontWeight: 700,
-                                color: "#15803D",
-                                background: "#DCFCE7",
+                                color: "#9C0C0D",
+                                background: "#FDE3E1",
                                 whiteSpace: "nowrap",
                               }}
                             >
@@ -3174,8 +3149,8 @@ const CommunityAdminPanel = () => {
                                 borderRadius: 999,
                                 fontSize: 10,
                                 fontWeight: 700,
-                                color: "#92400E",
-                                background: "#FEF3C7",
+                                color: "#C0392B",
+                                background: "#FDE3E1",
                                 whiteSpace: "nowrap",
                               }}
                             >
@@ -3210,7 +3185,7 @@ const CommunityAdminPanel = () => {
                                     className="fw-bold"
                                     style={{
                                       fontSize: 13,
-                                      color: "#15803D",
+                                      color: "#9C0C0D",
                                     }}
                                   >
                                     <i className="ti ti-heart-handshake me-1" />
@@ -3249,18 +3224,18 @@ const CommunityAdminPanel = () => {
                                     const typeMeta = {
                                       direct: {
                                         label: "Cause",
-                                        color: "#15803D",
-                                        bg: "#DCFCE7",
+                                        color: "#9C0C0D",
+                                        bg: "#FDE3E1",
                                       },
                                       vendor: {
                                         label: "Kind · Vendor",
-                                        color: "#B45309",
-                                        bg: "#FEF3C7",
+                                        color: "#C0392B",
+                                        bg: "#FDE3E1",
                                       },
                                       deliver: {
                                         label: "Kind · Deliver",
-                                        color: "#1E40AF",
-                                        bg: "#DBEAFE",
+                                        color: "#C0392B",
+                                        bg: "#FDE3E1",
                                       },
                                     }[row.type] || {
                                       label: row.type,
@@ -4219,9 +4194,11 @@ const RewardsAdminPanel = () => {
           <div className="card">
             <div className="card-body">
               {badges.length === 0 ? (
-                <p className="m-5 p-5 fs-4 text-center text-muted">
-                  No badges yet. Use the composer above to add one.
-                </p>
+                <EmptyState
+                  icon="ti ti-speakerphone"
+                  title="No badges yet"
+                  subtitle="Use the composer above to add one."
+                />
               ) : (
                 <div
                   style={{
@@ -4257,8 +4234,8 @@ const RewardsAdminPanel = () => {
                             borderRadius: 999,
                             fontSize: 11,
                             fontWeight: 700,
-                            color: "#92400E",
-                            background: "#FEF3C7",
+                            color: "#C0392B",
+                            background: "#FDE3E1",
                           }}
                         >
                           {b.points} pts
@@ -4461,9 +4438,10 @@ const RewardsAdminPanel = () => {
           <div className="card">
             <div className="card-body">
               {certs.length === 0 ? (
-                <p className="m-5 p-5 fs-4 text-center text-muted">
-                  No certificate templates uploaded yet.
-                </p>
+                <EmptyState
+                  icon="ti ti-speakerphone"
+                  title="No certificate templates uploaded yet."
+                />
               ) : (
                 <div
                   style={{
@@ -4879,8 +4857,8 @@ const MediaKitAdminPanel = () => {
                           width: 36,
                           height: 36,
                           borderRadius: "50%",
-                          background: "#EFF6FF",
-                          color: "#1E40AF",
+                          background: "#FDE3E1",
+                          color: "#C0392B",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",

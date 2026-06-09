@@ -21,6 +21,7 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import swal from "sweetalert";
 import SEO from "../SEO";
+import EmptyState from "../Components/EmptyState";
 import { GlobalContext } from "../GlobalContext";
 
 // Tabs are rendered as card-style buttons matching the admin Contributions
@@ -32,7 +33,7 @@ const LEVELS = [
     description:
       "Volunteer 101 — the 7 starter tasks. Approve any 5 to award the Trainee badge.",
     icon: "ti ti-school",
-    color: "#3B82F6",
+    color: "#C0392B",
   },
   {
     key: "advanced",
@@ -40,12 +41,12 @@ const LEVELS = [
     description:
       "Post-Trainee modules. Approvals feed the Certified Volunteer badge.",
     icon: "ti ti-medal",
-    color: "#8B5CF6",
+    color: "#C0392B",
   },
 ];
 const STATUSES = [
-  { key: "pending", label: "Pending review", color: "#F59E0B" },
-  { key: "approved", label: "Approved", color: "#22C55E" },
+  { key: "pending", label: "Pending review", color: "#C0392B" },
+  { key: "approved", label: "Approved", color: "#C0392B" },
   { key: "rejected", label: "Rejected", color: "#EF4444" },
 ];
 
@@ -329,9 +330,10 @@ const Onboarding = () => {
             return (
               <div className="card">
                 <div className="card-body">
-                  <p className="m-5 p-5 fs-4 text-center text-muted">
-                    No {statusFilter} submissions in this tab.
-                  </p>
+                  <EmptyState
+                    icon="ti ti-school"
+                    title={`No ${statusFilter} submissions in this tab.`}
+                  />
                 </div>
               </div>
             );
@@ -377,8 +379,8 @@ const Onboarding = () => {
                             width: 38,
                             height: 38,
                             borderRadius: "50%",
-                            background: "#EFF6FF",
-                            color: "#1E40AF",
+                            background: "#FFF5F5",
+                            color: "#C0392B",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -620,8 +622,8 @@ const Onboarding = () => {
                                   background:
                                     (sub.testScore?.percent || 0) >=
                                     (sub.module?.test?.passingScorePercent || 60)
-                                      ? "#22C55E"
-                                      : "#F59E0B",
+                                      ? "#C0392B"
+                                      : "#C0392B",
                                 }}
                               >
                                 {sub.testScore?.correct ?? 0}/
@@ -664,7 +666,7 @@ const Onboarding = () => {
                                     style={{
                                       fontSize: 14,
                                       lineHeight: 1.5,
-                                      color: a.isCorrect ? "#15803D" : "#991B1B",
+                                      color: a.isCorrect ? "#C0392B" : "#991B1B",
                                       fontWeight: 500,
                                     }}
                                   >
@@ -732,7 +734,7 @@ const Onboarding = () => {
                             </div>
                             <div className="d-flex gap-2">
                               <button
-                                className="btn btn-success"
+                                className="btn btn-primary"
                                 onClick={() => review(sub, "approved")}
                               >
                                 <i className="ti ti-check me-1" />

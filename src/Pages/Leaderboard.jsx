@@ -7,6 +7,7 @@ import { GlobalContext } from "../GlobalContext";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import UserFilter from "../Components/UserFilter";
+import EmptyState from "../Components/EmptyState";
 import SEO from "../SEO";
 
 const Leaderboard = () => {
@@ -150,11 +151,11 @@ const Leaderboard = () => {
                           </tr>
                         ))
                       ) : (
-                        <tr className="">
-                          <td colSpan={9} className="align-center">
-                            <p className="m-5 p-5 fs-4">No Data Found</p>
-                          </td>
-                        </tr>
+                        <EmptyState
+                          colSpan={7}
+                          icon="ti ti-trophy"
+                          title="No Data Found"
+                        />
                       )}
                     </tbody>
                   </table>

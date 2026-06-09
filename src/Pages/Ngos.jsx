@@ -4,6 +4,7 @@ import swal from "sweetalert";
 import { Link } from "react-router-dom";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
+import EmptyState from "../Components/EmptyState";
 
 // Admin workflow:
 //   1. NGOs        — the full NGO account list. A sub-filter (Pending /
@@ -673,17 +674,19 @@ const Ngos = () => {
             </thead>
             <tbody>
               {items.length === 0 ? (
-                <tr>
-                  <td colSpan={7} style={{ padding: "40px 16px", textAlign: "center", color: "#6b7280" }}>
-                    {status === "hospitalRequests"
+                <EmptyState
+                  colSpan={7}
+                  icon="ti ti-heart-handshake"
+                  title={
+                    status === "hospitalRequests"
                       ? "No hospital requests in this view."
                       : status === "donationDrives"
                       ? "No drives in this bucket."
                       : status === "docsPending"
                       ? "No NGOs with documents in this view."
-                      : "No NGOs in this view."}
-                  </td>
-                </tr>
+                      : "No NGOs in this view."
+                  }
+                />
               ) : status === "donationDrives" ? (
                 items.map((d) => {
                   const accent = d.image || DRIVE_TAG_COLORS[d.tag] || "#c0392b";
@@ -778,7 +781,7 @@ const Ngos = () => {
                               type="button"
                               onClick={() => reviewDrive(d, "approve")}
                               className="btn btn-sm"
-                              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5, background: "#c0392b", color: "#fff", border: "none" }}
+                              style={{ fontSize: 12.5, padding: "7px 15px", borderRadius: 6, background: "#9C0C0D", color: "#fff", border: "none", fontWeight: 600 }}
                             >
                               <i className="ti ti-check me-1"></i>Approve
                             </button>
@@ -787,8 +790,8 @@ const Ngos = () => {
                             <button
                               type="button"
                               onClick={() => reviewDrive(d, "reject")}
-                              className="btn btn-sm btn-outline-danger"
-                              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+                              className="btn btn-sm"
+                              style={{ fontSize: 12.5, padding: "7px 15px", borderRadius: 6, background: "#FDE3E1", color: "#C0392B", border: "1px solid #F3C2BE", fontWeight: 600 }}
                             >
                               <i className="ti ti-x me-1"></i>Reject
                             </button>
@@ -816,8 +819,8 @@ const Ngos = () => {
                     <td style={{ padding: "12px 14px", borderBottom: "1px solid #f3f4f6" }}>
                       <span
                         style={{
-                          background: "rgba(124,58,237,0.12)",
-                          color: "#6d28d9",
+                          background: "rgba(192,57,43,0.12)",
+                          color: "#C0392B",
                           padding: "1px 6px",
                           borderRadius: 4,
                           fontSize: 10.5,
@@ -866,7 +869,7 @@ const Ngos = () => {
                             type="button"
                             onClick={() => reviewHospital(h._id, "approved")}
                             className="btn btn-sm"
-                            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5, background: "#c0392b", color: "#fff", border: "none" }}
+                            style={{ fontSize: 12.5, padding: "7px 15px", borderRadius: 6, background: "#9C0C0D", color: "#fff", border: "none", fontWeight: 600 }}
                           >
                             <i className="ti ti-check me-1"></i> Approve
                           </button>
@@ -875,8 +878,8 @@ const Ngos = () => {
                           <button
                             type="button"
                             onClick={() => reviewHospital(h._id, "rejected")}
-                            className="btn btn-sm btn-outline-danger"
-                            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+                            className="btn btn-sm"
+                            style={{ fontSize: 12.5, padding: "7px 15px", borderRadius: 6, background: "#FDE3E1", color: "#C0392B", border: "1px solid #F3C2BE", fontWeight: 600 }}
                           >
                             <i className="ti ti-x me-1"></i> Reject
                           </button>
@@ -932,34 +935,39 @@ const Ngos = () => {
                           Review Documents
                         </Link>
                       ) : (
-                        <div style={{ display: "inline-flex", gap: 6, flexWrap: "wrap" }}>
+                        <div style={{ display: "inline-flex", gap: 10, flexWrap: "nowrap", alignItems: "center" }}>
                           {n.status !== "approved" && (
                             <button
                               type="button"
                               onClick={() => reviewNgo(n, "approve")}
                               className="btn btn-sm"
-                              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5, background: "#c0392b", color: "#fff", border: "none" }}
+                              title="Approve"
+                              aria-label="Approve"
+                              style={{ fontSize: 15, padding: "7px 10px", borderRadius: 6, background: "#9C0C0D", color: "#fff", border: "none", fontWeight: 600, lineHeight: 1 }}
                             >
-                              <i className="ti ti-check me-1"></i>Approve
+                              <i className="ti ti-check"></i>
                             </button>
                           )}
                           {n.status !== "rejected" && (
                             <button
                               type="button"
                               onClick={() => reviewNgo(n, "reject")}
-                              className="btn btn-sm btn-outline-danger"
-                              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+                              className="btn btn-sm"
+                              title="Reject"
+                              aria-label="Reject"
+                              style={{ fontSize: 15, padding: "7px 10px", borderRadius: 6, background: "#FDE3E1", color: "#C0392B", border: "1px solid #F3C2BE", fontWeight: 600, lineHeight: 1 }}
                             >
-                              <i className="ti ti-x me-1"></i>Reject
+                              <i className="ti ti-x"></i>
                             </button>
                           )}
                           <Link
                             to={`/ngo/${n._id}`}
-                            className="btn btn-sm btn-outline-secondary"
-                            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 5 }}
+                            className="btn btn-sm lsa-btn-view"
+                            style={{ fontSize: 15, padding: "7px 10px", borderRadius: 6, fontWeight: 600, lineHeight: 1 }}
                             title="View details"
+                            aria-label="View details"
                           >
-                            <i className="ti ti-eye me-1"></i>View
+                            <i className="ti ti-eye"></i>
                           </Link>
                         </div>
                       )}

@@ -10,6 +10,7 @@ import PageDetails from "../Components/PageDetails";
 import TasksFilters from "../Components/TasksFilters";
 import AddTaskForm from "../Components/AddTaskForm";
 import { formatDate } from "../Components/FormatedDate";
+import EmptyState from "../Components/EmptyState";
 import SEO from "../SEO";
 
 const Tasks = () => {
@@ -260,11 +261,11 @@ const Tasks = () => {
                           </tr>
                         ))
                       ) : (
-                        <tr className="">
-                          <td colSpan={10} className="align-center">
-                            <p className="m-5 p-5 fs-4">No Data Found</p>
-                          </td>
-                        </tr>
+                        <EmptyState
+                          colSpan={10}
+                          icon="ti ti-checkup-list"
+                          title="No Data Found"
+                        />
                       )}
                     </tbody>
                   </table>

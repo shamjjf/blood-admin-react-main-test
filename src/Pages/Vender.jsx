@@ -12,6 +12,7 @@ import VolunteerFilter from "../Components/VolunteerFilter";
 import SEO from "../SEO";
 import AddVendor from "../Components/AddVendor";
 import SearchFilter from "../Components/SearchFilter";
+import EmptyState from "../Components/EmptyState";
 
 const Vendor = () => {
   const [camps, setCamps] = useState([]);
@@ -196,11 +197,7 @@ const Vendor = () => {
                           </tr>
                         ))
                       ) : (
-                        <tr>
-                          <td className="align-left" colSpan={6}>
-                            <p className="m-5 p-5 fs-4">No Data Found</p>{" "}
-                          </td>
-                        </tr>
+                        <EmptyState colSpan={6} icon="ti ti-truck-delivery" title="No Data Found" />
                       )}
                     </tbody>
                   </table>

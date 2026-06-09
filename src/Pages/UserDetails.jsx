@@ -246,15 +246,15 @@ const UserDetails = () => {
 
   const levelColor = (lvl) => {
     if (lvl === "Platinum") return "#94A3B8";
-    if (lvl === "Gold") return "#EAB308";
+    if (lvl === "Gold") return "#C0392B";
     if (lvl === "Silver") return "#9CA3AF";
-    return "#B45309"; // Bronze
+    return "#C0392B"; // Bronze
   };
   const kycBadgeStyle = (status) => {
     const base = { padding: "4px 12px", borderRadius: 12, fontSize: 12, fontWeight: 700, textTransform: "capitalize", display: "inline-block" };
-    if (status === "verified") return { ...base, background: "#DCFCE7", color: "#166534" };
+    if (status === "verified") return { ...base, background: "#FDE3E1", color: "#C0392B" };
     if (status === "rejected") return { ...base, background: "#FEE2E2", color: "#991B1B" };
-    if (status === "pending") return { ...base, background: "#FEF3C7", color: "#92400E" };
+    if (status === "pending") return { ...base, background: "#FDE3E1", color: "#C0392B" };
     return { ...base, background: "#F3F4F6", color: "#6B7280" };
   };
 
@@ -983,18 +983,27 @@ const UserDetails = () => {
                     disabled={true}
                     preferredCountries={["in"]}
                     placeholder="+91 12345-67890"
+                    containerStyle={{ width: "100%" }}
                     buttonStyle={{
-                      width: "48px",
+                      width: "46px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
+                      borderTopLeftRadius: "8px",
+                      borderBottomLeftRadius: "8px",
+                      border: "1px solid #E5E7EB",
+                      borderRight: "none",
+                      background: "#FAFAFA",
                     }}
                     country={"in"}
                     value={`+${user.phoneCode} ${user.phone}`}
                     inputStyle={{
                       width: "100%",
-                      height: "50px",
-                      // marginLeft: "7px",
+                      height: "44px",
+                      paddingLeft: "54px",
+                      borderRadius: "8px",
+                      border: "1px solid #E5E7EB",
+                      fontSize: "14px",
                     }}
                     onChange={(value, country, e, formattedValue) => {
                       if (country.format.length === formattedValue.length) {
@@ -1299,7 +1308,7 @@ const UserDetails = () => {
                     <div className="d-flex justify-content-end mt-3" style={{ gap: 8 }}>
                       <button
                         type="button"
-                        className="btn btn-success"
+                        className="btn btn-primary"
                         disabled={kycBusy}
                         onClick={() => handleKycDecision("verified")}
                       >
@@ -1436,9 +1445,9 @@ const UserDetails = () => {
               </div>
               <div>
                 {user?.adminLink?.isSuperAdmin ? (
-                  <span style={roleBadgeStyle("#7C3AED")}>Super Admin</span>
+                  <span style={roleBadgeStyle("#C0392B")}>Super Admin</span>
                 ) : user?.adminLink ? (
-                  <span style={roleBadgeStyle("#0EA5E9")}>Staff</span>
+                  <span style={roleBadgeStyle("#C0392B")}>Staff</span>
                 ) : null}
               </div>
             </div>

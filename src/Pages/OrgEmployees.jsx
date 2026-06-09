@@ -3,6 +3,7 @@ import axios from "axios";
 import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
+import EmptyState from "../Components/EmptyState";
 
 const STATUS_OPTIONS = ["pending", "approved", "rejected", "all"];
 
@@ -239,13 +240,11 @@ const OrgEmployees = () => {
                 </thead>
                 <tbody>
                   {items.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="align-center">
-                        <p className="m-5 p-5 fs-4">
-                          No employees in this view.
-                        </p>
-                      </td>
-                    </tr>
+                    <EmptyState
+                      colSpan={8}
+                      icon="ti ti-users-group"
+                      title="No employees in this view."
+                    />
                   ) : (
                     items.map((e) => (
                       <tr key={e._id}>
