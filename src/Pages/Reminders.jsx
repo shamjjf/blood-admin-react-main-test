@@ -4,6 +4,7 @@ import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 import { downloadCsv } from "../utils/downloadCsv";
+import Tabs from "../Components/Tabs";
 
 const AUDIENCES = [
   { value: "all",       label: "All users" },
@@ -33,6 +34,18 @@ const statusBadge = (s) => ({
   textTransform: "capitalize",
   display: "inline-block",
 });
+
+// Plain checkbox styling. The admin template forces `.form-check-input` to
+// `position:absolute; margin-left:-1.25rem`, which floats the box outside its
+// container border — so we use a plain checkbox with explicit styles instead.
+const CHECKBOX_STYLE = {
+  width: 16,
+  height: 16,
+  margin: 0,
+  flexShrink: 0,
+  accentColor: "#C0392B",
+  cursor: "pointer",
+};
 
 const Reminders = () => {
   const { setLoading } = useContext(GlobalContext);
@@ -213,29 +226,24 @@ const Reminders = () => {
     } finally { setLoading(false); }
   };
 
-  const tabBtn = (key, label) => (
-    <button
-      key={key}
-      className={`btn ${tab === key ? "btn-primary" : "btn-outline-secondary"}`}
-      onClick={() => setTab(key)}
-      style={{ marginRight: 8 }}
-    >
-      {label}
-    </button>
-  );
-
   return (
     <>
       <SEO title="Reminders & Campaigns" />
       <div className="content-wrapper pt-5">
         <div className="d-flex mb-3 justify-content-between align-items-center flex-wrap" style={{ gap: 12 }}>
           <p className="card-title p-0 m-0">Communication & Reminders</p>
-          <div>
-            {tabBtn("compose", "Compose Campaign")}
-            {tabBtn("history", "History")}
-            {tabBtn("settings", "Reminder Settings")}
-          </div>
         </div>
+        <Tabs
+          variant="pill"
+          accent="#c0392b"
+          active={tab}
+          onChange={setTab}
+          tabs={{
+            compose: { label: "Compose Campaign", render: "" },
+            history: { label: "History", render: "" },
+            settings: { label: "Reminder Settings", render: "" },
+          }}
+        />
 
         {/* ============== Compose ============== */}
         {tab === "compose" && (
@@ -312,19 +320,22 @@ const Reminders = () => {
                 </div>
 
                 <div className="col-md-6">
-                  <div className="form-check">
+                  <label
+                    htmlFor="sendNowChk"
+                    style={{ display: "flex", alignItems: "flex-start", gap: 8, cursor: "pointer" }}
+                  >
                     <input
                       type="checkbox"
                       id="sendNowChk"
-                      className="form-check-input"
                       checked={form.sendNow}
                       onChange={(e) => setForm({ ...form, sendNow: e.target.checked })}
+                      style={{ ...CHECKBOX_STYLE, marginTop: 3 }}
                     />
-                    <label htmlFor="sendNowChk" className="form-check-label">
+                    <span style={{ minWidth: 0 }}>
                       <strong>Send immediately</strong>
-                      <div className="text-muted small">Triggers the cron right away — users get notified within seconds.</div>
-                    </label>
-                  </div>
+                      <span className="d-block text-muted small">Triggers the cron right away — users get notified within seconds.</span>
+                    </span>
+                  </label>
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Or schedule for later</label>
@@ -455,16 +466,19 @@ const Reminders = () => {
                         <div className="fw-bold">{row.label}</div>
                       </div>
                       <div className="col-md-2">
-                        <div className="form-check">
+                        <label
+                          htmlFor={`enabled-${row.key}`}
+                          style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginBottom: 0 }}
+                        >
                           <input
                             type="checkbox"
-                            className="form-check-input"
                             id={`enabled-${row.key}`}
                             checked={enabled}
                             onChange={(e) => setSettings({ ...settings, [`reminder${row.key}Enabled`]: e.target.checked })}
+                            style={CHECKBOX_STYLE}
                           />
-                          <label className="form-check-label" htmlFor={`enabled-${row.key}`}>Enabled</label>
-                        </div>
+                          Enabled
+                        </label>
                       </div>
                       <div className="col-md-3">
                         <label className="form-label small mb-1">Interval (days)</label>

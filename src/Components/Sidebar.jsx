@@ -53,6 +53,7 @@ const NAV_GROUPS = [
     label: "Communication",
     items: [
       { key: "reminders", icon: "ti ti-bell-ringing", name: "Reminders & Campaigns" },
+      { key: "promotions", icon: "ti ti-speakerphone", name: "Promotions & Ads" },
     ],
   },
   {
@@ -102,7 +103,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
     auth.isSuperAdmin
       ? ["requests","recurring-requests","tasks","users","admins","settings","leaderboard","badges","gifts","onboarding","training-modules","organizations","ngos","colleges",
          "camp","contribution","volunteer","influencers","bloodbank","blood-drives","awssetting","smtpsetting","firebasesetting",
-         "donations-report","certificate-orders","certificate-management","reminders","analytics","audit-logs","india-content"]
+         "donations-report","certificate-orders","certificate-management","reminders","promotions","analytics","audit-logs","india-content"]
       : auth.roles || []
   );
 

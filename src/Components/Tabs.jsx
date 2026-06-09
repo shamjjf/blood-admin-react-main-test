@@ -9,8 +9,13 @@ import React, { useState } from "react";
 //   "underline" (default) — text + bottom border, the original style.
 //   "pill"                — red-style filled button with white text when
 //                           active (matches the NGO panel filter tabs).
-function Tabs({ tabs, accent = "#0EA5E9", variant = "underline" }) {
-  const [active, setActive] = useState(Object.keys(tabs)[0]);
+// Optionally controlled: pass `active` (a tab key) + `onChange(key)` to drive
+// the active tab from the parent — needed when the parent switches tabs
+// programmatically (e.g. jump to "history" after a successful send). When
+// `active` is omitted the component manages its own state as before.
+function Tabs({ tabs, accent = "#0EA5E9", variant = "underline", active: controlledActive, onChange }) {
+  const [internalActive, setInternalActive] = useState(Object.keys(tabs)[0]);
+  const active = controlledActive != null ? controlledActive : internalActive;
   const isPill = variant === "pill";
 
   return (
@@ -61,7 +66,8 @@ function Tabs({ tabs, accent = "#0EA5E9", variant = "underline" }) {
               key={key}
               type="button"
               onClick={(e) => {
-                setActive(key);
+                if (controlledActive == null) setInternalActive(key);
+                onChange?.(key);
                 tab?.onClick?.(e);
               }}
               style={style}
