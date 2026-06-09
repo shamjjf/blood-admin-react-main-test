@@ -45,6 +45,7 @@ const NAV_GROUPS = [
       { key: "leaderboard",       icon: "ti ti-trophy",       name: "Leaderboard" },
       { key: "badges",            icon: "ti ti-medal",        name: "Badges" },
       { key: "gifts",             icon: "ti ti-gift",         name: "Gifts Catalog" },
+      { key: "spin-rewards",      icon: "ti ti-confetti",     name: "Lucky Spin" },
       { key: "onboarding",        icon: "ti ti-school",       name: "Volunteer 101" },
       { key: "training-modules",  icon: "ti ti-book",         name: "Training Modules" },
     ],
@@ -103,7 +104,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
     auth.isSuperAdmin
       ? ["requests","recurring-requests","tasks","users","admins","settings","leaderboard","badges","gifts","onboarding","training-modules","organizations","ngos","colleges",
          "camp","contribution","volunteer","influencers","bloodbank","blood-drives","awssetting","smtpsetting","firebasesetting",
-         "donations-report","certificate-orders","certificate-management","reminders","promotions","analytics","audit-logs","india-content"]
+         "donations-report","certificate-orders","certificate-management","reminders","promotions","spin-rewards","analytics","audit-logs","india-content"]
       : auth.roles || []
   );
 

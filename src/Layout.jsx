@@ -65,6 +65,7 @@ import CertificateOrders from "./Pages/CertificateOrders";
 import CertificateManagement from "./Pages/CertificateManagement";
 import Reminders from "./Pages/Reminders";
 import Promotions from "./Pages/Promotions";
+import SpinRewards from "./Pages/SpinRewards";
 import Analytics from "./Pages/Analytics";
 import AuditLogs from "./Pages/AuditLogs";
 import IndiaContent from "./Pages/IndiaContent";
@@ -124,6 +125,7 @@ const Layout = () => {
               <Route path="/certificate-management" element={<CertificateManagement />} />
               <Route path="/reminders" element={<Reminders />} />
               <Route path="/promotions" element={<Promotions />} />
+              <Route path="/spin-rewards" element={<SpinRewards />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/audit-logs" element={<AuditLogs />} />
               <Route path="/india-content" element={<IndiaContent />} />
