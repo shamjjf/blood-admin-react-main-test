@@ -18,13 +18,14 @@ const CATEGORIES = [
 ];
 const PRIORITIES = ["low", "normal", "high", "urgent"];
 
-// Visual treatment per category — mirrors the member-side PromoBanner so the
-// admin preview matches exactly what members will see.
+// Visual treatment per category. All categories use the brand red — only the
+// icon differentiates them.
+const RED_GRAD = "linear-gradient(135deg, #9C0C0D, #FD292F)";
 const CATEGORY_META = {
-  donation_drive: { label: "Donation Drive", icon: "🩸", grad: "linear-gradient(135deg,#e74c3c,#c0392b)" },
-  blood_camp: { label: "Blood Camp", icon: "⛺", grad: "linear-gradient(135deg,#8e44ad,#6c3483)" },
-  event: { label: "Event", icon: "📅", grad: "linear-gradient(135deg,#2980b9,#1f618d)" },
-  announcement: { label: "Announcement", icon: "📢", grad: "linear-gradient(135deg,#16a085,#117a65)" },
+  donation_drive: { label: "Donation Drive", icon: "🩸", grad: RED_GRAD },
+  blood_camp: { label: "Blood Camp", icon: "⛺", grad: RED_GRAD },
+  event: { label: "Event", icon: "📅", grad: RED_GRAD },
+  announcement: { label: "Announcement", icon: "📢", grad: RED_GRAD },
 };
 
 // Plain checkbox styling. We deliberately avoid the `.form-check-input` class:
@@ -295,36 +296,20 @@ const Promotions = () => {
               <div className="card-body">
                 {/* ---------- Category chips ---------- */}
                 <SectionLabel>Category</SectionLabel>
-                <div className="d-flex flex-wrap" style={{ gap: 10, marginBottom: 22 }}>
-                  {CATEGORIES.map((c) => {
-                    const m = CATEGORY_META[c.value];
-                    const selected = form.category === c.value;
-                    return (
-                      <button
-                        type="button"
-                        key={c.value}
-                        onClick={() => setForm({ ...form, category: c.value })}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          padding: "9px 16px",
-                          borderRadius: 10,
-                          border: selected ? "2px solid transparent" : "1.5px solid #E5E7EB",
-                          background: selected ? m.grad : "#fff",
-                          color: selected ? "#fff" : "#374151",
-                          fontWeight: 600,
-                          fontSize: 13,
-                          cursor: "pointer",
-                          boxShadow: selected ? "0 4px 10px rgba(0,0,0,0.12)" : "none",
-                        }}
-                      >
-                        <span style={{ fontSize: 16 }}>{m.icon}</span>
-                        {m.label}
-                      </button>
-                    );
-                  })}
-                </div>
+                {/* Red pill tabs, same style as the Requests blood/platelet tabs. */}
+                <Tabs
+                  variant="pill"
+                  accent="#c0392b"
+                  active={form.category}
+                  onChange={(cat) => setForm({ ...form, category: cat })}
+                  tabs={CATEGORIES.reduce((acc, c) => {
+                    acc[c.value] = {
+                      label: `${CATEGORY_META[c.value].icon} ${CATEGORY_META[c.value].label}`,
+                      render: "",
+                    };
+                    return acc;
+                  }, {})}
+                />
 
                 {/* ---------- Live preview (full width) ---------- */}
                 <SectionLabel>Live Preview — member dashboard</SectionLabel>
