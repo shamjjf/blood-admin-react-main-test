@@ -302,6 +302,7 @@ const Home = () => {
               borderRadius: "var(--r)", border: c.hero ? "none" : "1px solid var(--border)",
               padding: 16, boxShadow: "var(--shadow)", transition: "all 0.2s",
               cursor: "default", position: "relative", overflow: "hidden",
+              display: "flex", flexDirection: "column",
             }}
               onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "var(--shadow-md)"; }}
               onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "var(--shadow)"; }}>
@@ -328,7 +329,7 @@ const Home = () => {
                   ))}
                 </div>
               )}
-              <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, marginTop: 8, color: c.hero ? "rgba(255,255,255,0.7)" : "var(--green)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, marginTop: "auto", paddingTop: 10, color: c.hero ? "rgba(255,255,255,0.7)" : "var(--green)" }}>
                 <i className="ti ti-trending-up" style={{ fontSize: 13 }} /> {c.trend}
               </div>
               <div style={{ position: "absolute", right: -8, bottom: -12, fontFamily: "var(--f-display)", fontSize: 64, fontWeight: 800, color: c.hero ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", lineHeight: 1, pointerEvents: "none", userSelect: "none" }}>{c.val}</div>
