@@ -11,10 +11,14 @@ const UserDetails = () => {
   const [avaURL, setavaURL] = useState(null);
   const [user, setUser] = useState({
     name: "",
-    homeaddress: { text: "" },
-    officeaddress: { text: "" },
-    homeAddress: "",
-    officeAddress: "",
+    // Members enter their address from the app as structured currentAddress /
+    // permanentAddress objects (the old home/office address fields are legacy
+    // and no longer written). currentAddressText / permanentAddressText hold the
+    // flat string shown in the input box; the objects are what we persist.
+    currentAddress: { text: "" },
+    permanentAddress: { text: "" },
+    currentAddressText: "",
+    permanentAddressText: "",
     userType: "User",
     donationType: "Blood",
     phone: "",
@@ -326,6 +330,18 @@ const UserDetails = () => {
     "(UTC+12:00) Auckland, Wellington",
   ];
 
+  // Build a readable one-line address. App-saved addresses carry structured
+  // parts (street/city/state/pinCode/country) but usually no `text`; addresses
+  // picked here via Google autocomplete store `text` only. Prefer `text` when
+  // present, otherwise stitch the structured parts together.
+  const composeAddress = (a) => {
+    if (!a) return "";
+    if (a.text && a.text.trim()) return a.text.trim();
+    return [a.street, a.city, a.state, a.pinCode, a.country]
+      .filter((p) => p && String(p).trim())
+      .join(", ");
+  };
+
   useEffect(() => {
     const getData = async () => {
       try {
@@ -345,8 +361,10 @@ const UserDetails = () => {
         setUser((prevUser) => ({
           ...prevUser,
           ...userData,
-          homeAddress: userData?.homeaddress?.text,
-          officeAddress: userData?.officeaddress?.text,
+          currentAddress: userData?.currentAddress || { text: "" },
+          permanentAddress: userData?.permanentAddress || { text: "" },
+          currentAddressText: composeAddress(userData?.currentAddress),
+          permanentAddressText: composeAddress(userData?.permanentAddress),
         }));
         setavaURL(userData?.avatar?.url);
       } catch (error) {
@@ -382,7 +400,7 @@ const UserDetails = () => {
       isValid = false;
     }
 
-    if (!user.homeaddress.text || !user.officeaddress.text) {
+    if (!user.currentAddressText?.trim() || !user.permanentAddressText?.trim()) {
       swal("Error", "Address cannot be empty!", "error");
       isValid = false;
     }
@@ -566,37 +584,37 @@ const UserDetails = () => {
   const handleLocationChange = async (e) => {
     const textQuery = e.target.value;
 
-    if (e.target.name === "homeAddress") {
+    if (e.target.name === "currentAddress") {
       if (textQuery === "") {
         setAddress([]);
       }
     }
 
-    if (e.target.name === "officeAddress") {
+    if (e.target.name === "permanentAddress") {
       if (textQuery === "") {
         setAddress1([]);
       }
     }
 
-    if (e.target.name === "homeAddress") {
+    if (e.target.name === "currentAddress") {
       // setting up value in formData to ensure user sees what hes typing
       setUser({
         ...user,
-        homeaddress: {
-          ...user.homeAddress,
+        currentAddress: {
+          ...user.currentAddress,
           text: textQuery,
         },
-        homeAddress: textQuery,
+        currentAddressText: textQuery,
       });
     } else {
       // setting up value in formData to ensure user sees what hes typing
       setUser({
         ...user,
-        officeaddress: {
-          ...user.officeAddress,
+        permanentAddress: {
+          ...user.permanentAddress,
           text: textQuery,
         },
-        officeAddress: textQuery,
+        permanentAddressText: textQuery,
       });
     }
 
@@ -611,7 +629,7 @@ const UserDetails = () => {
 
               const response = await axios.post(`${import.meta.env.VITE_API_URL}/googleapi`, { dummyData: textQuery });
               // console.log(response.data.results);
-              if (e.target.name === "homeAddress") {
+              if (e.target.name === "currentAddress") {
                 setAddress(response.data.results);
               } else {
                 setAddress1(response.data.results);
@@ -628,11 +646,11 @@ const UserDetails = () => {
   };
 
   const handleLocationSubmission = (location, geometry, event) => {
-    if (event === "home") {
+    if (event === "current") {
       setUser({
         ...user,
-        homeAddress: location,
-        homeaddress: {
+        currentAddressText: location,
+        currentAddress: {
           text: location,
           latitude: geometry.lat,
           longitude: geometry.lng,
@@ -643,8 +661,8 @@ const UserDetails = () => {
     } else {
       setUser({
         ...user,
-        officeAddress: location,
-        officeaddress: {
+        permanentAddressText: location,
+        permanentAddress: {
           text: location,
           latitude: geometry.lat,
           longitude: geometry.lng,
@@ -852,20 +870,20 @@ const UserDetails = () => {
             </div>
             <div className="card-body">
               <div className="form-group row d-flex align-items-center">
-                <label className="col-form-label" style={{ width: "90px", paddingLeft: "10px" }}>
-                  Home Address<span className="text-danger">*</span>
+                <label className="col-form-label" style={{ width: "130px", paddingLeft: "10px" }}>
+                  Current Address<span className="text-danger">*</span>
                 </label>
                 <div className="col-sm-9">
                   <input
                     onChange={handleLocationChange}
-                    name="homeAddress"
+                    name="currentAddress"
                     type="text"
                     className="form-control"
-                    value={user.homeAddress}
+                    value={user.currentAddressText}
                     disabled={!isEditing}
                   />
 
-                  {/* {errors.homeaddress && <span className="text-danger">{errors.homeaddress}</span>} */}
+                  {/* {errors.currentAddress && <span className="text-danger">{errors.currentAddress}</span>} */}
                 </div>
                 {address.length > 0 && (
                   <div
@@ -884,9 +902,9 @@ const UserDetails = () => {
                           <button
                             className="dropdown-item text-wrap fw-normal fs-3"
                             type="button"
-                            name="homeAddress"
+                            name="currentAddress"
                             onClick={() =>
-                              handleLocationSubmission(add.formatted_address, add.geometry.location, "home")
+                              handleLocationSubmission(add.formatted_address, add.geometry.location, "current")
                             }
                           >
                             <span
@@ -906,16 +924,16 @@ const UserDetails = () => {
                 )}
               </div>
               <div className="form-group row d-flex align-items-center">
-                <label className="col-form-label" style={{ width: "90px", paddingLeft: "10px" }}>
-                  Office Address<span className="text-danger">*</span>
+                <label className="col-form-label" style={{ width: "130px", paddingLeft: "10px" }}>
+                  Permanent Address<span className="text-danger">*</span>
                 </label>
                 <div className="col-sm-9">
                   <input
                     onChange={handleLocationChange}
                     type="text"
-                    name="officeAddress"
+                    name="permanentAddress"
                     className="form-control"
-                    value={user.officeAddress}
+                    value={user.permanentAddressText}
                     disabled={!isEditing}
                   />
                 </div>
@@ -937,9 +955,9 @@ const UserDetails = () => {
                           <button
                             className="dropdown-item text-wrap fw-normal fs-3"
                             type="button"
-                            name="officeAddress"
+                            name="permanentAddress"
                             onClick={() =>
-                              handleLocationSubmission(add.formatted_address, add.geometry.location, "office")
+                              handleLocationSubmission(add.formatted_address, add.geometry.location, "permanent")
                             }
                           >
                             <span
