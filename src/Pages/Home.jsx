@@ -179,6 +179,10 @@ const Home = () => {
   const totalPlatelet = (s.plateletRequestCountCrit ?? 0) + (s.plateletRequestCountNoCrit ?? 0);
   const totalTasks = (s.openTasks ?? 0) + (s.closeTasks ?? 0);
   const totalUsers = s.userCount || 0;
+  // Registration split: "full" = profile >= 90% complete, "basic" = below.
+  // Shown next to Total Users so admins can see how many finished onboarding.
+  const fullReg = s.fullRegistrationCount || 0;
+  const basicReg = s.basicRegistrationCount || 0;
   // Special Users total is the sum of the four widget categories so the
   // badge always matches the bars (the legacy specialUserCount field only
   // covered the SpecialUser collection — not the dedicated portal accounts).
@@ -287,7 +291,7 @@ const Home = () => {
         {/* ── MAIN STAT CARDS ── */}
         <div className="ph1" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12 }}>
           {[
-            { icon: "ti ti-users",             cls: "white",  hero: true,  val: totalUsers,             label: "Total Users",         trend: `+${totalUsers} registered` },
+            { icon: "ti ti-users",             cls: "white",  hero: true,  val: totalUsers,             label: "Total Users",         trend: `+${totalUsers} registered`, breakdown: [{ label: "Full", val: fullReg }, { label: "Basic", val: basicReg }] },
             { icon: "ti ti-droplet-filled",    cls: "red",    hero: false, val: totalBlood,             label: "Blood Requests",      trend: s.bloodRequestCountCrit ? `${s.bloodRequestCountCrit} critical` : "No critical" },
             { icon: "ti ti-activity",          cls: "blue",   hero: false, val: totalPlatelet,          label: "Platelet Requests",   trend: totalPlatelet ? "Active" : "No change" },
             { icon: "ti ti-droplet-half-2",    cls: "green",  hero: false, val: s.availableDonorsCount ?? 0, label: "Total Donors",   trend: "Active today" },
@@ -309,6 +313,21 @@ const Home = () => {
               }}><i className={c.icon} /></div>
               <div style={{ fontFamily: "var(--f-display)", fontSize: 28, fontWeight: 800, color: c.hero ? "white" : "var(--dark)", letterSpacing: "-1px", lineHeight: 1 }}>{c.val}</div>
               <div style={{ fontSize: 11, color: c.hero ? "rgba(255,255,255,0.55)" : "var(--muted)", fontWeight: 500, marginTop: 4 }}>{c.label}</div>
+              {c.breakdown && (
+                <div style={{ display: "flex", gap: 6, marginTop: 8, position: "relative", zIndex: 1 }}>
+                  {c.breakdown.map((b) => (
+                    <div key={b.label} style={{
+                      display: "flex", alignItems: "center", gap: 4,
+                      background: c.hero ? "rgba(255,255,255,0.14)" : "var(--red-pale)",
+                      color: c.hero ? "white" : "var(--red)",
+                      borderRadius: 6, padding: "2px 8px", fontSize: 11, fontWeight: 700,
+                    }}>
+                      <span style={{ fontFamily: "var(--f-display)" }}>{b.val}</span>
+                      <span style={{ fontWeight: 500, opacity: 0.85 }}>{b.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, marginTop: 8, color: c.hero ? "rgba(255,255,255,0.7)" : "var(--green)" }}>
                 <i className="ti ti-trending-up" style={{ fontSize: 13 }} /> {c.trend}
               </div>
