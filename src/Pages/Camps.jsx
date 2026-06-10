@@ -114,6 +114,50 @@ const Camps = () => {
     setCurrentPage(1);
   };
 
+  // Approve an NGO-submitted camp → publishes it to members + (if the NGO
+  // opted in) broadcasts an advertisement-style promo.
+  const approveCamp = async (id) => {
+    try {
+      setLoading(true);
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/camp/${id}/approve`,
+        {},
+        { headers: { Authorization: sessionStorage.getItem("auth"), "Content-Type": "application/json" } }
+      );
+      swal("Approved", "Camp approved — it's now visible to members.", "success");
+      getData();
+    } catch (err) {
+      swal("Error", err?.response?.data?.error || "Failed to approve camp", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const rejectCamp = async (id) => {
+    const reason = await swal({
+      title: "Reject this camp?",
+      text: "Optionally tell the NGO why. It won't be shown to members.",
+      content: "input",
+      buttons: ["Cancel", "Reject"],
+      dangerMode: true,
+    });
+    if (reason === null) return; // cancelled
+    try {
+      setLoading(true);
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/camp/${id}/reject`,
+        { reason: reason || "" },
+        { headers: { Authorization: sessionStorage.getItem("auth"), "Content-Type": "application/json" } }
+      );
+      swal("Rejected", "Camp rejected.", "success");
+      getData();
+    } catch (err) {
+      swal("Error", err?.response?.data?.error || "Failed to reject camp", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getData = async () => {
     try {
       setIsLoading(true);
@@ -232,6 +276,7 @@ const Camps = () => {
                         <th className="align-left">Time</th>
                         <th className="align-left">Filled / Capacity</th>
                         <th className="align-left">Status</th>
+                        <th className="align-left">Approval</th>
                         <th className="align-center">View</th>
                       </tr>
                     </thead>
@@ -292,6 +337,36 @@ const Camps = () => {
                                   {camp.status || "scheduled"}
                                 </span>
                               </td>
+                              <td className="align-left">
+                                {camp.approvalStatus === "pending" ? (
+                                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                    <button
+                                      className="btn btn-sm btn-success"
+                                      onClick={() => approveCamp(camp._id)}
+                                    >
+                                      Approve
+                                    </button>
+                                    <button
+                                      className="btn btn-sm btn-outline-danger"
+                                      onClick={() => rejectCamp(camp._id)}
+                                    >
+                                      Reject
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <span style={{
+                                    padding: "3px 10px",
+                                    borderRadius: 10,
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    textTransform: "capitalize",
+                                    color: camp.approvalStatus === "rejected" ? "#b91c1c" : "#15803d",
+                                    background: camp.approvalStatus === "rejected" ? "rgba(220,38,38,0.12)" : "rgba(22,163,74,0.12)",
+                                  }}>
+                                    {camp.approvalStatus || "approved"}
+                                  </span>
+                                )}
+                              </td>
                               <td className="align-center">
                                 <Link to={`/camp/${camp._id}`}>
                                   <i className="icons fa-regular fa-eye"></i>
@@ -302,7 +377,7 @@ const Camps = () => {
                         })
                       ) : (
                         <EmptyState
-                          colSpan={10}
+                          colSpan={11}
                           icon="ti ti-calendar-event"
                           title="No Data Found"
                         />

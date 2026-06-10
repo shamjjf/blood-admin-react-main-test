@@ -77,8 +77,6 @@ const blankForm = {
   category: "announcement",
   title: "",
   body: "",
-  image: null, // FileObject _id
-  imageUrl: "", // preview
   ctaLabel: "Learn more",
   ctaLink: "",
   priority: "normal",
@@ -92,13 +90,10 @@ const Promotions = () => {
   const { setLoading } = useContext(GlobalContext);
   const [tab, setTab] = useState("compose"); // compose | history
   const [form, setForm] = useState(blankForm);
-  const [uploading, setUploading] = useState(false);
   const [items, setItems] = useState([]);
   const [statusFilter, setStatusFilter] = useState("All");
 
   const apiUrl = import.meta.env.VITE_API_URL; // .../api/admin
-  // /upload-test lives at the API root, not under /admin.
-  const apiRoot = apiUrl.replace(/\/admin$/, "");
   const authHeader = { Authorization: sessionStorage.getItem("auth") };
 
   const loadItems = async () => {
@@ -122,40 +117,6 @@ const Promotions = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, statusFilter]);
 
-  // Presigned-S3 upload (same flow the rest of the app uses).
-  const uploadImage = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!/^image\//.test(file.type)) {
-      return swal("Error", "Please choose an image file", "error");
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      return swal("Error", "Image must be under 5MB", "error");
-    }
-    try {
-      setUploading(true);
-      const { name, size, type } = file;
-      const res = await axios.post(
-        `${apiRoot}/upload-test`,
-        { name, size, mime: type },
-        { headers: { "content-type": "application/json" } }
-      );
-      const { data } = res;
-      const fd = new FormData();
-      for (const [k, v] of Object.entries(data.data.fields)) fd.append(k, v);
-      fd.append("file", file);
-      const s3 = await fetch(data.data.url, { method: "POST", body: fd });
-      if (!s3.ok) throw new Error("S3 upload failed");
-      setForm((f) => ({ ...f, image: data.data._id, imageUrl: data.url }));
-    } catch (err) {
-      console.error(err);
-      swal("Error", "Failed to upload image", "error");
-    } finally {
-      setUploading(false);
-      e.target.value = "";
-    }
-  };
-
   const submit = async () => {
     if (!form.title.trim()) return swal("Error", "Title is required", "error");
     if (!form.body.trim()) return swal("Error", "Message body is required", "error");
@@ -167,7 +128,6 @@ const Promotions = () => {
         category: form.category,
         title: form.title.trim(),
         body: form.body.trim(),
-        image: form.image || null,
         ctaLabel: form.ctaLabel.trim() || "Learn more",
         ctaLink: form.ctaLink.trim() || null,
         priority: form.priority,
@@ -304,7 +264,7 @@ const Promotions = () => {
                   onChange={(cat) => setForm({ ...form, category: cat })}
                   tabs={CATEGORIES.reduce((acc, c) => {
                     acc[c.value] = {
-                      label: `${CATEGORY_META[c.value].icon} ${CATEGORY_META[c.value].label}`,
+                      label: CATEGORY_META[c.value].label,
                       render: "",
                     };
                     return acc;
@@ -317,6 +277,8 @@ const Promotions = () => {
                   style={{
                     display: "flex",
                     alignItems: "center",
+                    flexWrap: "wrap",
+                    rowGap: 12,
                     gap: 16,
                     background: meta.grad,
                     color: "#fff",
@@ -326,17 +288,9 @@ const Promotions = () => {
                     boxShadow: "0 6px 18px rgba(0,0,0,0.12)",
                   }}
                 >
-                  {form.imageUrl ? (
-                    <img
-                      src={form.imageUrl}
-                      alt=""
-                      style={{ width: 60, height: 60, borderRadius: 12, objectFit: "cover", flexShrink: 0, border: "2px solid rgba(255,255,255,0.6)" }}
-                    />
-                  ) : (
-                    <div style={{ width: 60, height: 60, borderRadius: 12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, background: "rgba(255,255,255,0.18)" }}>
-                      {meta.icon}
-                    </div>
-                  )}
+                  <div style={{ width: 60, height: 60, borderRadius: 12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, background: "rgba(255,255,255,0.18)" }}>
+                    {meta.icon}
+                  </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, opacity: 0.9 }}>
                       {meta.icon} {meta.label}
@@ -390,23 +344,6 @@ const Promotions = () => {
                       placeholder="Short, punchy ad copy that appears on the banner and notification."
                     />
                     <small className="text-muted">{form.body.length}/500</small>
-                  </div>
-                  <div className="col-md-12">
-                    <label className="form-label">Banner Image (optional)</label>
-                    <input type="file" accept="image/*" className="form-control" onChange={uploadImage} disabled={uploading} />
-                    {uploading && <small className="text-muted d-block mt-1">Uploading…</small>}
-                    {form.imageUrl && (
-                      <div className="d-flex align-items-center mt-2" style={{ gap: 8 }}>
-                        <img src={form.imageUrl} alt="" style={{ height: 40, borderRadius: 6 }} />
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-danger"
-                          onClick={() => setForm({ ...form, image: null, imageUrl: "" })}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -521,14 +458,31 @@ const Promotions = () => {
                   </div>
                 </div>
 
-                <div className="d-flex justify-content-end mt-4">
-                  <button
-                    className="btn btn-primary"
-                    onClick={submit}
-                    disabled={uploading}
-                    style={{ minWidth: 220 }}
-                  >
-                    {form.sendNow ? "🚀 Broadcast Campaign" : "📅 Schedule Campaign"}
+                {/* Own class (not .btn-primary) so the theme's !important
+                    .btn-primary rules don't shrink the text / break centering. */}
+                <style>{`
+                  .promo-submit-btn {
+                    background: #C0392B;
+                    color: #fff;
+                    border: none;
+                    border-radius: 10px;
+                    padding: 11px 26px;
+                    min-width: 220px;
+                    font-size: 16px;
+                    font-weight: 700;
+                    letter-spacing: 0.3px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 6px 16px rgba(192,57,43,0.28);
+                    cursor: pointer;
+                    transition: background 0.15s, box-shadow 0.15s;
+                  }
+                  .promo-submit-btn:hover { background: #a0291c; box-shadow: 0 8px 20px rgba(192,57,43,0.36); }
+                `}</style>
+                <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                  <button type="button" className="promo-submit-btn" onClick={submit}>
+                    {form.sendNow ? "Broadcast Campaign" : "Schedule Campaign"}
                   </button>
                 </div>
               </div>
