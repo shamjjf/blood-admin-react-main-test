@@ -86,9 +86,9 @@ const NAV_GROUPS = [
 const COLLAPSIBLE = new Set(["Rewards", "Communication", "Donations", "Settings"]);
 
 const BADGE_COLOR = {
-  requests:  { bg: "#C0392B",  color: "#fff" },
-  tasks:     { bg: "#d97706",  color: "#fff" },
-  volunteers:{ bg: "#16a34a",  color: "#fff" },
+  requests:  { bg: "#FFFFFF",  color: "#C0392B" },
+  tasks:     { bg: "#FFFFFF",  color: "#C0392B" },
+  volunteers:{ bg: "#FFFFFF",  color: "#C0392B" },
 };
 
 const Sidebar = ({ sidebar, setSidebar }) => {
@@ -228,8 +228,11 @@ const Sidebar = ({ sidebar, setSidebar }) => {
                         {item.badgeKey && badgeCount > 0 && (
                           <span style={{
                             marginLeft: "auto",
-                            background: badgeStyle.bg,
-                            color: badgeStyle.color,
+                            // Inactive row (red sidebar) → white circle, red text.
+                            // Active row (white tab) → flip to red circle, white
+                            // text so the count stays visible, not white-on-white.
+                            background: isActive ? "#C0392B" : badgeStyle.bg,
+                            color: isActive ? "#FFFFFF" : badgeStyle.color,
                             fontSize: 10,
                             fontWeight: 700,
                             padding: "2px 7px",
