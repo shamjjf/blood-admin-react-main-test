@@ -291,7 +291,7 @@ const Home = () => {
         {/* ── MAIN STAT CARDS ── */}
         <div className="ph1" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12 }}>
           {[
-            { icon: "ti ti-users",             cls: "white",  hero: true,  val: totalUsers,             label: "Total Users",         trend: `+${totalUsers} registered`, breakdown: [{ label: "Full", val: fullReg }, { label: "Basic", val: basicReg }] },
+            { icon: "ti ti-users",             cls: "white",  hero: true,  val: totalUsers,             label: "Total Users",         trend: `+${totalUsers} registered`, breakdown: [{ label: "Full Registration", val: fullReg }, { label: "Basic Registration", val: basicReg }] },
             { icon: "ti ti-droplet-filled",    cls: "red",    hero: false, val: totalBlood,             label: "Blood Requests",      trend: s.bloodRequestCountCrit ? `${s.bloodRequestCountCrit} critical` : "No critical" },
             { icon: "ti ti-activity",          cls: "blue",   hero: false, val: totalPlatelet,          label: "Platelet Requests",   trend: totalPlatelet ? "Active" : "No change" },
             { icon: "ti ti-droplet-half-2",    cls: "green",  hero: false, val: s.availableDonorsCount ?? 0, label: "Total Donors",   trend: "Active today" },
@@ -314,16 +314,16 @@ const Home = () => {
               <div style={{ fontFamily: "var(--f-display)", fontSize: 28, fontWeight: 800, color: c.hero ? "white" : "var(--dark)", letterSpacing: "-1px", lineHeight: 1 }}>{c.val}</div>
               <div style={{ fontSize: 11, color: c.hero ? "rgba(255,255,255,0.55)" : "var(--muted)", fontWeight: 500, marginTop: 4 }}>{c.label}</div>
               {c.breakdown && (
-                <div style={{ display: "flex", gap: 6, marginTop: 8, position: "relative", zIndex: 1 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10, position: "relative", zIndex: 1 }}>
                   {c.breakdown.map((b) => (
                     <div key={b.label} style={{
-                      display: "flex", alignItems: "center", gap: 4,
-                      background: c.hero ? "rgba(255,255,255,0.14)" : "var(--red-pale)",
+                      display: "flex", alignItems: "center", gap: 8, alignSelf: "flex-start",
+                      background: c.hero ? "rgba(255,255,255,0.16)" : "var(--red-pale)",
                       color: c.hero ? "white" : "var(--red)",
-                      borderRadius: 6, padding: "2px 8px", fontSize: 11, fontWeight: 700,
+                      borderRadius: 8, padding: "6px 12px", fontSize: 13, fontWeight: 700,
                     }}>
-                      <span style={{ fontFamily: "var(--f-display)" }}>{b.val}</span>
-                      <span style={{ fontWeight: 500, opacity: 0.85 }}>{b.label}</span>
+                      <span style={{ fontFamily: "var(--f-display)", fontSize: 17, fontWeight: 800 }}>{b.val}</span>
+                      <span style={{ fontWeight: 600, opacity: 0.9 }}>{b.label}</span>
                     </div>
                   ))}
                 </div>
