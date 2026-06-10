@@ -10,6 +10,7 @@ import "react-loading-skeleton/dist/skeleton.css";
 import SEO from "../SEO";
 import { downloadCsv } from "../utils/downloadCsv";
 import ConfirmModal from "../Components/ConfirmModal";
+import ImportUsersModal from "../Components/ImportUsersModal";
 import EmptyState from "../Components/EmptyState";
 const Users = () => {
   const { setLoading, alert } = useContext(GlobalContext);
@@ -26,7 +27,15 @@ const Users = () => {
   const [kycStatusSelects, setKycStatusSelects] = useState("All");
   const [roleSelects, setRoleSelects] = useState("All");
 
+  // Profile-completion bucket: "full" (>= 90% complete) or "basic" (just signed
+  // up / profile unfinished). Counts come back with the user list.
+  const [registration, setRegistration] = useState("full");
+  const [registrationCounts, setRegistrationCounts] = useState({ full: 0, basic: 0 });
+
   const [isLoading, setIsLoading] = useState(true);
+
+  // Toggles the bulk "Import Users" modal.
+  const [showImport, setShowImport] = useState(false);
 
   // User being targeted by the delete confirmation modal. `null` = modal closed.
   const [userToDelete, setUserToDelete] = useState(null);
@@ -108,7 +117,7 @@ const Users = () => {
         setIsLoading(true);
         let url = `${import.meta.env.VITE_API_URL}/users?n=${limit}&p=${currentPage}&bloodGroup=${encodeURIComponent(
           bloodGroupSelects
-        )}&gender=${genderSelects}&points=${pointsSelects}&searchText=${searchText}&kycStatus=${kycStatusSelects}&role=${roleSelects}`;
+        )}&gender=${genderSelects}&points=${pointsSelects}&searchText=${searchText}&kycStatus=${kycStatusSelects}&role=${roleSelects}&registration=${registration}`;
 
         const res = await axios.get(url, {
           headers: {
@@ -119,6 +128,7 @@ const Users = () => {
         setUsers(data.users);
         setTotalCount(data.count);
         setTotalPages(Math.ceil(data.count / limit));
+        if (data.registrationCounts) setRegistrationCounts(data.registrationCounts);
       } catch (error) {
         console.log(error);
       } finally {
@@ -126,7 +136,15 @@ const Users = () => {
       }
     };
     getData();
-  }, [limit, currentPage, bloodGroupSelects, pointsSelects, genderSelects, searchText, kycStatusSelects, roleSelects, refreshTick]);
+  }, [limit, currentPage, bloodGroupSelects, pointsSelects, genderSelects, searchText, kycStatusSelects, roleSelects, registration, refreshTick]);
+
+  // Switch tabs (full vs basic) and jump back to the first page so the user
+  // never lands on an out-of-range page from the previous bucket.
+  const handleRegistrationTab = (key) => {
+    if (key === registration) return;
+    setRegistration(key);
+    setCurrentPage(1);
+  };
 
   return (
     <>
@@ -135,6 +153,13 @@ const Users = () => {
       <div className="content-wrapper pt-5">
         <div className="d-flex mb-3 justify-content-between align-items-center flex-wrap" style={{ gap: 12 }}>
           <p className="card-title p-0 m-0">Users</p>
+          <div className="d-flex flex-wrap" style={{ gap: 12 }}>
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowImport(true)}
+          >
+            <i className="ti ti-upload"></i> Import Users
+          </button>
           <button
             className="btn btn-outline-primary"
             onClick={() =>
@@ -148,6 +173,57 @@ const Users = () => {
           >
             <i className="ti ti-download"></i> Export CSV
           </button>
+          </div>
+        </div>
+
+        {/* Registration tabs — "Full" = profile >= 90% complete, "Basic" =
+            signed up but profile unfinished. Counts reflect the active filters. */}
+        <div className="d-flex flex-wrap gap-2 mb-3">
+          {[
+            { key: "full", label: "Full Registration", count: registrationCounts.full },
+            { key: "basic", label: "Basic Registration", count: registrationCounts.basic },
+          ].map((t) => {
+            const active = registration === t.key;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => handleRegistrationTab(t.key)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "9px 16px",
+                  borderRadius: 999,
+                  border: `1.5px solid ${active ? "#C0392B" : "#F3C2BE"}`,
+                  background: active ? "#C0392B" : "#FFFFFF",
+                  color: active ? "#FFFFFF" : "#C0392B",
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: "pointer",
+                  boxShadow: active ? "0 4px 12px rgba(192, 57, 43, .35)" : "none",
+                  transition: "background 150ms ease, border-color 150ms ease, box-shadow 150ms ease",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {t.label}
+                <span
+                  style={{
+                    background: active ? "rgba(255,255,255,.55)" : "#C0392B",
+                    color: active ? "#C0392B" : "#FFFFFF",
+                    padding: "1px 8px",
+                    borderRadius: 999,
+                    fontSize: 11,
+                    fontWeight: 800,
+                    minWidth: 22,
+                    textAlign: "center",
+                  }}
+                >
+                  {t.count || 0}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         <div className="card">
@@ -326,6 +402,13 @@ const Users = () => {
           </div>
         </div>
       </div>
+
+      {showImport && (
+        <ImportUsersModal
+          onClose={() => setShowImport(false)}
+          onImported={() => setRefreshTick((t) => t + 1)}
+        />
+      )}
 
       {userToDelete && (
         <ConfirmModal
