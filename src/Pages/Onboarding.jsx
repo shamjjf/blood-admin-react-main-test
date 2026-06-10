@@ -47,7 +47,7 @@ const LEVELS = [
 const STATUSES = [
   { key: "pending", label: "Pending review", color: "#C0392B" },
   { key: "approved", label: "Approved", color: "#C0392B" },
-  { key: "rejected", label: "Rejected", color: "#EF4444" },
+  { key: "rejected", label: "Rejected", color: "#C0392B" },
 ];
 
 const fmtDate = (d) => (d ? new Date(d).toLocaleString() : "—");

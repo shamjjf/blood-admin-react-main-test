@@ -339,7 +339,7 @@ const Promotions = () => {
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, opacity: 0.9 }}>
-                      {meta.icon} {meta.label}
+                      {meta.label}
                     </div>
                     <div style={{ fontSize: 17, fontWeight: 800, lineHeight: 1.2 }}>
                       {form.title || "Your campaign title"}
