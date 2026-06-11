@@ -92,6 +92,9 @@ const Promotions = () => {
   const [form, setForm] = useState(blankForm);
   const [items, setItems] = useState([]);
   const [statusFilter, setStatusFilter] = useState("All");
+  const [detail, setDetail] = useState(null); // full campaign shown in the detail view
+  const [editing, setEditing] = useState(false);
+  const [edit, setEdit] = useState(null); // edit form state (cloned from detail)
 
   const apiUrl = import.meta.env.VITE_API_URL; // .../api/admin
   const authHeader = { Authorization: sessionStorage.getItem("auth") };
@@ -161,8 +164,13 @@ const Promotions = () => {
       });
       swal("Done", "Campaign is broadcasting now", "success");
       await loadItems();
+      return true;
     } catch (err) {
       swal("Error", err?.response?.data?.error || "Failed", "error");
+      // The campaign was likely already dispatched (stale row) — refresh so the
+      // stale "Send Now" button disappears and the real status shows.
+      await loadItems();
+      return false;
     } finally {
       setLoading(false);
     }
@@ -175,15 +183,17 @@ const Promotions = () => {
       icon: "warning",
       buttons: ["No", "Yes"],
     });
-    if (!ok) return;
+    if (!ok) return false;
     try {
       setLoading(true);
       await axios.post(`${apiUrl}/promotions/${id}/archive`, {}, {
         headers: { ...authHeader, "Content-Type": "application/json" },
       });
       await loadItems();
+      return true;
     } catch (err) {
       swal("Error", err?.response?.data?.error || "Failed", "error");
+      return false;
     } finally {
       setLoading(false);
     }
@@ -196,13 +206,102 @@ const Promotions = () => {
       buttons: ["No", "Yes"],
       dangerMode: true,
     });
-    if (!ok) return;
+    if (!ok) return false;
     try {
       setLoading(true);
       await axios.delete(`${apiUrl}/promotions/${id}`, { headers: authHeader });
       await loadItems();
+      return true;
     } catch (err) {
       swal("Error", err?.response?.data?.error || "Failed", "error");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ---- Individual campaign: view + edit ----
+  const openDetail = async (id) => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${apiUrl}/promotions/${id}`, {
+        headers: authHeader,
+      });
+      setDetail(res?.data?.data?.item || null);
+      setEditing(false);
+      setEdit(null);
+    } catch (err) {
+      swal("Error", err?.response?.data?.error || "Failed to load campaign", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const closeDetail = () => {
+    setDetail(null);
+    setEditing(false);
+    setEdit(null);
+  };
+
+  // Date → value accepted by <input type="datetime-local"> (local time).
+  const toDtLocal = (d) => {
+    if (!d) return "";
+    const dt = new Date(d);
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+  };
+  const fmtDate = (d) => (d ? new Date(d).toLocaleString() : "—");
+
+  const startEdit = () => {
+    setEdit({
+      category: detail.category,
+      title: detail.title || "",
+      body: detail.body || "",
+      ctaLabel: detail.ctaLabel || "",
+      ctaLink: detail.ctaLink || "",
+      priority: detail.priority || "normal",
+      channels: {
+        inApp: detail.channels?.inApp !== false,
+        email: !!detail.channels?.email,
+        push: !!detail.channels?.push,
+      },
+      startAt: toDtLocal(detail.startAt),
+      endAt: toDtLocal(detail.endAt),
+    });
+    setEditing(true);
+  };
+
+  const setEditCh = (k, v) =>
+    setEdit((e) => ({ ...e, channels: { ...e.channels, [k]: v } }));
+
+  const saveEdit = async () => {
+    if (!edit.title.trim()) return swal("Error", "Title is required", "error");
+    if (!edit.body.trim()) return swal("Error", "Message body is required", "error");
+    if (!edit.channels.inApp && !edit.channels.email && !edit.channels.push)
+      return swal("Error", "Pick at least one delivery channel", "error");
+    try {
+      setLoading(true);
+      const payload = {
+        category: edit.category,
+        title: edit.title.trim(),
+        body: edit.body.trim(),
+        ctaLabel: edit.ctaLabel.trim() || "Learn more",
+        ctaLink: edit.ctaLink.trim() || null,
+        priority: edit.priority,
+        channels: edit.channels,
+        startAt: edit.startAt || null,
+        endAt: edit.endAt || null,
+      };
+      const res = await axios.patch(`${apiUrl}/promotions/${detail._id}`, payload, {
+        headers: { ...authHeader, "Content-Type": "application/json" },
+      });
+      swal("Success", "Campaign updated", "success");
+      setDetail(res?.data?.data?.campaign || detail);
+      setEditing(false);
+      setEdit(null);
+      loadItems();
+    } catch (err) {
+      swal("Error", err?.response?.data?.error || "Failed to update campaign", "error");
     } finally {
       setLoading(false);
     }
@@ -490,8 +589,8 @@ const Promotions = () => {
           );
         })()}
 
-        {/* ============== History ============== */}
-        {tab === "history" && (
+        {/* ============== History (list) ============== */}
+        {tab === "history" && !detail && (
           <div className="card">
             <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center" style={{ gap: 12, flexWrap: "wrap" }}>
               <h5 className="mb-0">All Campaigns</h5>
@@ -530,7 +629,14 @@ const Promotions = () => {
                               <img src={c.image.url} alt="" style={{ width: 36, height: 36, borderRadius: 6, objectFit: "cover" }} />
                             )}
                             <div>
-                              <div className="fw-bold">{c.title}</div>
+                              <div
+                                className="fw-bold"
+                                onClick={() => openDetail(c._id)}
+                                style={{ cursor: "pointer", color: "#C0392B" }}
+                                title="View campaign"
+                              >
+                                {c.title}
+                              </div>
                               <div className="text-muted small" style={{ maxWidth: 280, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                 {c.body}
                               </div>
@@ -550,7 +656,8 @@ const Promotions = () => {
                           {c.stats?.clicks || 0} clicks · {c.stats?.impressions || 0} views
                         </td>
                         <td className="align-center">
-                          {!c.dispatchedAt && (
+                          <button className="btn btn-sm btn-outline-primary me-2" onClick={() => openDetail(c._id)}>View</button>
+                          {!c.dispatchedAt && (c.status === "draft" || c.status === "scheduled") && (
                             <button className="btn btn-sm btn-success me-2" onClick={() => sendNow(c._id)}>Send Now</button>
                           )}
                           {c.status === "active" && (
@@ -566,6 +673,202 @@ const Promotions = () => {
             </div>
           </div>
         )}
+
+        {/* ============== History (individual campaign) ============== */}
+        {tab === "history" && detail && (() => {
+          const meta = CATEGORY_META[detail.category] || CATEGORY_META.announcement;
+          const editable = !detail.dispatchedAt; // backend blocks edits post-broadcast
+          const impressions = detail.stats?.impressions || 0;
+          const clicks = detail.stats?.clicks || 0;
+          const recipients = detail.stats?.recipients || 0;
+          const ctr = impressions ? ((clicks / impressions) * 100).toFixed(1) : "0.0";
+          const metrics = [
+            { label: "Reached", value: recipients, hint: "members at dispatch" },
+            { label: "Views", value: impressions, hint: "banner impressions" },
+            { label: "Clicks", value: clicks, hint: "CTA / banner clicks" },
+            { label: "CTR", value: `${ctr}%`, hint: "clicks ÷ views" },
+          ];
+          // Banner preview uses live edit values while editing, else the saved doc.
+          const pv = editing && edit ? edit : detail;
+
+          return (
+            <div className="card">
+              <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center" style={{ gap: 12, flexWrap: "wrap" }}>
+                <h5 className="mb-0">Campaign Details</h5>
+                <button className="btn btn-sm btn-light" onClick={closeDetail}>← Back to all</button>
+              </div>
+              <div className="card-body">
+                {/* ---------- Analytics ---------- */}
+                <SectionLabel>Performance</SectionLabel>
+                <div className="row g-3 mb-2">
+                  {metrics.map((m) => (
+                    <div className="col-6 col-md-3" key={m.label}>
+                      <div style={{ border: "1px solid #E5E7EB", borderRadius: 12, padding: "16px 18px", height: "100%" }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, color: "#9CA3AF" }}>{m.label}</div>
+                        <div style={{ fontSize: 28, fontWeight: 800, color: "#111", lineHeight: 1.1, marginTop: 4 }}>{m.value}</div>
+                        <div className="text-muted" style={{ fontSize: 11.5 }}>{m.hint}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <hr className="my-4" />
+
+                {/* ---------- Banner preview ---------- */}
+                <SectionLabel>Banner — member dashboard</SectionLabel>
+                <div
+                  style={{
+                    display: "flex", alignItems: "center", flexWrap: "wrap", rowGap: 12, gap: 16,
+                    background: meta.grad, color: "#fff", borderRadius: 14, padding: "18px 20px",
+                    marginBottom: 24, boxShadow: "0 6px 18px rgba(0,0,0,0.12)",
+                  }}
+                >
+                  <div style={{ width: 60, height: 60, borderRadius: 12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, background: "rgba(255,255,255,0.18)", overflow: "hidden" }}>
+                    {detail.image?.url && !editing ? (
+                      <img src={detail.image.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : meta.icon}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, opacity: 0.9 }}>{meta.icon} {meta.label}</div>
+                    <div style={{ fontSize: 17, fontWeight: 800, lineHeight: 1.2 }}>{pv.title || "Your campaign title"}</div>
+                    <div style={{ fontSize: 13, opacity: 0.92, marginTop: 2, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{pv.body || "Your ad copy will appear here as members see it."}</div>
+                  </div>
+                  {pv.ctaLink && (
+                    <span style={{ flexShrink: 0, background: "#fff", color: "#111", borderRadius: 999, padding: "9px 18px", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>{pv.ctaLabel || "Learn more"} →</span>
+                  )}
+                </div>
+
+                <hr className="my-4" />
+
+                {/* ---------- Read-only details ---------- */}
+                {!editing && (
+                  <>
+                    <SectionLabel>Details</SectionLabel>
+                    <div className="row g-3">
+                      {[
+                        { label: "Status", node: <span style={statusBadge(detail.status)}>{detail.status}</span> },
+                        { label: "Category", node: <span className="text-capitalize">{(detail.category || "").replace("_", " ")}</span> },
+                        { label: "Priority", node: <span className="text-capitalize">{detail.priority}</span> },
+                        { label: "Channels", node: channelChips(detail.channels) },
+                        { label: "Call to action", node: detail.ctaLink ? `${detail.ctaLabel || "Learn more"} → ${detail.ctaLink}` : "—" },
+                        { label: "Source", node: <span className="text-capitalize">{detail.source}{detail.createdBy?.name ? ` · ${detail.createdBy.name}` : ""}</span> },
+                        { label: "Starts", node: fmtDate(detail.startAt) },
+                        { label: "Ends", node: fmtDate(detail.endAt) },
+                        { label: "Broadcast at", node: fmtDate(detail.dispatchedAt) },
+                        { label: "Created", node: fmtDate(detail.createdAt) },
+                      ].map((row) => (
+                        <div className="col-md-6" key={row.label}>
+                          <div className="text-muted small" style={{ fontWeight: 600 }}>{row.label}</div>
+                          <div>{row.node}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {!editable && (
+                      <div className="alert alert-info mt-4 mb-0" style={{ fontSize: 13 }}>
+                        This campaign has already been broadcast, so its content can no longer be edited.
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* ---------- Edit form ---------- */}
+                {editing && edit && (
+                  <>
+                    <SectionLabel>Edit campaign</SectionLabel>
+                    <Tabs
+                      variant="pill"
+                      accent="#c0392b"
+                      active={edit.category}
+                      onChange={(cat) => setEdit({ ...edit, category: cat })}
+                      tabs={CATEGORIES.reduce((acc, c) => {
+                        acc[c.value] = { label: CATEGORY_META[c.value].label, render: "" };
+                        return acc;
+                      }, {})}
+                    />
+                    <div className="row g-3 mt-1">
+                      <div className="col-md-8">
+                        <label className="form-label">Title *</label>
+                        <input className="form-control" maxLength={150} value={edit.title} onChange={(e) => setEdit({ ...edit, title: e.target.value })} />
+                      </div>
+                      <div className="col-md-4">
+                        <label className="form-label">Priority</label>
+                        <select className="form-control text-capitalize" value={edit.priority} onChange={(e) => setEdit({ ...edit, priority: e.target.value })}>
+                          {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
+                        </select>
+                      </div>
+                      <div className="col-md-12">
+                        <label className="form-label">Message *</label>
+                        <textarea className="form-control" rows={3} maxLength={500} value={edit.body} onChange={(e) => setEdit({ ...edit, body: e.target.value })} />
+                      </div>
+                      <div className="col-md-4">
+                        <label className="form-label">Button Label</label>
+                        <input className="form-control" maxLength={40} value={edit.ctaLabel} onChange={(e) => setEdit({ ...edit, ctaLabel: e.target.value })} />
+                      </div>
+                      <div className="col-md-8">
+                        <label className="form-label">Link</label>
+                        <input className="form-control" value={edit.ctaLink} onChange={(e) => setEdit({ ...edit, ctaLink: e.target.value })} placeholder="/donation-drives  or  https://…" />
+                      </div>
+                    </div>
+
+                    <SectionLabel>Delivery Channels</SectionLabel>
+                    <div className="row g-3">
+                      {[
+                        { k: "inApp", label: "In-app", hint: "Dashboard banner + notification inbox" },
+                        { k: "email", label: "Email blast", hint: "Promo email to every member" },
+                        { k: "push", label: "Push notification", hint: "Mobile push to opted-in devices" },
+                      ].map((ch) => (
+                        <div className="col-md-4" key={ch.k}>
+                          <label htmlFor={`edit-ch-${ch.k}`} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 14px", height: "100%", border: `1.5px solid ${edit.channels[ch.k] ? "#C0392B" : "#E5E7EB"}`, borderRadius: 10, marginBottom: 0, cursor: "pointer", background: edit.channels[ch.k] ? "rgba(192,57,43,0.04)" : "#fff" }}>
+                            <input type="checkbox" id={`edit-ch-${ch.k}`} checked={edit.channels[ch.k]} onChange={(e) => setEditCh(ch.k, e.target.checked)} style={{ ...CHECKBOX_STYLE, marginTop: 2 }} />
+                            <span style={{ minWidth: 0 }}>
+                              <span style={{ fontWeight: 600, fontSize: 13 }}>{ch.label}</span>
+                              <span className="d-block text-muted" style={{ fontSize: 11.5 }}>{ch.hint}</span>
+                            </span>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+
+                    <SectionLabel>Schedule</SectionLabel>
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <label className="form-label small">Start at</label>
+                        <input type="datetime-local" className="form-control" value={edit.startAt} onChange={(e) => setEdit({ ...edit, startAt: e.target.value })} />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label small">End at (optional)</label>
+                        <input type="datetime-local" className="form-control" value={edit.endAt} onChange={(e) => setEdit({ ...edit, endAt: e.target.value })} />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* ---------- Footer actions ---------- */}
+                <div className="d-flex flex-wrap justify-content-end mt-4" style={{ gap: 8 }}>
+                  {editing ? (
+                    <>
+                      <button className="btn btn-outline-secondary" onClick={() => { setEditing(false); setEdit(null); }}>Cancel</button>
+                      <button className="btn btn-danger" onClick={saveEdit}>Save Changes</button>
+                    </>
+                  ) : (
+                    <>
+                      {editable && (
+                        <button className="btn btn-outline-primary" onClick={startEdit}>Edit</button>
+                      )}
+                      {!detail.dispatchedAt && (detail.status === "draft" || detail.status === "scheduled") && (
+                        <button className="btn btn-success" onClick={async () => { const ok = await sendNow(detail._id); if (ok) openDetail(detail._id); }}>Send Now</button>
+                      )}
+                      {detail.status === "active" && (
+                        <button className="btn btn-outline-secondary" onClick={async () => { const ok = await archive(detail._id); if (ok) openDetail(detail._id); }}>Archive</button>
+                      )}
+                      <button className="btn btn-outline-danger" onClick={async () => { const ok = await remove(detail._id); if (ok) closeDetail(); }}>Delete</button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </>
   );

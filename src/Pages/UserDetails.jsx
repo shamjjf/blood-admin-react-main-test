@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { GlobalContext } from "../GlobalContext";
 import PhoneInput from "react-phone-input-2";
 import swal from "sweetalert";
+import { isValidIntlPhoneRaw } from "../utils/phoneValidation";
 import { formatDate } from "../Components/FormatedDate";
 import SEO from "../SEO";
 
@@ -1003,28 +1004,20 @@ const UserDetails = () => {
                     placeholder="+91 12345-67890"
                     containerStyle={{ width: "100%" }}
                     buttonStyle={{
-                      width: "46px",
+                      width: "48px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      borderTopLeftRadius: "8px",
-                      borderBottomLeftRadius: "8px",
-                      border: "1px solid #E5E7EB",
-                      borderRight: "none",
-                      background: "#FAFAFA",
                     }}
                     country={"in"}
                     value={`+${user.phoneCode} ${user.phone}`}
                     inputStyle={{
                       width: "100%",
                       height: "44px",
-                      paddingLeft: "54px",
-                      borderRadius: "8px",
-                      border: "1px solid #E5E7EB",
                       fontSize: "14px",
                     }}
                     onChange={(value, country, e, formattedValue) => {
-                      if (country.format.length === formattedValue.length) {
+                      if (isValidIntlPhoneRaw(formattedValue)) {
                         setPhoneError(false);
                       } else {
                         setPhoneError(true);

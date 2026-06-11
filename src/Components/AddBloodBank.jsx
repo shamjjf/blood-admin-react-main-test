@@ -3,6 +3,7 @@ import axios from "axios";
 import swal from "sweetalert";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import { isValidIntlPhoneRaw } from "../utils/phoneValidation";
 import { GlobalContext } from "../GlobalContext";
 import { Country, State, City } from "country-state-city";
 
@@ -317,7 +318,7 @@ const AddBloodBank = ({ setShowAddTask, getData }) => {
                   height: "50px",
                 }}
                 onChange={(value, country, e, formattedValue) => {
-                  if (country.format.length === formattedValue.length) {
+                  if (isValidIntlPhoneRaw(formattedValue)) {
                     setPhoneError(false);
                   } else {
                     setPhoneError(true);

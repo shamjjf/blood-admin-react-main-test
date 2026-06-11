@@ -5,6 +5,9 @@ import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 import EmptyState from "../Components/EmptyState";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import { isValidIntlPhoneRaw } from "../utils/phoneValidation";
 
 // Institution categories the panel manages. Kept deliberately academic so it
 // reads differently from the broader Organizations panel (which also has a
@@ -178,6 +181,12 @@ const Colleges = () => {
 
   const handleSave = async () => {
     if (!form.name.trim()) return swal("Error", "Name is required", "error");
+    if (form.contactPhone && !isValidIntlPhoneRaw(form.contactPhone))
+      return swal(
+        "Error",
+        "Please enter a valid coordinator phone number for the selected country",
+        "error"
+      );
     const payload = {
       name: form.name.trim(),
       institutionType: form.institutionType,
@@ -613,10 +622,14 @@ const Colleges = () => {
                 </div>
                 <div className="col-md-4">
                   <label className="form-label">Coordinator Phone</label>
-                  <input
-                    className="form-control"
+                  <PhoneInput
+                    country={"in"}
+                    preferredCountries={["in"]}
+                    enableLongNumbers={true}
                     value={form.contactPhone}
-                    onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}
+                    onChange={(value) => setForm({ ...form, contactPhone: value })}
+                    inputClass="form-control"
+                    inputStyle={{ width: "100%" }}
                   />
                 </div>
                 <div className="col-md-4">

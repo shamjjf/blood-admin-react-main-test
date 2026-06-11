@@ -4,6 +4,9 @@ import { GlobalContext } from "../GlobalContext";
 import swal from "sweetalert";
 import { formatDate } from "./FormatedDate";
 import RequestItems from "./RequestItems";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import { isValidIntlPhoneRaw } from "../utils/phoneValidation";
 
 const AddContribution = ({ setShowAddContributionForm, setRefresh }) => {
   const { setLoading, alert } = useContext(GlobalContext);
@@ -230,6 +233,10 @@ const AddContribution = ({ setShowAddContributionForm, setRefresh }) => {
     //   validation pending for the whole form
 
     if (mainTask.type === "vendor" && customVendorFlag) {
+      if (!isValidIntlPhoneRaw(String(createVendor.mobileNumber || ""))) {
+        swal("Error", "Please enter a valid mobile number for the selected country", "error");
+        return;
+      }
       // step1- create the vendor
       try {
         setLoading(true);
@@ -535,15 +542,17 @@ const AddContribution = ({ setShowAddContributionForm, setRefresh }) => {
                 <label htmlFor="mobileNumber">
                   Mobile Number <span className="text-danger">*</span>
                 </label>
-                <input
-                  onChange={handleChangeForVendor}
-                  type="number"
-                  className="form-control"
-                  id="mobileNumber"
-                  name="mobileNumber"
-                  placeholder="Mobile Number"
-                  value={createVendor.mobileNumber}
-                  required
+                <PhoneInput
+                  country={"in"}
+                  preferredCountries={["in"]}
+                  enableLongNumbers={true}
+                  value={String(createVendor.mobileNumber || "")}
+                  onChange={(value) =>
+                    setCreateVendor((prev) => ({ ...prev, mobileNumber: value }))
+                  }
+                  inputProps={{ name: "mobileNumber", required: true }}
+                  inputClass="form-control"
+                  inputStyle={{ width: "100%" }}
                 />
               </div>
             )}
