@@ -1251,6 +1251,14 @@ input:focus, textarea:focus, select:focus {
   color: #1a1a1a !important;
   padding: 0 12px !important;
 }
+/* react-phone-input-2: its input also carries `.form-control`, so the generic
+   rule above forces `padding-left: 12px` and the ~48px flag widget overlaps the
+   number (the leading digits get clipped). These more-specific rules win the
+   `!important` battle and reserve room on the left for the flag. */
+.content-wrapper .form-group .react-tel-input .form-control,
+.content-wrapper .react-tel-input .form-control {
+  padding-left: 48px !important;
+}
 .content-wrapper .form-group .form-control:focus {
   border-color: var(--red) !important;
   box-shadow: 0 0 0 3px rgba(192,57,43,0.1) !important;
