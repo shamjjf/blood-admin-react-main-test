@@ -8,6 +8,9 @@ import axios from "axios";
 import swal from "sweetalert";
 import { formatDate } from "../Components/FormatedDate";
 import SEO from "../SEO";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import { isValidIntlPhoneRaw } from "../utils/phoneValidation";
 
 /* ── shared field style ── */
 const F = {
@@ -482,22 +485,31 @@ const RequestDetails = () => {
                 disabled={!isEditing} className="rd-input" style={F.input}/>
               {errors.needUnits && <div style={F.err}>{errors.needUnits}</div>}
             </div>
-            {/* Phone — read-only display. A plain input is used instead of the
-                react-phone-input-2 flag widget because that widget overlaps the
-                flag dropdown on top of the value and clips the leading digit. */}
+            {/* Phone — editable when the form is in edit mode. Stores the
+                national number in `phone` and the bare dial code in `phoneCode`
+                (matching the backend), and validates strictly via libphonenumber. */}
             <div style={F.wrap}>
               <label style={F.label}>Mobile Number</label>
-              <input
-                type="text"
-                readOnly
-                value={
-                  request.phone
-                    ? `+${request.phoneCode || ""} ${request.phone}`.trim()
-                    : ""
-                }
-                className="rd-input"
-                style={F.input}
-                placeholder="Mobile Number"
+              <PhoneInput
+                country={"in"}
+                preferredCountries={["in"]}
+                enableLongNumbers={true}
+                disabled={!isEditing}
+                value={`${request.phoneCode || ""}${request.phone || ""}`}
+                onChange={(value, country, e, formattedValue) => {
+                  const national = formattedValue
+                    .split(" ")
+                    .filter((part, i) => i !== 0)
+                    .join("")
+                    .replace(/-/g, "");
+                  setPhoneError(!isValidIntlPhoneRaw(value));
+                  setRequest((p) => ({
+                    ...p,
+                    phone: national,
+                    phoneCode: country.dialCode,
+                  }));
+                }}
+                inputStyle={{ width: "100%", height: "44px" }}
               />
             </div>
             {/* Location */}
