@@ -126,7 +126,7 @@ const Missions = () => {
       <SEO title="Missions" />
       <div className="content-wrapper pt-5">
         <div className="d-flex mb-3 justify-content-between align-items-center flex-wrap" style={{ gap: 12 }}>
-          <p className="card-title p-0 m-0">🎯 Daily &amp; Weekly Missions</p>
+          <p className="card-title p-0 m-0">Daily &amp; Weekly Missions</p>
         </div>
 
         <Tabs

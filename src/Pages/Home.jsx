@@ -179,6 +179,10 @@ const Home = () => {
   const totalPlatelet = (s.plateletRequestCountCrit ?? 0) + (s.plateletRequestCountNoCrit ?? 0);
   const totalTasks = (s.openTasks ?? 0) + (s.closeTasks ?? 0);
   const totalUsers = s.userCount || 0;
+  // Registration split: "full" = profile >= 90% complete, "basic" = below.
+  // Shown next to Total Users so admins can see how many finished onboarding.
+  const fullReg = s.fullRegistrationCount || 0;
+  const basicReg = s.basicRegistrationCount || 0;
   // Special Users total is the sum of the four widget categories so the
   // badge always matches the bars (the legacy specialUserCount field only
   // covered the SpecialUser collection — not the dedicated portal accounts).
@@ -287,7 +291,7 @@ const Home = () => {
         {/* ── MAIN STAT CARDS ── */}
         <div className="ph1" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12 }}>
           {[
-            { icon: "ti ti-users",             cls: "white",  hero: true,  val: totalUsers,             label: "Total Users",         trend: `+${totalUsers} registered` },
+            { icon: "ti ti-users",             cls: "white",  hero: true,  val: totalUsers,             label: "Total Users",         trend: `+${totalUsers} registered`, breakdown: [{ label: "Full Registration", val: fullReg }, { label: "Basic Registration", val: basicReg }] },
             { icon: "ti ti-droplet-filled",    cls: "red",    hero: false, val: totalBlood,             label: "Blood Requests",      trend: s.bloodRequestCountCrit ? `${s.bloodRequestCountCrit} critical` : "No critical" },
             { icon: "ti ti-activity",          cls: "blue",   hero: false, val: totalPlatelet,          label: "Platelet Requests",   trend: totalPlatelet ? "Active" : "No change" },
             { icon: "ti ti-droplet-half-2",    cls: "green",  hero: false, val: s.availableDonorsCount ?? 0, label: "Total Donors",   trend: "Active today" },
@@ -298,6 +302,7 @@ const Home = () => {
               borderRadius: "var(--r)", border: c.hero ? "none" : "1px solid var(--border)",
               padding: 16, boxShadow: "var(--shadow)", transition: "all 0.2s",
               cursor: "default", position: "relative", overflow: "hidden",
+              display: "flex", flexDirection: "column",
             }}
               onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "var(--shadow-md)"; }}
               onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "var(--shadow)"; }}>
@@ -309,7 +314,22 @@ const Home = () => {
               }}><i className={c.icon} /></div>
               <div style={{ fontFamily: "var(--f-display)", fontSize: 28, fontWeight: 800, color: c.hero ? "white" : "var(--dark)", letterSpacing: "-1px", lineHeight: 1 }}>{c.val}</div>
               <div style={{ fontSize: 11, color: c.hero ? "rgba(255,255,255,0.55)" : "var(--muted)", fontWeight: 500, marginTop: 4 }}>{c.label}</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, marginTop: 8, color: c.hero ? "rgba(255,255,255,0.7)" : "var(--green)" }}>
+              {c.breakdown && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10, position: "relative", zIndex: 1 }}>
+                  {c.breakdown.map((b) => (
+                    <div key={b.label} style={{
+                      display: "flex", alignItems: "center", gap: 8, alignSelf: "flex-start",
+                      background: c.hero ? "rgba(255,255,255,0.16)" : "var(--red-pale)",
+                      color: c.hero ? "white" : "var(--red)",
+                      borderRadius: 8, padding: "6px 12px", fontSize: 13, fontWeight: 700,
+                    }}>
+                      <span style={{ fontFamily: "var(--f-display)", fontSize: 17, fontWeight: 800 }}>{b.val}</span>
+                      <span style={{ fontWeight: 600, opacity: 0.9 }}>{b.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, marginTop: "auto", paddingTop: 10, color: c.hero ? "rgba(255,255,255,0.7)" : "var(--green)" }}>
                 <i className="ti ti-trending-up" style={{ fontSize: 13 }} /> {c.trend}
               </div>
               <div style={{ position: "absolute", right: -8, bottom: -12, fontFamily: "var(--f-display)", fontSize: 64, fontWeight: 800, color: c.hero ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", lineHeight: 1, pointerEvents: "none", userSelect: "none" }}>{c.val}</div>

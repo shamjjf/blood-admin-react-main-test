@@ -192,7 +192,12 @@ nav.navbar,
   text-decoration: none !important;
   flex-shrink: 0 !important;
 }
-.lsa-notif-btn:hover { background: rgba(255, 255, 255, 0.25) !important; color: #FFFFFF !important; }
+.lsa-notif-btn:hover {
+  background: #FFFFFF !important;
+  border-color: #FFFFFF !important;
+  color: #C0392B !important;
+}
+.lsa-notif-btn:hover i { color: #C0392B !important; }
 .lsa-notif-btn i { font-size: 17px !important; color: #FFFFFF !important; }
 .lsa-notif-badge {
   position: absolute !important; top: 6px !important; right: 6px !important;
@@ -211,7 +216,14 @@ nav.navbar,
   cursor: pointer !important; transition: all 0.15s !important;
   flex-shrink: 0 !important;
 }
-.lsa-admin-chip:hover { background: rgba(255, 255, 255, 0.25) !important; }
+.lsa-admin-chip:hover { background: #FFFFFF !important; border-color: #FFFFFF !important; }
+/* On hover the chip turns solid white — flip its text/icon to red so it stays
+   readable, and invert the avatar (red fill, white initials) so it doesn't
+   disappear against the white chip. */
+.lsa-admin-chip:hover .lsa-name { color: #C0392B !important; }
+.lsa-admin-chip:hover .lsa-role { color: #9C0C0D !important; }
+.lsa-admin-chip:hover i { color: #C0392B !important; }
+.lsa-admin-chip:hover .lsa-admin-av { background: #C0392B !important; color: #FFFFFF !important; }
 .lsa-admin-av {
   width: 26px !important; height: 26px !important;
   border-radius: 50% !important; background: #FFFFFF !important;
@@ -950,8 +962,12 @@ nav.sidebar {
    logo + hamburger + notif/settings + avatar all fit a 360px-wide phone. */
 @media (max-width: 768px) {
   /* Keep the whole topbar on ONE row so it stays var(--topbar-h) tall and the
-     page content below it isn't pushed under a wrapped second row. */
-  .navbar, nav.navbar { flex-wrap: nowrap !important; overflow: hidden !important; }
+     page content below it isn't pushed under a wrapped second row.
+     NOTE: overflow stays `visible` — flex-wrap:nowrap + min-width:0 on the
+     children already prevents wrapping, and `hidden` here would CLIP the
+     avatar dropdown that drops below the navbar (it appeared to vanish behind
+     the page). */
+  .navbar, nav.navbar { flex-wrap: nowrap !important; overflow: visible !important; }
   .navbar .navbar-brand-wrapper {
     width: auto !important; min-width: 0 !important;
     border-right: none !important; padding: 0 8px !important;
@@ -1029,6 +1045,41 @@ nav.sidebar {
 /* Small phone: trim the big hero numbers / dashboard cards */
 @media (max-width: 480px) {
   .content-wrapper h1 { font-size: 22px !important; }
+}
+
+/* ================================================================
+   RESPONSIVE — FILTER / TOOLBAR ROWS
+   Most list pages have a filter bar: several <select>s + a search
+   input + a Search button laid out in a `d-flex flex-wrap` row, each
+   control carrying an inline max-width (e.g. style="max-width:190px").
+   On a phone those wrap into ragged half-rows. Force every control and
+   its button to span the full width so they stack into a clean column.
+   ================================================================ */
+@media (max-width: 768px) {
+  .content-wrapper .d-flex.flex-wrap > .form-control,
+  .content-wrapper .d-flex.flex-wrap > .form-select,
+  .content-wrapper .d-flex.flex-wrap > select,
+  .content-wrapper .d-flex.flex-wrap > input,
+  .content-wrapper .d-flex.flex-wrap > textarea,
+  .content-wrapper .d-flex.flex-wrap > .btn {
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Generic safety net: never let a fixed-width inline element force
+     horizontal page scroll on a phone. Inputs/selects/textarea/buttons
+     and images cap at the container width. */
+  .content-wrapper input,
+  .content-wrapper select,
+  .content-wrapper textarea,
+  .content-wrapper .form-control,
+  .content-wrapper .form-select { max-width: 100% !important; }
+  .content-wrapper img { max-width: 100% !important; height: auto !important; }
+
+  /* Long unbroken strings (emails, URLs, ids) wrap instead of overflowing. */
+  .content-wrapper td,
+  .content-wrapper .card-body { overflow-wrap: anywhere !important; }
 }
 
 /* ================================================================
