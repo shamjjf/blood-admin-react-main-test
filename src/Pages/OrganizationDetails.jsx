@@ -5,6 +5,9 @@ import swal from "sweetalert";
 import moment from "moment";
 import SEO from "../SEO";
 import Tabs from "../Components/Tabs";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import { isValidIntlPhoneRaw } from "../utils/phoneValidation";
 import { GlobalContext } from "../GlobalContext";
 import { DEMO_MODE, demoSearchUsers } from "./organizationsDemo";
 
@@ -511,6 +514,9 @@ const MemberDetailModal = ({ member, org, onClose, onChanged, onRemoved }) => {
     .split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("");
 
   const save = async () => {
+    if (phone && !isValidIntlPhoneRaw(phone)) {
+      return swal("Error", "Please enter a valid phone number for the selected country", "error");
+    }
     try {
       setLoading(true);
       await axios.patch(
@@ -630,7 +636,15 @@ const MemberDetailModal = ({ member, org, onClose, onChanged, onRemoved }) => {
             </div>
             <div className="col-md-8">
               <label className="form-label">Phone</label>
-              <input className="form-control" value={phone} onChange={onField(setPhone)} placeholder="+91 …" />
+              <PhoneInput
+                country={"in"}
+                preferredCountries={["in"]}
+                enableLongNumbers={true}
+                value={phone}
+                onChange={(value) => { setPhone(value); setDirty(true); }}
+                inputClass="form-control"
+                inputStyle={{ width: "100%" }}
+              />
             </div>
             <div className="col-md-12">
               <label className="form-label">Notes</label>

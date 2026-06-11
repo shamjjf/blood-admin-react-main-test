@@ -10,12 +10,17 @@ import Swal from "sweetalert2";
 import PageDetails from "../Components/PageDetails";
 import Pagination from "../Components/Pagination";
 import PhoneInput from "react-phone-input-2";
+import { isValidIntlPhoneRaw } from "../utils/phoneValidation";
 
 const BulkUserDetails = () => {
   const [task, setTask] = useState(null);
   const [request, setRequest] = useState(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  // Tracks strict phone validity for the (currently display-only) mobile field.
+  // Declared here because the PhoneInput onChange below toggles it — without
+  // this the handler referenced an undefined setter.
+  const [phoneError, setPhoneError] = useState(false);
 
   const [bulkusers, setBulkUsers] = useState([]);
 
@@ -258,7 +263,7 @@ const BulkUserDetails = () => {
                       // marginLeft: "7px",
                     }}
                     onChange={(value, country, e, formattedValue) => {
-                      if (country.format.length === formattedValue.length) {
+                      if (isValidIntlPhoneRaw(formattedValue)) {
                         setPhoneError(false);
                       } else {
                         setPhoneError(true);

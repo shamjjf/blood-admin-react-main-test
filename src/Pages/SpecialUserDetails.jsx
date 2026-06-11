@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { GlobalContext } from "../GlobalContext";
 import PhoneInput from "react-phone-input-2";
 import swal from "sweetalert";
+import { isValidIntlPhoneRaw } from "../utils/phoneValidation";
 import { formatDate } from "../Components/FormatedDate";
 import SEO from "../SEO";
 
@@ -577,7 +578,7 @@ const SpecialUserDetails = () => {
                       // marginLeft: "7px",
                     }}
                     onChange={(value, country, e, formattedValue) => {
-                      if (country.format.length === formattedValue.length) {
+                      if (isValidIntlPhoneRaw(formattedValue)) {
                         setPhoneError(false);
                       } else {
                         setPhoneError(true);

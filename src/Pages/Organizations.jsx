@@ -5,6 +5,9 @@ import swal from "sweetalert";
 import SEO from "../SEO";
 import { GlobalContext } from "../GlobalContext";
 import EmptyState from "../Components/EmptyState";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import { isValidIntlPhoneRaw } from "../utils/phoneValidation";
 import { DEMO_MODE, resetOrganizationsDemoData } from "./organizationsDemo";
 
 const emptyForm = {
@@ -156,6 +159,12 @@ const Organizations = () => {
 
   const handleSave = async () => {
     if (!form.name.trim()) return swal("Error", "Name is required", "error");
+    if (form.contactPhone && !isValidIntlPhoneRaw(form.contactPhone))
+      return swal(
+        "Error",
+        "Please enter a valid contact phone number for the selected country",
+        "error"
+      );
     const payload = {
       name: form.name.trim(),
       // Org accounts created here log into the organisation portal, which
@@ -581,10 +590,14 @@ const Organizations = () => {
                 </div>
                 <div className="col-md-4">
                   <label className="form-label">Contact Phone</label>
-                  <input
-                    className="form-control"
+                  <PhoneInput
+                    country={"in"}
+                    preferredCountries={["in"]}
+                    enableLongNumbers={true}
                     value={form.contactPhone}
-                    onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}
+                    onChange={(value) => setForm({ ...form, contactPhone: value })}
+                    inputClass="form-control"
+                    inputStyle={{ width: "100%" }}
                   />
                 </div>
                 <div className="col-md-8">
