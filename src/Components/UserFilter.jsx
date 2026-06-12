@@ -20,10 +20,21 @@ const ROLES = [
   { value: "deactivated", label: "Deactivated" },
 ];
 
-const UserFilter = ({ bloodGroupSelects, setBloodGroupSelects, genderSelects, setGenderSelects, pointsSelects, setPointsSelects, setSearchText, kycStatusSelects, setKycStatusSelects, roleSelects, setRoleSelects }) => {
+const UserFilter = ({ bloodGroupSelects, setBloodGroupSelects, genderSelects, setGenderSelects, pointsSelects, setPointsSelects, setSearchText, citySelects, setCitySelects, kycStatusSelects, setKycStatusSelects, roleSelects, setRoleSelects }) => {
   const debounce = (e) => setTimeout(() => setSearchText(e.target.value), 300);
+  const debounceCity = (e) => {
+    const v = e.target.value;
+    setTimeout(() => setCitySelects && setCitySelects(v), 300);
+  };
   return (
     <div style={S.bar}>
+      {/* Match the City input's placeholder to the dropdown label colour. */}
+      <style>{`
+        .uf-city-input::placeholder { color:#374151 !important; font-weight:600 !important; opacity:1 !important; }
+        .uf-city-input::-webkit-input-placeholder { color:#374151 !important; font-weight:600 !important; opacity:1 !important; }
+        .uf-city-input::-moz-placeholder { color:#374151 !important; font-weight:600 !important; opacity:1 !important; }
+        .uf-city-input:-ms-input-placeholder { color:#374151 !important; font-weight:600 !important; }
+      `}</style>
       <div style={S.srchWrap}>
         <i className="ti ti-search" style={S.srchIcon}/>
         <input type="text" placeholder="Search users..." onChange={debounce} style={S.srchInput}/>
@@ -34,6 +45,7 @@ const UserFilter = ({ bloodGroupSelects, setBloodGroupSelects, genderSelects, se
       <select value={bloodGroupSelects} onChange={e => setBloodGroupSelects(e.target.value)} style={S.sel}>
         {BLOOD.map(b => <option key={b} value={b}>{b === "All" ? "Blood Group" : b}</option>)}
       </select>
+      <input type="text" className="uf-city-input" placeholder="City" defaultValue={citySelects || ""} onChange={debounceCity} style={S.sel}/>
       <select value={genderSelects} onChange={e => setGenderSelects(e.target.value)} style={S.sel}>
         {["All","Male","Female"].map(g => <option key={g} value={g}>{g === "All" ? "Gender" : g}</option>)}
       </select>
