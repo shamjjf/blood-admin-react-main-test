@@ -160,6 +160,40 @@ const Influencer = () => {
     }
   };
 
+  // Permanently delete an influencer profile from the database. Available in
+  // any status. The user's account is kept but reverted to a regular member.
+  const removeInfluencer = async (inf) => {
+    const ok = await swal({
+      title: `Delete ${inf.user?.name || "this influencer"}?`,
+      text: "This permanently removes the influencer profile from the database. The user's account is kept but reverted to a regular member. This cannot be undone.",
+      icon: "warning",
+      buttons: ["Cancel", "Delete"],
+      dangerMode: true,
+    });
+    if (!ok) return;
+    try {
+      setLoading(true);
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/influencers/${inf._id}`,
+        {
+          headers: {
+            Authorization: sessionStorage.getItem("auth"),
+          },
+        }
+      );
+      swal("Deleted", "Influencer removed from the database.", "success");
+      await load();
+    } catch (err) {
+      swal(
+        "Error",
+        err?.response?.data?.error || "Could not delete influencer",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const activeColor =
     TABS.find((t) => t.key === activeTab)?.color || "#6B7280";
 
@@ -839,6 +873,18 @@ const Influencer = () => {
                             </button>
                           </div>
                         )}
+
+                        {/* Permanent delete — removes the influencer from the
+                            database. Available in any status. */}
+                        <div className="mt-3 pt-2 border-top d-flex justify-content-end">
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => removeInfluencer(inf)}
+                          >
+                            <i className="ti ti-trash me-1" />
+                            Delete influencer
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>

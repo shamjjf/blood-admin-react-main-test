@@ -24,6 +24,7 @@ const Users = () => {
   const [bloodGroupSelects, setBloodGroupSelects] = useState("All");
   const [pointsSelects, setPointsSelects] = useState("0");
   const [searchText, setSearchText] = useState("");
+  const [citySelects, setCitySelects] = useState("");
   const [kycStatusSelects, setKycStatusSelects] = useState("All");
   const [roleSelects, setRoleSelects] = useState("All");
 
@@ -117,7 +118,7 @@ const Users = () => {
         setIsLoading(true);
         let url = `${import.meta.env.VITE_API_URL}/users?n=${limit}&p=${currentPage}&bloodGroup=${encodeURIComponent(
           bloodGroupSelects
-        )}&gender=${genderSelects}&points=${pointsSelects}&searchText=${searchText}&kycStatus=${kycStatusSelects}&role=${roleSelects}&registration=${registration}`;
+        )}&gender=${genderSelects}&points=${pointsSelects}&searchText=${searchText}&city=${encodeURIComponent(citySelects)}&kycStatus=${kycStatusSelects}&role=${roleSelects}&registration=${registration}`;
 
         const res = await axios.get(url, {
           headers: {
@@ -136,7 +137,7 @@ const Users = () => {
       }
     };
     getData();
-  }, [limit, currentPage, bloodGroupSelects, pointsSelects, genderSelects, searchText, kycStatusSelects, roleSelects, registration, refreshTick]);
+  }, [limit, currentPage, bloodGroupSelects, pointsSelects, genderSelects, searchText, citySelects, kycStatusSelects, roleSelects, registration, refreshTick]);
 
   // Switch tabs (full vs basic) and jump back to the first page so the user
   // never lands on an out-of-range page from the previous bucket.
@@ -237,6 +238,8 @@ const Users = () => {
                 pointsSelects={pointsSelects}
                 setPointsSelects={setPointsSelects}
                 setSearchText={setSearchText}
+                citySelects={citySelects}
+                setCitySelects={setCitySelects}
                 kycStatusSelects={kycStatusSelects}
                 setKycStatusSelects={setKycStatusSelects}
                 roleSelects={roleSelects}
@@ -251,6 +254,7 @@ const Users = () => {
                         <th className="align-left">Mobile Number</th>
                         <th className="align-left">Gender</th>
                         <th className="align-left">Blood Group</th>
+                        <th className="align-left">City</th>
                         <th className="align-left">Points</th>
                         <th className="align-left">User Type</th>
                         <th className="align-left">Roles</th>
@@ -274,6 +278,9 @@ const Users = () => {
                           </td>
                           <td className="align-left">
                             <Skeleton height={20} width={100} />
+                          </td>
+                          <td className="align-left">
+                            <Skeleton height={20} width={120} />
                           </td>
                           <td className="align-left">
                             <Skeleton height={20} width={100} />
@@ -308,6 +315,7 @@ const Users = () => {
                         <th className="align-left">Mobile Number</th>
                         <th className="align-left">Gender</th>
                         <th className="align-left">Blood Group</th>
+                        <th className="align-left">City</th>
                         <th className="align-left">Points</th>
                         <th className="align-left">User Type</th>
                         <th className="align-left">Roles</th>
@@ -328,6 +336,17 @@ const Users = () => {
                             </td>
                             <td className="align-left">{user.gender}</td>
                             <td className="align-left">{user.bloodGroup}</td>
+                            <td className="align-left">
+                              {(() => {
+                                const a = user.currentAddress || {};
+                                const b = user.permanentAddress || {};
+                                const parts = [
+                                  a.city || b.city,
+                                  a.state || b.state,
+                                ].filter(Boolean);
+                                return parts.length ? parts.join(", ") : "—";
+                              })()}
+                            </td>
                             <td className="align-left">{user.points}</td>
                             <td className="align-left text-capitalize">
                               {user.type == "user" ? "Individual" : user.type}
