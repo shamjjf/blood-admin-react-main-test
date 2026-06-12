@@ -87,6 +87,12 @@ const OverviewTab = ({ org, refresh }) => {
 
   const saveBasic = async () => {
     if (!form.name.trim()) return swal("Error", "Name is required", "error");
+    if (form.contactEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail.trim())) {
+      return swal("Error", "Please enter a valid contact email address", "error");
+    }
+    if (form.contactPhone && !isValidIntlPhoneRaw(form.contactPhone)) {
+      return swal("Error", "Please enter a valid contact phone number for the selected country", "error");
+    }
     try {
       setLoading(true);
       await axios.patch(apiUrl(`/organizations/${org._id}`), form, { headers: authHeaders() });
@@ -156,7 +162,15 @@ const OverviewTab = ({ org, refresh }) => {
               </div>
               <div className="col-md-4">
                 <label className="form-label fw-semibold">Contact Phone</label>
-                <input className="form-control" value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} />
+                <PhoneInput
+                  country={"in"}
+                  preferredCountries={["in"]}
+                  enableLongNumbers={true}
+                  value={form.contactPhone}
+                  onChange={(value) => setForm({ ...form, contactPhone: value })}
+                  inputClass="form-control"
+                  inputStyle={{ width: "100%" }}
+                />
               </div>
               <div className="col-md-8">
                 <label className="form-label fw-semibold">Address</label>
